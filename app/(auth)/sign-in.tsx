@@ -4,17 +4,44 @@ import { icons, images } from '@/constants'
 import InputField from '@/components/InputField'
 import CustomButton from '@/components/CustomButton'
 import OAuth from '@/components/OAuth'
-import { Link } from 'expo-router'
+import { Link,useRouter } from 'expo-router'
 import {LinearGradient} from 'expo-linear-gradient'
+import { useSignIn } from '@clerk/clerk-expo'
+
 const SignIn= () => {
+  const router=useRouter()
+
   const [form,setForm]=useState({
     email:'',
     password:'',
   })
   const [errorMsg,setErrorMsg]=useState<string|null>(null)
   const [isLoading, setIsLoading] = useState(false);
+  const {signIn,setActive,isLoaded}=useSignIn()
   const handleSubmit=async()=>{
-
+    if(!isLoaded ||  isLoading) return;
+    setIsLoading(true);
+    setErrorMsg(null);
+    try{
+      const attempt=await signIn.create({
+        identifier:form.email,
+        password:form.password
+      })
+      if(attempt.status==='complete'){
+        await setActive({session:attempt.createdSessionId})
+        router.replace('/(root)/(tabs)/home')
+      }
+      else{
+        console.log('sign in problem: ', attempt)
+        setErrorMsg(attempt.status)
+      }
+    }catch(err){
+      console.error('sign in error: ',JSON.stringify(err,null,2))
+      setErrorMsg(err?.errors?.[0]?.longMessage || 'invalid email or password')
+    }finally{
+      setIsLoading(false)
+      setForm({email:'',password:''})
+    }
   }
   return (
     <ScrollView
@@ -55,7 +82,8 @@ const SignIn= () => {
             onChangeText={(value) => setForm({ ...form, password: value })}
             secureTextEntry
           />
-          {/* error message here */}
+          
+          {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
            <CustomButton
             title={isLoading ? 'Signing in...' : 'Sign in'}
             onPress={handleSubmit}
