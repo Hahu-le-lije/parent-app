@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     marginHorizontal: 8,
-    fontWeight: "bold",
+    fontFamily: "Poppins-Bold",
   },
   icon: {
     marginHorizontal: 4,

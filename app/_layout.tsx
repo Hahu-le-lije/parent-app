@@ -4,9 +4,11 @@ import { StatusBar } from 'expo-status-bar';
 import {useFonts} from 'expo-font'
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
+import {ClerkProvider} from '@clerk/clerk-expo'
+import {tokenCache} from '@clerk/clerk-expo/token-cache';
 
 SplashScreen.preventAutoHideAsync();
-
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 export default function RootLayout() {
 const [loaded]=useFonts({
   "Poppins-Regular":require("../assets/fonts/Poppins/Poppins-Regular.ttf"),
@@ -23,13 +25,13 @@ if(!loaded){
 }
 
   return (
-    <>
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <Stack>
         <Stack.Screen name="(root)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{headerShown:false}}/>
         <Stack.Screen name="index" options={{headerShown:false}}/>
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </ClerkProvider>
   );
 }

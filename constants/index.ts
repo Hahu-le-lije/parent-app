@@ -23,6 +23,7 @@ import selectedMarker from "@/assets/icons/selected-marker.png";
 import star from "@/assets/icons/star.png";
 import target from "@/assets/icons/target.png";
 import to from "@/assets/icons/to.png";
+import Logo from "@/assets/images/hahu_logo.png";
 
 
 export const icons = {
@@ -52,6 +53,9 @@ export const icons = {
   target,
   to,
 };
+export const images={
+  Logo
+}
 export const onboardingData = [
   {
     id: 1,
