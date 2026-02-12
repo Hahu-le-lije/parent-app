@@ -19,7 +19,7 @@ const TabIcon = ({ focused, source }: TabIconProps) => {
           borderRadius: 999, 
         },
         focused && {
-          backgroundColor: 'rgba(114, 47, 229, 0.18)', // light purple background when active
+          backgroundColor: 'rgba(114, 47, 229, 0.18)', 
         },
       ]}
     >
@@ -89,7 +89,7 @@ const TabLayout = () => {
         }}
       />
 
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="rides"
         options={{
           title: 'Rides',
@@ -103,7 +103,7 @@ const TabLayout = () => {
           title: 'Chat',
           tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.chat} />,
         }}
-      />
+      />*/}
 
       <Tabs.Screen
         name="profile"
@@ -111,7 +111,7 @@ const TabLayout = () => {
           title: 'Profile',
           tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.profile} />,
         }}
-      />
+      /> 
     </Tabs>
   );
 };

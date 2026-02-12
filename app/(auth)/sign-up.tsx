@@ -97,7 +97,7 @@ const SignUp = () => {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [showSuccess]);
+  }, [showSuccess,router]);
 
   return (
     <>
@@ -241,7 +241,7 @@ const SignUp = () => {
         </View>
       </Modal>
 
-      {/* Success Modal */}
+      
       <Modal visible={showSuccess} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, styles.successModal]}>

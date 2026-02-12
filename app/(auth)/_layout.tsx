@@ -12,11 +12,11 @@ const AuthLayout=()=>{
     )
   }
   if(isSignedIn){
-     return <Redirect href="./(root)/(tabs)/home" />;
+     return <Redirect href="/(root)/(tabs)/home" />;
   }
     return (
         <>
-    <StatusBar   style="auto" />
+    <StatusBar translucent={false} style="auto" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="sign-in" />
