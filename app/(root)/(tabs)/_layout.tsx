@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { View, Image, ImageSourcePropType } from 'react-native';
 import { icons } from '@/constants';
+import { StatusBar } from 'expo-status-bar';
 
 interface TabIconProps {
   focused: boolean;
@@ -112,6 +113,7 @@ const TabLayout = () => {
           tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.profile} />,
         }}
       /> 
+      <StatusBar style="auto"/>
     </Tabs>
   );
 };
