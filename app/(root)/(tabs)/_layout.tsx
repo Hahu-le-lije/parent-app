@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { View, Image, ImageSourcePropType } from 'react-native';
+import { View, Image, ImageSourcePropType, Platform } from 'react-native';
 import { icons } from '@/constants';
 import { StatusBar } from 'expo-status-bar';
 
@@ -15,38 +15,43 @@ const TabIcon = ({ focused, source }: TabIconProps) => {
         {
           alignItems: 'center',
           justifyContent: 'center',
-          paddingVertical: 6,
-          paddingHorizontal: 16,
-          borderRadius: 999, 
+          paddingVertical: 8,
+          paddingHorizontal: 18,
+          borderRadius: 999,
+          transitionProperty: 'all',
+          transitionDuration: '150ms', // smooth feel
         },
         focused && {
-          backgroundColor: 'rgba(114, 47, 229, 0.18)', 
+          backgroundColor: 'rgba(114, 63, 229, 0.22)', // softer purple glow
         },
       ]}
     >
       <View
         style={[
           {
-            width: 28,
-            height: 28,
+            width: 40,
+            height: 40,
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
-          },
-          focused && {
-            backgroundColor: '#723FE5', // solid purple circle when active
+            backgroundColor: focused ? '#723FE5' : 'transparent',
+            shadowColor: focused ? '#723FE5' : 'transparent',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.4,
+            shadowRadius: 6,
+            elevation: focused ? 6 : 0,
           },
         ]}
       >
         <Image
           source={source}
           style={{
-            width: focused ? 24 : 22,
-            height: focused ? 24 : 22,
-            tintColor: focused ? 'white' : '#9CA3AF', // white when active, gray when inactive
-            opacity: focused ? 1 : 0.7,
+            width: focused ? 26 : 24,
+            height: focused ? 26 : 24,
+            tintColor: focused ? '#ffffff' : '#A0AEC0',
+            opacity: focused ? 1 : 0.85,
           }}
-          resizeMode='contain'
+          resizeMode="contain"
         />
       </View>
     </View>
@@ -55,66 +60,80 @@ const TabIcon = ({ focused, source }: TabIconProps) => {
 
 const TabLayout = () => {
   return (
-    <Tabs
-      initialRouteName="home"
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#ffffff',
-        tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: {
-          backgroundColor: '#3d3f45', 
-          borderTopColor: '#374151',
-          borderTopWidth: 1,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 4,
-          marginBottom:10,
-          marginHorizontal: 16,
-          borderRadius: 25,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-          marginTop: -4,
-        },
-        tabBarItemStyle: {
-          paddingVertical: 4,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.home} />,
+    <>
+      <Tabs
+        initialRouteName="home"
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: '#ffffff',
+          tabBarInactiveTintColor: '#A0AEC0',
+          tabBarShowLabel: true,
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '600',
+            marginTop: -2,
+            letterSpacing: -0.2,
+          },
+          tabBarStyle: {
+            position: 'absolute',
+            bottom: Platform.OS === 'ios' ? 28 : 16, // more space on iOS
+            left: 16,
+            right: 16,
+            height: 72,
+            borderRadius: 32,
+            backgroundColor: '#003366', 
+            borderTopWidth: 0,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.08)',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.35,
+            shadowRadius: 20,
+            elevation: 12,
+            paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+            paddingTop: 8,
+            overflow: 'hidden', 
+          },
+          tabBarItemStyle: {
+            paddingVertical: 4,
+          },
         }}
-      />
+      >
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.home} />,
+          }}
+        />
 
-      {/* <Tabs.Screen
-        name="rides"
-        options={{
-          title: 'Rides',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.list} />,
-        }}
-      />
+        {/* Uncomment when ready */}
+        {/* <Tabs.Screen
+          name="rides"
+          options={{
+            title: 'Rides',
+            tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.list} />,
+          }}
+        />
+        <Tabs.Screen
+          name="chat"
+          options={{
+            title: 'Chat',
+            tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.chat} />,
+          }}
+        /> */}
 
-      <Tabs.Screen
-        name="chat"
-        options={{
-          title: 'Chat',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.chat} />,
-        }}
-      />*/}
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.profile} />,
+          }}
+        />
+      </Tabs>
 
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.profile} />,
-        }}
-      /> 
-      <StatusBar style="auto"/>
-    </Tabs>
+      <StatusBar translucent={false} style="auto" backgroundColor={'#003366'}/> 
+    </>
   );
 };
 

@@ -126,15 +126,15 @@ const pickImage = async () => {
         {uploading && <Text style={styles.uploadingText}>Updating profile picture...</Text>}
       </View>
 
-      {/* CARD MENU */}
+      
       <View style={styles.card}>
-        <MenuItem title="Edit Account" onPress={() => Alert.alert('Coming soon')} />
-        <MenuItem title="Settings" onPress={() => Alert.alert('Coming soon')} />
-        <MenuItem title="Help Center" onPress={() => Alert.alert('Coming soon')} />
-        <MenuItem title="About App" onPress={() => Alert.alert('Coming soon')} />
+        <MenuItem title="Edit Account" onPress={() => router.push('/profile/edit-account')} />
+        <MenuItem title="Settings" onPress={() => router.push('/profile/settings')} />
+        <MenuItem title="Help Center" onPress={() => router.push('/profile/help-center')} />
+        <MenuItem title="About App" onPress={() => router.push('/profile/about')} />
       </View>
 
-      {/* LOGOUT */}
+    
       <TouchableOpacity
         style={[styles.logoutBtn, uploading && styles.logoutBtnDisabled]}
         onPress={handleLogout}
