@@ -50,7 +50,8 @@ const styles=StyleSheet.create({
         fontSize:18,
         lineHeight:28,
         fontFamily:"Poppins-Bold",
-        marginBottom:3
+        marginBottom:3,
+        color:"white"
     },
     input:{
         flex:1,

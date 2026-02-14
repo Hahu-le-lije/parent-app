@@ -163,7 +163,7 @@ export default Profile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FC',
+    backgroundColor: '#1F1F39',
   },
   header: {
     height: 140,
@@ -217,14 +217,15 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 22,
-    fontFamily: 'Poppins-Bold',
+    fontFamily: 'Poppins-SemiBold',
     marginTop: 16,
-    color: '#1F2937',
+    color: 'white',
   },
   email: {
     fontSize: 15,
     color: '#6B7280',
     marginTop: 6,
+    fontFamily: 'Poppins-Regular',
   },
   uploadingText: {
     marginTop: 12,
@@ -233,7 +234,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Medium',
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1F1F39',
     marginHorizontal: 20,
     borderRadius: 16,
     paddingHorizontal: 16,
@@ -250,12 +251,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 18,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'white',
   },
   menuText: {
     fontSize: 16,
     fontFamily: 'Poppins-SemiBold',
-    color: '#1F2937',
+    color: 'white',
   },
   arrow: {
     width: 20,

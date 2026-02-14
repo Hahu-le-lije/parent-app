@@ -76,21 +76,21 @@ const TabLayout = () => {
           },
           tabBarStyle: {
             position: 'absolute',
-            bottom: Platform.OS === 'ios' ? 28 : 16, // more space on iOS
+            bottom: Platform.OS === 'ios' ? 28 : 0, 
             left: 16,
             right: 16,
             height: 72,
             borderRadius: 32,
-            backgroundColor: '#003366', 
+            backgroundColor: '#1F1F39', 
             borderTopWidth: 0,
             borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.08)',
+            borderColor: 'rgba(31,31,27,0.08)',
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 10 },
             shadowOpacity: 0.35,
             shadowRadius: 20,
             elevation: 12,
-            paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+            paddingBottom: Platform.OS === 'ios' ? 20 : 0,
             paddingTop: 8,
             overflow: 'hidden', 
           },
@@ -122,6 +122,13 @@ const TabLayout = () => {
             tabBarIcon: ({ focused }) => <TabIcon focused={focused} source={icons.chat} />,
           }}
         /> */}
+        <Tabs.Screen
+        name="children"
+        options={{
+          title:'Children',
+          tabBarIcon:({focused})=><TabIcon focused={focused} source={icons.person}/>
+        }}
+        />
 
         <Tabs.Screen
           name="profile"

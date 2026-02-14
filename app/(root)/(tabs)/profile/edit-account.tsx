@@ -118,7 +118,7 @@ const EditAccount = () => {
           <Text style={styles.title}>Edit Account</Text>
           <Text style={styles.subtitle}>Update your information</Text>
 
-          {/* Full Name (saved as firstName in Clerk) */}
+
           <InputField
             label="Full Name"
             placeholder={currentNamePlaceholder}
@@ -128,7 +128,7 @@ const EditAccount = () => {
             returnKeyType="next"
           />
 
-          {/* Password Change (optional) */}
+          
           <Text style={styles.sectionTitle}>Change Password (optional)</Text>
 
           <InputField
@@ -191,7 +191,7 @@ export default EditAccount;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FC',
+    backgroundColor: '#1F1F39',
   },
   loadingContainer: {
     flex: 1,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontFamily: 'Poppins-Bold',
-    color: '#1F2937',
+    color: 'white',
     marginBottom: 8,
   },
   subtitle: {
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Poppins-SemiBold',
-    color: '#1F2937',
+    color: 'white',
     marginTop: 24,
     marginBottom: 12,
   },
