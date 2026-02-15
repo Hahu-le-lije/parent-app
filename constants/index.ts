@@ -86,3 +86,35 @@ export const onboardingData = [
     image: { uri: "https://via.placeholder.com/300" },
   },
 ];
+export const subplans = [
+    {
+      id: "1",
+      name: "Basic",
+      priceMonthly: 0,
+      priceYearly: 0,
+      desc: "Perfect to get started",
+      badge: "Free",
+      colors: ["#2C2F3A", "#242731"], 
+      popular: false,
+    },
+    {
+      id: "2",
+      name: "Premium",
+      priceMonthly: 250,
+      priceYearly: 2500,
+      desc: "All features unlocked",
+      badge: "Popular",
+      colors: ["#3A5F6B", "#2F4F5A"], 
+      popular: true,
+    },
+    {
+      id: "3",
+      name: "Ultimate",
+      priceMonthly: 400,
+      priceYearly: 4000,
+      desc: "Advanced + analytics",
+      badge: "Best Value",
+      colors: ["#4A3C5E", "#3A2F4C"], 
+      popular: false,
+    },
+  ];

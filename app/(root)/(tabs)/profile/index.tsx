@@ -90,10 +90,7 @@ const pickImage = async () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <LinearGradient
-          colors={['#0286FF', '#005BB5', '#003366']}
-          style={StyleSheet.absoluteFill}
-        />
+        
         <Text style={styles.headerTitle}>Account</Text>
       </View>
 

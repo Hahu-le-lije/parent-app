@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList,Modal,Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList,Modal,Dimensions, TextInput } from 'react-native';
 import React, { useState } from 'react';
 import { useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -6,6 +6,7 @@ import { icons } from '@/constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Child from '@/components/Child';
+import InputField from '@/components/InputField';
 
 const data = [
   {
@@ -60,43 +61,56 @@ const Children = () => {
   const router = useRouter();
   const [filter, setFilter] = useState("All"); 
   const [showAddChild, setShowAddChild] = useState(false);
+  const [search,setSearch]=useState('')
 
   const avatarSource = user?.imageUrl
     ? { uri: user.imageUrl }
     : icons.person;
 
-  const filteredData = data.filter(child => {
-    if (filter === "All") return true;
-    if (filter === "Paid") return child.paid;
-    if (filter === "Unpaid") return !child.paid;
-    return true;
-  });
+const filteredData = data.filter(child => {
+  const matchesFilter =
+    filter === "All" ||
+    (filter === "Paid" && child.paid) ||
+    (filter === "Unpaid" && !child.paid);
+
+  const matchesSearch = child.name
+    .toLowerCase()
+    .includes(search.toLowerCase());
+
+  return matchesFilter && matchesSearch;
+});
 
   return (
     <SafeAreaView style={styles.container}>
 
       <View style={styles.header}>
-        <LinearGradient
-          colors={['#0286FF', '#005BB5', '#003366']}
-          style={StyleSheet.absoluteFill}
-        />
+       
         <View style={styles.h2}>
           <View>
             <Text style={styles.headerTitle}>Your children</Text>
             <Text style={styles.subheader}>Manage Them</Text>
           </View>
 
-          <TouchableOpacity onPress={() => router.replace('/profile')}>
+          {/* <TouchableOpacity onPress={() => router.replace('/profile')}>
             <Image
               source={avatarSource}
               style={styles.avatar}
               resizeMode="cover"
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 
-      
+      <View>
+        <TextInput
+
+        placeholder='Search Child'
+        placeholderTextColor='#999'
+        value={search}
+        onChangeText={setSearch}
+        style={styles.searchInput}
+        />
+      </View>
       <View style={styles.addChild}>
          <TouchableOpacity
     activeOpacity={0.85}
@@ -292,7 +306,7 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     flex: 1,
-    // add your form styling here
+    
   },
   addChild:{
   paddingHorizontal:20,
@@ -335,6 +349,22 @@ addChildImage:{
   width:70,
   height:70,
   marginLeft:10
+},
+searchContainer: {
+  paddingHorizontal: 20,
+  marginTop: 10,
+},
+
+searchInput: {
+  backgroundColor: "#2A2A40",
+  borderRadius: 14,
+  paddingHorizontal: 16,
+  paddingVertical: 14,
+  color: "#fff",
+  fontFamily: "Poppins-Regular",
+  fontSize: 14,
+  width:"90%",
+  marginLeft:20
 },
 
 });

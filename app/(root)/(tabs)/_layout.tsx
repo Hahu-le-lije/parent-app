@@ -129,6 +129,13 @@ const TabLayout = () => {
           tabBarIcon:({focused})=><TabIcon focused={focused} source={icons.person}/>
         }}
         />
+        <Tabs.Screen
+        name="sub"
+        options={{
+          title:'Subscriptions',
+          tabBarIcon:({focused})=><TabIcon focused={focused} source={icons.list}/>
+        }}
+        />
 
         <Tabs.Screen
           name="profile"
