@@ -14,6 +14,7 @@ import { useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import InputField from '@/components/InputField'; // adjust path
+import { LinearGradient } from 'expo-linear-gradient';
 
 const EditAccount = () => {
   const { user, isLoaded } = useUser();
@@ -26,7 +27,6 @@ const EditAccount = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Pre-fill with current firstName (which is your full name)
   useEffect(() => {
     if (isLoaded && user) {
       setFullName(user.firstName || '');
@@ -43,11 +43,10 @@ const EditAccount = () => {
       return;
     }
 
-    // Password validation (optional section)
     let passwordUpdate = {};
     if (newPassword || currentPassword) {
       if (!currentPassword) {
-        setError('Current password is required to change password');
+        setError('Current password is required');
         return;
       }
       if (!newPassword) {
@@ -72,8 +71,8 @@ const EditAccount = () => {
 
     try {
       await user.update({
-        firstName: fullName.trim(),  // ← entire name saved here
-        lastName: '',                // explicitly clear lastName (or omit if already empty)
+        firstName: fullName.trim(),
+        lastName: '',
         ...passwordUpdate,
       });
 
@@ -118,59 +117,65 @@ const EditAccount = () => {
           <Text style={styles.title}>Edit Account</Text>
           <Text style={styles.subtitle}>Update your information</Text>
 
+          <View style={styles.card}>
+            <InputField
+              label="Full Name"
+              placeholder={currentNamePlaceholder}
+              value={fullName}
+              onChangeText={setFullName}
+              autoCapitalize="words"
+              returnKeyType="next"
+            />
+          </View>
 
-          <InputField
-            label="Full Name"
-            placeholder={currentNamePlaceholder}
-            value={fullName}
-            onChangeText={setFullName}
-            autoCapitalize="words"
-            returnKeyType="next"
-          />
-
-          
-          <Text style={styles.sectionTitle}>Change Password (optional)</Text>
-
-          <InputField
-            label="Current Password"
-            placeholder="Enter your current password"
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-            secureTextEntry
-            returnKeyType="next"
-          />
-
-          <InputField
-            label="New Password"
-            placeholder="Enter new password (min 8 characters)"
-            value={newPassword}
-            onChangeText={setNewPassword}
-            secureTextEntry
-            returnKeyType="next"
-          />
-
-          <InputField
-            label="Confirm New Password"
-            placeholder="Confirm new password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            returnKeyType="done"
-          />
+          <Text style={styles.sectionTitle}>Change Password</Text>
+          <View style={styles.card}>
+            <InputField
+              label="Current Password"
+              placeholder="Enter current password"
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              secureTextEntry
+              returnKeyType="next"
+            />
+            <InputField
+              label="New Password"
+              placeholder="Enter new password (min 8 chars)"
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              returnKeyType="next"
+            />
+            <InputField
+              label="Confirm New Password"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              returnKeyType="done"
+            />
+          </View>
 
           {error && <Text style={styles.errorText}>{error}</Text>}
 
-          <TouchableOpacity
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={loading}
+          <LinearGradient
+            colors={['#7C3AED', '#5B21B6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.saveButton}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={loading}
+              style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              )}
+            </TouchableOpacity>
+          </LinearGradient>
 
           <TouchableOpacity
             style={styles.cancelButton}
@@ -185,9 +190,8 @@ const EditAccount = () => {
   );
 };
 
-
-
 export default EditAccount;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -197,7 +201,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8F9FC',
+    backgroundColor: '#1F1F39',
   },
   scrollContent: {
     padding: 24,
@@ -206,42 +210,48 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontFamily: 'Poppins-Bold',
-    color: 'white',
-    marginBottom: 8,
+    color: '#fff',
+    marginBottom: 6,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 24,
+    color: '#A1A1AA',
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Poppins-SemiBold',
-    color: 'white',
-    marginTop: 24,
+    color: '#fff',
     marginBottom: 12,
+    marginTop: 20,
+  },
+  card: {
+    backgroundColor: '#2A2A4A',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
   },
   errorText: {
     color: '#EF4444',
     fontSize: 14,
-    marginVertical: 12,
+    marginBottom: 12,
     textAlign: 'center',
     fontFamily: 'Poppins-Medium',
   },
   saveButton: {
-    backgroundColor: '#7C3AED',
-    paddingVertical: 16,
     borderRadius: 50,
-    alignItems: 'center',
-    marginTop: 32,
+    paddingVertical: 16,
+    marginTop: 16,
     shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
     elevation: 6,
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
   },
   saveButtonText: {
     color: '#fff',
@@ -249,13 +259,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Bold',
   },
   cancelButton: {
-    marginTop: 16,
+    marginTop: 12,
     paddingVertical: 16,
     alignItems: 'center',
-    marginBottom: 100,
   },
   cancelButtonText: {
-    color: '#6B7280',
+    color: '#A1A1AA',
     fontSize: 16,
     fontFamily: 'Poppins-SemiBold',
   },
