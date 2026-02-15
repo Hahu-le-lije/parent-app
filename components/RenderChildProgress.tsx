@@ -1,40 +1,76 @@
-import { View, Text , TouchableOpacity,Image,StyleSheet} from 'react-native'
+import  { useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Animated,
+  Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-const RenderChildProgress = ({ item,timeFilter,setTimeFilter }) => {
-    const router = useRouter();
 
-    return (   
-  <TouchableOpacity 
-    style={styles.progressCard} 
-    onPress={() => router.push(`/children/${item.id}`)}
-    activeOpacity={0.92}
-  >
-    <Image source={{ uri: item.imageUri }} style={styles.childAvatar} />
+const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
+  const router = useRouter();
 
-      <View style={styles.progressInfo}>
-        <View style={styles.childHeaderRow}>
-          <Text style={styles.childName}>{item.name}</Text>
-          <Text style={styles.achievementsBadge}>
-            {item.achievements} achievements
-          </Text>
+
+  const animValues = {
+    writing: useRef(new Animated.Value(0)).current,
+    speaking: useRef(new Animated.Value(0)).current,
+    listening: useRef(new Animated.Value(0)).current,
+    reading: useRef(new Animated.Value(0)).current,
+  };
+
+  
+  useEffect(() => {
+    Object.keys(item.progress).forEach((skill) => {
+      animValues[skill].setValue(0);
+
+      Animated.timing(animValues[skill], {
+        toValue: item.progress[skill],
+        duration: 900,
+        useNativeDriver: false,
+      }).start();
+    });
+  }, [timeFilter]);
+
+  const colorMap = {
+    writing: '#FF6B6B',
+    speaking: '#4ECDC4',
+    listening: '#5A9CFF',
+    reading: '#A66BFF',
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.92}
+      onPress={() => Alert.alert("coming soon wait")}
+    >
+      
+      <Image source={{ uri: item.imageUri }} style={styles.avatar} />
+
+      <View style={{ flex: 1 }}>
+       
+        <View style={styles.headerRow}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.badge}>{item.achievements} achievements</Text>
         </View>
 
-        {/* Filter Buttons */}
-        <View style={styles.filterContainer}>
+        <View style={styles.filterRow}>
           {['daily', 'weekly', 'monthly', 'yearly'].map((filter) => (
             <TouchableOpacity
               key={filter}
-              style={[
-                styles.filterButton,
-                timeFilter === filter && styles.filterButtonActive,
-              ]}
               onPress={() => setTimeFilter(filter)}
+              style={[
+                styles.filterBtn,
+                timeFilter === filter && styles.filterActive,
+              ]}
             >
               <Text
                 style={[
-                  styles.filterButtonText,
-                  timeFilter === filter && styles.filterButtonTextActive,
+                  styles.filterText,
+                  timeFilter === filter && styles.filterTextActive,
                 ]}
               >
                 {filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -43,149 +79,166 @@ const RenderChildProgress = ({ item,timeFilter,setTimeFilter }) => {
           ))}
         </View>
 
-      
-      <View style={styles.graphContainer}>
-        {Object.entries(item.progress).map(([key, value]) => (
-          <View key={key} style={styles.barRow}>
-            <View style={styles.barLabelRow}>
-              <Text style={styles.barSkillLabel}>
-                {key.charAt(0).toUpperCase() + key.slice(1)}
-              </Text>
-              <Text style={styles.barPercentage}>{value}%</Text>
-            </View>
-            
-            <View style={styles.barBackground}>
-              <View 
-                style={[
-                  styles.barFill,
-                  { width: `${value}%` },
-                
-                  key === 'writing' && { backgroundColor: '#FF6B6B' },
-                  key === 'speaking' && { backgroundColor: '#4ECDC4' },
-                  key === 'listening' && { backgroundColor: '#45B7D1' },
-                  key === 'reading' && { backgroundColor: '#96CEB4' },
-                ]}
-              />
-            </View>
-          </View>
-        ))}
+        <View style={styles.grid}>
+          {Object.entries(item.progress).map(([skill, value]) => {
+            const animatedWidth = animValues[skill].interpolate({
+              inputRange: [0, 100],
+              outputRange: ['0%', '100%'],
+            });
+
+            return (
+              <View key={skill} style={styles.skillCard}>
+                <Text style={styles.skillTitle}>
+                  {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                </Text>
+
+                <View style={styles.barBg}>
+                  <Animated.View
+                    style={[
+                      styles.barFill,
+                      {
+                        width: animatedWidth,
+                        backgroundColor: colorMap[skill],
+                      },
+                    ]}
+                  />
+                </View>
+
+                <Animated.Text style={styles.percent}>
+                  {animValues[skill].interpolate({
+                    inputRange: [0, value],
+                    outputRange: ['0%', `${value}%`],
+                  })}
+                </Animated.Text>
+              </View>
+            );
+          })}
+        </View>
       </View>
-    </View>
-  </TouchableOpacity>
-)};
-export default RenderChildProgress
+    </TouchableOpacity>
+  );
+};
+
+export default RenderChildProgress;
+
 const styles = StyleSheet.create({
-progressCard: {
-    backgroundColor: '#25253A',
-    borderRadius: 24,
+  card: {
+    backgroundColor: '#1E1E2E',
+    borderRadius: 26,
     padding: 20,
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 22,
+
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    elevation: 10,
+
     borderWidth: 1,
-    borderColor: '#333350',
-  },
-  childAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginRight: 20,
-    borderWidth: 2,
-    borderColor: '#0286FF55',
+    borderColor: '#2F2F48',
   },
 
-  progressInfo: {
-    flex: 1,
+  avatar: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    marginRight: 18,
+    borderWidth: 3,
+    borderColor: '#0286FF',
   },
-  childHeaderRow: {
+
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 14,
     alignItems: 'center',
-    marginBottom: 16,
   },
 
-  childName: {
-    color: '#FFFFFF',
-    fontSize: 19,
+  name: {
+    color: '#fff',
+    fontSize: 20,
     fontFamily: 'Poppins-Bold',
   },
-  achievementsBadge: {
-    color: '#FFD166',
-    fontSize: 13,
-    fontFamily: 'Poppins-SemiBold',
+
+  badge: {
     backgroundColor: '#2A2A4A',
+    color: '#FFD166',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
+    fontSize: 12,
+    fontFamily: 'Poppins-SemiBold',
   },
 
-  filterContainer: {
+  filterRow: {
     flexDirection: 'row',
     backgroundColor: '#2A2A4A',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 4,
-    marginBottom: 16,
+    marginBottom: 18,
   },
-  filterButton: {
+
+  filterBtn: {
     flex: 1,
     paddingVertical: 8,
     alignItems: 'center',
     borderRadius: 10,
   },
 
-  filterButtonActive: {
+  filterActive: {
     backgroundColor: '#0286FF',
   },
 
-  filterButtonText: {
-    color: '#AAAAAA',
+  filterText: {
+    color: '#aaa',
     fontSize: 12,
     fontFamily: 'Poppins-Medium',
   },
-  filterButtonTextActive: {
-    color: '#FFFFFF',
+
+  filterTextActive: {
+    color: '#fff',
     fontFamily: 'Poppins-SemiBold',
   },
 
-  graphContainer: {
-    gap: 14,
-  },
-
-  barRow: {
-    gap: 6,
-  },
-  barLabelRow: {
+  /* GRID */
+  grid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    alignItems: 'center',
   },
 
-  barSkillLabel: {
-    color: '#CCCCDD',
-    fontSize: 14,
-    fontFamily: 'Poppins-Medium',
+  skillCard: {
+    width: '48%',
+    backgroundColor: '#25253A',
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 12,
   },
 
-  barPercentage: {
-    color: '#FFFFFF',
+  skillTitle: {
+    color: '#EAEAF5',
     fontSize: 14,
     fontFamily: 'Poppins-SemiBold',
+    marginBottom: 10,
   },
-  barBackground: {
-    height: 12,
+
+  barBg: {
+    height: 8,
     backgroundColor: '#3A3A55',
-    borderRadius: 6,
+    borderRadius: 10,
     overflow: 'hidden',
   },
 
   barFill: {
     height: '100%',
-    borderRadius: 6,
-    backgroundColor: '#0286FF', 
+    borderRadius: 10,
   },
 
-})
+  percent: {
+    color: '#bbb',
+    fontSize: 12,
+    marginTop: 6,
+    fontFamily: 'Poppins-Medium',
+  },
+});

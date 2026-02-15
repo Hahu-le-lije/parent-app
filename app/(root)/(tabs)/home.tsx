@@ -60,7 +60,7 @@ const childrenData = [
       listening: 90,
       reading: 85,
     },
-    imageUri: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
+    imageUri: 'https://randomuser.me/api/portraits/lego/1.jpg',
     recommendation: 'Try the new Math Puzzle game to boost skills!',
   },
   {
@@ -73,7 +73,7 @@ const childrenData = [
       listening: 65,
       reading: 80,
     },
-    imageUri: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
+    imageUri: 'https://randomuser.me/api/portraits/lego/2.jpg',
     recommendation: 'Explore Reading Adventures for better comprehension.',
   },
   {
@@ -86,7 +86,7 @@ const childrenData = [
       listening: 95,
       reading: 90,
     },
-    imageUri: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
+    imageUri: 'https://randomuser.me/api/portraits/lego/3.jpg',
     recommendation: 'Challenge yourself with Science Experiments module.',
   },
 ];
@@ -148,96 +148,121 @@ const Home = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.innerContent}>
-          {/* Stats Row */}
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{dashboardData.totalChildren}</Text>
-              <Text style={styles.statLabel}>Children</Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: '#28C76F' }]}>
-              <Text style={styles.statNumber}>{dashboardData.paid}</Text>
-              <Text style={styles.statLabel}>Paid</Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: '#EA5455' }]}>
-              <Text style={styles.statNumber}>{dashboardData.unpaid}</Text>
-              <Text style={styles.statLabel}>Unpaid</Text>
-            </View>
-          </View>
+       <View style={styles.innerContent}>
 
-          
-          {dashboardData.unpaid > 0 && (
-            <View style={styles.alertCard}>
-              <Image
-                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/1828/1828843.png' }}
-                style={{ width: 40, height: 40, marginRight: 10 }}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.alertTitle}>Unpaid subscriptions</Text>
-                <Text style={styles.alertSub}>
-                  {dashboardData.unpaid} children need payment for Premium features
-                </Text>
-              </View>
-              <TouchableOpacity onPress={() => router.push('/children')}>
-                <Text style={styles.payNow}>View</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+  {/* DASHBOARD OVERVIEW */}
+  <View style={styles.dashboardCard}>
+    <Text style={styles.dashboardTitle}>Dashboard Overview</Text>
 
-          
-          <Text style={styles.sectionTitle}>Hahu Lelje </Text>
-          <FlatList
-            ref={featureFlatListRef}
-            data={features}
-            renderItem={({ item }) => <RenderFeatureCard item={item} />}
-            keyExtractor={(item) => item.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.carousel}
-            contentContainerStyle={{ paddingHorizontal: 0 }}
-            getItemLayout={(data, index) => ({
-              length: SCREEN_WIDTH - 40,
-              offset: (SCREEN_WIDTH - 40) * index,
-              index,
-            })}
-            snapToAlignment="center"
-            decelerationRate="fast"
-          />
+    <View style={styles.statsRow}>
+      <View style={[styles.statCardModern, { backgroundColor: '#5A9CFF' }]}>
+        <Text style={styles.statNumber}>{dashboardData.totalChildren}</Text>
+        <Text style={styles.statLabel}>Children</Text>
+      </View>
 
-          
-          <Text style={styles.sectionTitle}>Children Achievements and Progress</Text>
-          <FlatList
-            data={childrenData}
-            renderItem={(item)=><RenderChildProgress item={item} timeFilter={timeFilter} setTimeFilter={setTimeFilter}/>}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 12 }}
-          />
+      <View style={[styles.statCardModern, { backgroundColor: '#28C76F' }]}>
+        <Text style={styles.statNumber}>{dashboardData.paid}</Text>
+        <Text style={styles.statLabel}>Paid</Text>
+      </View>
 
-          
-          <Text style={styles.sectionTitle}>Recommendations</Text>
-          <FlatList
-            ref={recommendationFlatListRef}
-            data={childrenData}
-            renderItem={({ item }) => <RenderRecommendation item={item} />}
-            keyExtractor={(item) => item.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.carousel}
-            getItemLayout={(data, index) => ({
-              length: 240 + 16, 
-              offset: (240 + 16) * index,
-              index,
-            })}
-            snapToAlignment="start"
-            decelerationRate="fast"
-            contentContainerStyle={{ paddingHorizontal: 20, paddingRight: 20 }} 
-          />
-          <View style={{ height: 60 }} />
-        </View>
+      <View style={[styles.statCardModern, { backgroundColor: '#EA5455' }]}>
+        <Text style={styles.statNumber}>{dashboardData.unpaid}</Text>
+        <Text style={styles.statLabel}>Unpaid</Text>
+      </View>
+    </View>
+  </View>
+
+  {/* PAYMENT ALERT */}
+  {dashboardData.unpaid > 0 && (
+    <View style={styles.alertModern}>
+      <View style={styles.alertLeft}>
+        <Text style={styles.alertTitle}>⚠ Unpaid subscriptions</Text>
+        <Text style={styles.alertSub}>
+          {dashboardData.unpaid} children need premium access
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        style={styles.alertBtn}
+        onPress={() => router.push('/children')}
+      >
+        <Text style={styles.alertBtnText}>View</Text>
+      </TouchableOpacity>
+    </View>
+  )}
+
+  {/* FEATURES */}
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionTitle}>Explore</Text>
+    <Text style={styles.sectionSub}>Fun learning experiences</Text>
+  </View>
+
+  <FlatList
+    ref={featureFlatListRef}
+    data={features}
+    renderItem={({ item }) => <RenderFeatureCard item={item} />}
+    keyExtractor={(item) => item.id}
+    horizontal
+    pagingEnabled
+    showsHorizontalScrollIndicator={false}
+    style={styles.carousel}
+    getItemLayout={(data, index) => ({
+      length: SCREEN_WIDTH - 40,
+      offset: (SCREEN_WIDTH - 40) * index,
+      index,
+    })}
+    snapToAlignment="center"
+    decelerationRate="fast"
+  />
+
+ 
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionTitle}>Children Progress</Text>
+    <Text style={styles.sectionSub}>Track learning growth</Text>
+  </View>
+
+  <FlatList
+    data={childrenData}
+    renderItem={({ item }) => (
+      <RenderChildProgress
+        item={item}
+        timeFilter={timeFilter}
+        setTimeFilter={setTimeFilter}
+      />
+    )}
+    keyExtractor={(item) => item.id}
+    scrollEnabled={false}
+    showsVerticalScrollIndicator={false}
+  />
+
+  {/* RECOMMENDATIONS */}
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionTitle}>AI Recommendations</Text>
+    <Text style={styles.sectionSub}>Personalized for each child</Text>
+  </View>
+
+  <FlatList
+    ref={recommendationFlatListRef}
+    data={childrenData}
+    renderItem={({ item }) => <RenderRecommendation item={item} />}
+    keyExtractor={(item) => item.id}
+    horizontal
+    pagingEnabled
+    showsHorizontalScrollIndicator={false}
+    style={styles.carousel}
+    getItemLayout={(data, index) => ({
+      length: 240 + 16,
+      offset: (240 + 16) * index,
+      index,
+    })}
+    snapToAlignment="start"
+    decelerationRate="fast"
+    contentContainerStyle={{ paddingHorizontal: 4 }}
+  />
+
+  <View style={{ height: 100 }} />
+</View>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -319,7 +344,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
 
-  // Alert Card
+
   alertCard: {
     backgroundColor: '#2A2A4A',
     borderRadius: 16,
@@ -353,6 +378,72 @@ const styles = StyleSheet.create({
   carousel: {
     marginBottom: 32,
   },
+  dashboardCard: {
+  backgroundColor: '#26264A',
+  borderRadius: 22,
+  padding: 18,
+  marginBottom: 22,
+},
+
+dashboardTitle: {
+  color: '#fff',
+  fontSize: 18,
+  fontFamily: 'Poppins-Bold',
+  marginBottom: 14,
+},
+
+statCardModern: {
+  flex: 1,
+  marginHorizontal: 6,
+  borderRadius: 16,
+  paddingVertical: 18,
+  alignItems: 'center',
+
+  shadowColor: '#000',
+  shadowOpacity: 0.2,
+  shadowRadius: 8,
+  elevation: 5,
+},
+
+alertModern: {
+  backgroundColor: '#2A2A4A',
+  borderRadius: 18,
+  padding: 18,
+  marginBottom: 26,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+},
+
+alertLeft: {
+  flex: 1,
+},
+
+alertBtn: {
+  backgroundColor: '#0286FF',
+  paddingHorizontal: 18,
+  paddingVertical: 10,
+  borderRadius: 12,
+},
+
+alertBtnText: {
+  color: '#fff',
+  fontFamily: 'Poppins-Bold',
+},
+
+sectionHeader: {
+  marginBottom: 12,
+  marginTop: 8,
+},
+
+sectionSub: {
+  color: '#9AA0C3',
+  fontSize: 13,
+  fontFamily: 'Poppins-Regular',
+  marginTop: -4,
+  marginBottom: 8,
+},
+
 
   
 });
