@@ -4,14 +4,13 @@ import {
   ScrollView,
   StyleSheet,
   Image,
-  Modal,
   TouchableOpacity,
-  ActivityIndicator,
   KeyboardAvoidingView,
   TextInput,
   Platform,
 } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
+import Modal  from 'react-native-modal';
+import React, { useState, useRef } from 'react';
 import { icons, images } from '@/constants';
 import InputField from '@/components/InputField';
 import CustomButton from '@/components/CustomButton';
@@ -19,17 +18,21 @@ import OAuth from '@/components/OAuth';
 import { Link, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSignUp } from '@clerk/clerk-expo';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
 
 const SignUp = () => {
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
 
   const [form, setForm] = useState({
-    name: '',
+    firstname: '',
+    lastname: '',
     email: '',
     phoneNumber: '',
     password: '',
   });
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVerified, setPendingVerified] = useState(false);
@@ -42,13 +45,16 @@ const SignUp = () => {
     setErrorMsg(null);
     if (!isLoaded) return;
     setIsLoading(true);
+
     try {
       await signUp.create({
-        firstName: form.name.trim(),
+        firstName: form.firstname.trim(),
+        lastName: form.lastname.trim(),
         emailAddress: form.email.trim(),
         password: form.password,
       });
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+
       setPendingVerified(true);
       setCode('');
     } catch (err: any) {
@@ -63,12 +69,17 @@ const SignUp = () => {
     if (!isLoaded || !code.trim()) return;
     setErrorMsg(null);
     setIsLoading(true);
+
     try {
       const attempt = await signUp.attemptEmailAddressVerification({ code: code.trim() });
+
       if (attempt.status === 'complete') {
         await setActive({ session: attempt.createdSessionId });
+
         setPendingVerified(false);
-        setShowSuccess(true);      
+        setShowSuccess(true);
+        await new Promise(resolve => setTimeout(resolve, 4000));
+
       }
     } catch (err: any) {
       setErrorMsg(err?.errors?.[0]?.longMessage || 'Invalid code');
@@ -78,34 +89,19 @@ const SignUp = () => {
     }
   };
 
-  
-  useEffect(() => {
-    if (pendingVerified && codeInputRef.current) {
-      const timer = setTimeout(() => {
-        codeInputRef.current?.focus();
-      }, 400);
-      return () => clearTimeout(timer);
-    }
-  }, [pendingVerified]);
-
-  
-  useEffect(() => {
-    if (showSuccess) {
-      const timer = setTimeout(() => {
-        setShowSuccess(false);
-        router.replace('/(root)/(tabs)/home'); 
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccess,router]);
 
   return (
-    <>
-      <ScrollView
-        style={styles.container}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flexGrow: 1 }}
-      >
+    <KeyboardAwareScrollView
+    style={styles.container}
+    enableOnAndroid={true}
+    extraScrollHeight={40}
+    keyboardShouldPersistTaps="handled"
+    contentContainerStyle={{ flexGrow: 1 }}
+    showsVerticalScrollIndicator={false}
+    
+    
+    >
+     
         <View style={styles.content}>
           <View style={styles.header}>
             <LinearGradient
@@ -120,11 +116,19 @@ const SignUp = () => {
 
           <View style={styles.form}>
             <InputField
-              label="Full Name"
-              placeholder="Enter your full name"
+              label="First name"
+              placeholder="Enter your first name"
               icon={icons.person}
-              value={form.name}
-              onChangeText={(value) => setForm({ ...form, name: value })}
+              value={form.firstname}
+              onChangeText={(value) => setForm({ ...form, firstname: value })}
+              autoCapitalize="words"
+            />
+            <InputField
+              label="Last name"
+              placeholder="Enter your last name"
+              icon={icons.person}
+              value={form.lastname}
+              onChangeText={(value) => setForm({ ...form, lastname: value })}
               autoCapitalize="words"
             />
             <InputField
@@ -172,28 +176,57 @@ const SignUp = () => {
             </Link>
           </View>
         </View>
-      </ScrollView>
+      
 
-      <Modal
-        visible={pendingVerified}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setPendingVerified(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.modalContent}
-          >
-            <Text style={styles.modalTitle}>Verify Your Email</Text>
-            <Text style={styles.modalSubtitle}>
+
+    <Modal isVisible={showSuccess}
+    animationIn={'bounceIn'}
+    animationOut={'fadeOut'}
+    animationOutTiming={350}
+    animationInTiming={700}
+    backdropOpacity={0.65}
+    
+    backdropTransitionInTiming={400}
+    backdropTransitionOutTiming={300}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+           <Image source={icons.checkmark} style={[styles.verifiedImage,{tintColor:'#fff'}]} resizeMode='contain'/>
+          <Text style={[styles.successTitle, { color: 'white' }]}>Verified!</Text>
+            <Text style={[styles.successSubtitle, { color: '#d1d5db' }]}>
+              Account created successfully
+            </Text>
+          <CustomButton
+          title="Continue"
+          style={{marginTop:20, backgroundColor:"#3D5CFF"}}
+          onPress={()=>router.replace('/(root)/(tabs)/home')}
+          /> 
+        </View>    
+      </View>
+    </Modal>
+    <Modal
+    isVisible={pendingVerified}
+    animationOut={'slideOutDown'}
+    animationIn={'slideInUp'}
+    animationInTiming={420}
+    animationOutTiming={320}
+    backdropOpacity={0.6}
+    avoidKeyboard={true}
+    onBackdropPress={()=>setPendingVerified(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.modalContent}
+        >
+           <Text style={styles.modalTitle}>Verify Your Email</Text>
+           <Text style={styles.modalSubtitle}>
               Enter the 6-digit code sent to{'\n'}
-              <Text style={{ fontFamily: 'Poppins-Regular', fontWeight: 'bold' }}>
+              <Text style={{ fontFamily: 'Poppins-Regular', fontWeight: 'bold',color:"#3aed58" }}>
                 {form.email}
               </Text>
             </Text>
-
-            <TextInput
+          <TextInput
               ref={codeInputRef}
               placeholder="123456"
               value={code}
@@ -208,63 +241,50 @@ const SignUp = () => {
                 paddingHorizontal: 16,
                 paddingVertical: 14,
                 fontSize: 20,
-                borderWidth: 1,
-                borderColor: code.length === 6 ? '#10b981' : '#d1d5db',
+                borderWidth: 2,
+                borderColor: code.length === 6 ? '#10b92f' : '#d1d5db',
                 borderRadius: 12,
-                backgroundColor: '#f9fafb',
-                color: '#111827',
+                backgroundColor: '#3E3E55',
+                color: '#FFFFFF',
                 marginVertical: 16,
                 textAlign: 'center',
                 letterSpacing: 8,
+                borderBottomWidth:2
+            
               }}
             />
-
             {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
-
-            <CustomButton
+          <CustomButton
               title={isLoading ? 'Verifying...' : 'Verify'}
               onPress={handleVerify}
               disabled={isLoading || code.length !== 6}
               bgVariant="primary"
-              style={{ marginTop: 12 }}
+              style={{ marginTop: 15, backgroundColor: '#3D5CFF' }}
             />
 
-            <TouchableOpacity
+          <TouchableOpacity
               onPress={() => signUp?.prepareEmailAddressVerification({ strategy: 'email_code' })}
               style={{ marginTop: 20 }}
             >
               <Text style={styles.resendText}>
-                Didn't receive code? <Text style={{ color: '#0286FF' }}>Resend</Text>
+                Didn't receive code? <Text style={{ color: '#08f573' }}>Resend</Text>
               </Text>
-            </TouchableOpacity>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </View>
 
+    </Modal>
       
-      <Modal visible={showSuccess} transparent={true} animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, styles.successModal]}>
-            <Image
-              source={icons.checkmark}
-              style={styles.verifiedImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.successTitle}>Verified!</Text>
-            <Text style={styles.successSubtitle}>Account created successfully</Text>
-            <ActivityIndicator size="small" color="#fff" style={{ marginTop: 24 }} />
-          </View>
-        </View>
-      </Modal>
-    </>
+    </KeyboardAwareScrollView>
   );
 };
 
 export default SignUp;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#1F1F39',
   },
   content: {
     flex: 1,
@@ -273,7 +293,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     height: 260,
-    
   },
   image: {
     width: '100%',
@@ -291,13 +310,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 32,
     paddingBottom: 40,
+    marginBottom:20
   },
   button: {
     marginTop: 28,
     width: '100%',
+    backgroundColor: '#3D5CFF',
   },
   errorText: {
-    color: '#dc2626',
+    color: '#e74a4a',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
@@ -320,7 +341,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#2F2F42',
     borderRadius: 20,
     padding: 28,
     width: '82%',
@@ -330,12 +351,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 10,
-  
   },
   modalTitle: {
     fontSize: 24,
     fontFamily: 'Poppins-Bold',
-    color: '#1f2937',
+    color: 'white',
     marginBottom: 8,
   },
   modalSubtitle: {
@@ -347,17 +367,15 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: 14,
-    color: '#4b5563',
+    color: '#6b7280',
     textAlign: 'center',
-  },
-  successModal: {
-    backgroundColor: '#10b981', // green
-    paddingVertical: 40,
   },
   verifiedImage: {
     width: 100,
     height: 100,
     marginBottom: 16,
+    backgroundColor:"#3D5CFF",
+    borderRadius:50
   },
   successTitle: {
     fontSize: 28,
@@ -370,5 +388,5 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     marginTop: 8,
     textAlign: 'center',
-  }
+  },
 });

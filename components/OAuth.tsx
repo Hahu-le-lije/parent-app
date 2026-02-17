@@ -21,15 +21,15 @@ const OAuth = () => {
         width:"100%",
         marginBottom:15
       }}>
-        <View style={{flex:1,height:1,backgroundColor:'#ccc'}} />
-        <Text style={{marginHorizontal:10,fontSize:16}}>Or</Text>
-        <View style={{flex:1,height:1,backgroundColor:'#ccc'}} />
+        <View style={{flex:1,height:1,backgroundColor:'#B8B8D2'}} />
+        <Text style={{marginHorizontal:10,fontSize:16,color:'#B8B8D2'}}>Or</Text>
+        <View style={{flex:1,height:1,backgroundColor:'#B8B8D2'}} />
       </View>
 
       <CustomButton
         title="Log In With Google"
         onPress={handle}
-        style={{width:"100%"}}
+        style={{width:"100%",backgroundColor:'transparent',borderWidth:1,borderColor:'#B8B8D2'}}
         IconLeft={() => (
           <Image
             source={icons.google}
@@ -37,8 +37,7 @@ const OAuth = () => {
             style={{ width:20, height:20, marginRight:8 }}
           />
         )}
-        bgVariant='outline'
-        textVariant='outlineT'
+       
       />
 
     </View>

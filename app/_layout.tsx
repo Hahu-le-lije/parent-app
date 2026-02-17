@@ -27,12 +27,12 @@ if(!loaded){
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <Stack screenOptions={{headerShown:false}}>
-      <Stack.Screen name="index"/>
+        <Stack.Screen name="index"/>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(root)"  />
       
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar translucent={true} />
     </ClerkProvider>
   );
 }

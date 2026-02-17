@@ -106,7 +106,7 @@ export default SignIn
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#1F1F39',
   },
   content: {
     flex: 1,

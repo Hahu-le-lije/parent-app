@@ -24,7 +24,9 @@ import star from "@/assets/icons/star.png";
 import target from "@/assets/icons/target.png";
 import to from "@/assets/icons/to.png";
 import Logo from "@/assets/images/hahu_logo.png";
-
+import On2 from "@/assets/images/on2.png";
+import On3 from "@/assets/images/on3.png";
+import On4 from "@/assets/images/on4.png";
 
 export const icons = {
   arrowDown,
@@ -54,7 +56,10 @@ export const icons = {
   to,
 };
 export const images={
-  Logo
+  Logo,
+  On3,
+  On2,
+  On4
 }
 export const onboardingData = [
   {
@@ -62,28 +67,28 @@ export const onboardingData = [
     title: "Welcome to Hahu Lallije",
     description:
       "Help your child learn Amharic letters, numbers, and words in a fun and interactive way.",
-    image: { uri: "https://via.placeholder.com/300" },
+    image:images.Logo,
   },
   {
     id: 2,
     title: "Fun & Interactive Learning",
     description:
       "Games, sounds, and stories designed to make learning enjoyable for your child.",
-    image: { uri: "https://via.placeholder.com/300" },
+    image: images.On2,
   },
   {
     id: 3,
     title: "Track Your Child’s Progress",
     description:
       "Monitor learning progress, achievements, and daily activity easily.",
-    image: { uri: "https://via.placeholder.com/300" },
+    image: images.On3,
   },
   {
     id: 4,
     title: "Parental Control & Safety",
     description:
       "Manage your child’s learning safely.",
-    image: { uri: "https://via.placeholder.com/300" },
+    image: images.On4,
   },
 ];
 export const subplans = [

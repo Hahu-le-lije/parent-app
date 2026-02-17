@@ -19,7 +19,7 @@ const onboarding = () => {
         </TouchableOpacity>
     <Swiper ref={swipeRef}
         loop={false}
-        dot={<View style={styles.dot}/>}
+        dot={<View style={[styles.dot,{width:10}]}/>}
         activeDot={<View style={[styles.dot,{backgroundColor:"#0286FF"}]}/>}
         onIndexChanged={(index)=>{
             setActiveIndex(index)
@@ -42,7 +42,7 @@ const onboarding = () => {
         </Swiper>
     <CustomButton title={last? "Get Started":"Next"}
     onPress={()=> last? router.replace('/(auth)/sign-up'):  swipeRef.current?.scrollBy(1)}
-    style={{marginTop:20,width:"90%",marginBottom:20,fontFamily:"Poppins-SemiBold"}}
+    style={{marginTop:20,width:"90%",marginBottom:20,fontFamily:"Poppins-SemiBold",backgroundColor:"#3D5CFF"}}
     />
     </SafeAreaView>
   )
@@ -55,7 +55,7 @@ const styles=StyleSheet.create({
         height:"100%",
         justifyContent:"center",
         alignItems:"center",
-        backgroundColor:"white"
+        backgroundColor:"#1F1F39"
     },
     skip:{
         width:"100%",
@@ -64,7 +64,7 @@ const styles=StyleSheet.create({
         justifyContent:"flex-end"
     },
     skipText:{
-        color:"black",
+        color:"white",
         fontSize:20,
         fontFamily:"Poppins-Bold"
     },
@@ -89,7 +89,7 @@ const styles=StyleSheet.create({
 },
 
 title:{
-  color:"#111",
+  color:"white",
   fontSize:26,
   fontFamily:"Poppins-Bold",
   textAlign:"center",
@@ -102,7 +102,7 @@ desc:{
   textAlign:"center",
   marginHorizontal:30,
   marginTop:12,
-  color:"#6b7280",
+  color:"#F4F3FD",
   fontFamily:"Poppins-Regular",
   lineHeight:22
 },
