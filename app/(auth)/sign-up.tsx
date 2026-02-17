@@ -79,6 +79,7 @@ const SignUp = () => {
         setPendingVerified(false);
         setShowSuccess(true);
         await new Promise(resolve => setTimeout(resolve, 4000));
+        router.replace('/(root)/(tabs)/home');
 
       }
     } catch (err: any) {
