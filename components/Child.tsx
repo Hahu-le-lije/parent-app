@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native'
-
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
+import { useRouter } from 'expo-router'
 
 type ChildProps = {
   item: {
@@ -14,14 +14,17 @@ type ChildProps = {
 }
 
 const Child = ({ item }: ChildProps) => {
-
+  const router = useRouter()
 
   const goToDetails = () => {
-    
+    router.push({
+      pathname: '/(root)/(tabs)/children/[id]',
+      params: { id: item._id },
+    })
   }
 
   return (
-    <TouchableOpacity style={styles.container} onPress={()=>Alert.alert("coming soon wait")}>
+    <TouchableOpacity style={styles.container} onPress={goToDetails}>
      
       <Image
         resizeMode='cover'

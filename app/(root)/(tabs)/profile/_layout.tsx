@@ -38,8 +38,14 @@ export default function ProfileLayout() {
         options={{ title: 'Edit Account' }}
       />
       <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-      <Stack.Screen name="help-center" options={{ title: 'Help Center' }} />
-      <Stack.Screen name="about" options={{ title: 'About App' }} />
+      <Stack.Screen
+        name="help-center"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="about"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

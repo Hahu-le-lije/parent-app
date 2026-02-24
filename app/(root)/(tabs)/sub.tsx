@@ -19,12 +19,14 @@ import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import {  subplans } from "@/constants";
+import { useChildrenStore } from "@/store/childrenStore";
 
 const { width, height } = Dimensions.get("window");
 
 const Sub = () => {
   const { user } = useUser();
   const router = useRouter();
+  const setLastPurchasedPlan = useChildrenStore((state) => state.setLastPurchasedPlan);
 
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -267,7 +269,9 @@ const Sub = () => {
                 selectedPlan?.priceMonthly === 0 && styles.freeBtn,
               ]}
               onPress={() => {
-             
+                if (selectedPlan) {
+                  setLastPurchasedPlan({ id: selectedPlan.id, name: selectedPlan.name });
+                }
                 alert(`Processing: ${calculatePrice()} – ${duration}`);
               }}
             >

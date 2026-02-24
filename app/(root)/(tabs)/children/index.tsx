@@ -1,73 +1,34 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList,Modal,Dimensions, TextInput } from 'react-native';
-import React, { useState } from 'react';
-import { useUser } from '@clerk/clerk-expo';
-import { useRouter } from 'expo-router';
-import { icons } from '@/constants';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList,Modal,Dimensions, TextInput, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Child from '@/components/Child';
 import InputField from '@/components/InputField';
-
-const data = [
-  {
-    _id: "1",
-    id: 1,
-    name: "John Doe",
-    age: 10,
-    subscription: "Premium",
-    paid: true,
-    image: "https://randomuser.me/api/portraits/lego/1.jpg"
-  },
-  {
-    _id: "2",
-    id: 2,
-    name: "Sophia Smith",
-    age: 8,
-    subscription: "Basic",
-    paid: false,
-    image: "https://randomuser.me/api/portraits/lego/2.jpg"
-  },
-  {
-    _id: "3",
-    id: 3,
-    name: "Liam Johnson",
-    age: 12,
-    subscription: "Premium",
-    paid: true,
-    image: "https://randomuser.me/api/portraits/lego/3.jpg"
-  },
-  {
-    _id: "4",
-    id: 4,
-    name: "Emma Williams",
-    age: 9,
-    subscription: "Standard",
-    paid: true,
-    image: "https://randomuser.me/api/portraits/lego/4.jpg"
-  },
-  {
-    _id: "5",
-    id: 5,
-    name: "Noah Brown",
-    age: 11,
-    subscription: "Premium",
-    paid: false,
-    image: "https://randomuser.me/api/portraits/lego/5.jpg"
-  }
-];
+import { useChildrenStore } from '@/store/childrenStore';
 
 const Children = () => {
-  const { user } = useUser();
-  const router = useRouter();
   const [filter, setFilter] = useState("All"); 
   const [showAddChild, setShowAddChild] = useState(false);
   const [search,setSearch]=useState('')
+  const [childName, setChildName] = useState('')
+  const [childAge, setChildAge] = useState('')
+  const [subscriptionType, setSubscriptionType] = useState<string>('Basic')
+  const [isPaid, setIsPaid] = useState<boolean>(true)
 
-  const avatarSource = user?.imageUrl
-    ? { uri: user.imageUrl }
-    : icons.person;
+  // Select individual slices from the store to avoid
+  // returning a new object from the selector on every render.
+  const children = useChildrenStore((state) => state.children);
+  const loading = useChildrenStore((state) => state.loading);
+  const loadChildren = useChildrenStore((state) => state.loadChildren);
+  const addChild = useChildrenStore((state) => state.addChild);
 
-const filteredData = data.filter(child => {
+useEffect(() => {
+  if (!children.length && !loading) {
+    loadChildren();
+  }
+}, [children.length, loading, loadChildren]);
+
+const filteredData = children.filter(child => {
   const matchesFilter =
     filter === "All" ||
     (filter === "Paid" && child.paid) ||
@@ -79,6 +40,26 @@ const filteredData = data.filter(child => {
 
   return matchesFilter && matchesSearch;
 });
+
+  const isFormValid = childName.trim().length > 0 && Number(childAge) > 0;
+
+  const handleSaveChild = () => {
+    if (!isFormValid) return;
+
+    addChild({
+      name: childName.trim(),
+      age: Number(childAge),
+      subscription: subscriptionType,
+      paid: isPaid,
+      image: "https://randomuser.me/api/portraits/lego/6.jpg",
+    });
+
+    setShowAddChild(false);
+    setChildName('');
+    setChildAge('');
+    setSubscriptionType('Basic');
+    setIsPaid(true);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -103,12 +84,11 @@ const filteredData = data.filter(child => {
 
       <View>
         <TextInput
-
-        placeholder='Search Child'
-        placeholderTextColor='#999'
-        value={search}
-        onChangeText={setSearch}
-        style={styles.searchInput}
+          placeholder='Search Child'
+          placeholderTextColor='#999'
+          value={search}
+          onChangeText={setSearch}
+          style={styles.searchInput}
         />
       </View>
       <View style={styles.addChild}>
@@ -148,17 +128,85 @@ const filteredData = data.filter(child => {
        
         <View style={styles.modalOverlay}>
         <View style={styles.bottomSheet}>
-            <View style={styles.sheetHeader}>
-                <Text style={{fontFamily:"Poppins-Bold",fontSize:18,color:"white"}}>
-                    Add New Child
-                </Text>
-                <TouchableOpacity onPress={()=>setShowAddChild(false)}>
-                        <Text style={{color:"#0286FF",fontSize:16}}>Close</Text>
+          <View style={styles.sheetHeader}>
+            <Text style={{fontFamily:"Poppins-Bold",fontSize:18,color:"white"}}>
+              Add New Child
+            </Text>
+            <TouchableOpacity onPress={()=>setShowAddChild(false)}>
+              <Text style={{color:"#0286FF",fontSize:16}}>Close</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.sheetContent}>
+            <InputField
+              label="Child name"
+              placeholder="Enter child's full name"
+              value={childName}
+              onChangeText={setChildName}
+              autoCapitalize="words"
+            />
+            <InputField
+              label="Age"
+              placeholder="e.g. 9"
+              keyboardType="number-pad"
+              value={childAge}
+              onChangeText={(value) => setChildAge(value.replace(/[^0-9]/g, ''))}
+            />
+
+            <Text style={styles.modalLabel}>Subscription</Text>
+            <View style={styles.chipRow}>
+              {['Basic', 'Standard', 'Premium'].map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.chip,
+                    subscriptionType === type && styles.chipActive,
+                  ]}
+                  onPress={() => setSubscriptionType(type)}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      subscriptionType === type && styles.chipTextActive,
+                    ]}
+                  >
+                    {type}
+                  </Text>
                 </TouchableOpacity>
+              ))}
             </View>
-            <View style={styles.sheetContent}>
-        <Text style={{ color: "#fff" }}>Here goes your form inputs for child name, age, subscription, etc.</Text>
-      </View>
+
+            <Text style={styles.modalLabel}>Payment status</Text>
+            <View style={styles.chipRow}>
+              <TouchableOpacity
+                style={[styles.chip, isPaid && styles.chipActive]}
+                onPress={() => setIsPaid(true)}
+              >
+                <Text
+                  style={[styles.chipText, isPaid && styles.chipTextActive]}
+                >
+                  Paid
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.chip, !isPaid && styles.chipActive]}
+                onPress={() => setIsPaid(false)}
+              >
+                <Text
+                  style={[styles.chipText, !isPaid && styles.chipTextActive]}
+                >
+                  Unpaid
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.saveChildBtn, !isFormValid && styles.saveChildBtnDisabled]}
+              onPress={handleSaveChild}
+              disabled={!isFormValid}
+            >
+              <Text style={styles.saveChildText}>Save Child</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         </View>
         </Modal>
@@ -190,14 +238,20 @@ const filteredData = data.filter(child => {
       </View>
 
       
-      <FlatList
-        data={filteredData}
-        renderItem={({ item }) => <Child item={item} />}
-        keyExtractor={(item) => item._id}
-        style={{ width: "100%" }}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: 100, alignItems: "center" }}
-      />
+      {loading && !children.length ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: 'white', fontFamily: 'Poppins-Regular' }}>Loading children...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredData}
+          renderItem={({ item }) => <Child item={item} />}
+          keyExtractor={(item) => item._id}
+          style={{ width: "100%" }}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 100, alignItems: "center" }}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -366,5 +420,50 @@ searchInput: {
   width:"90%",
   marginLeft:20
 },
-
+modalLabel: {
+  marginTop: 16,
+  marginBottom: 8,
+  color: "#E5E7EB",
+  fontFamily: "Poppins-Medium",
+  fontSize: 14,
+},
+chipRow: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 8,
+  marginBottom: 8,
+},
+chip: {
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  borderRadius: 16,
+  backgroundColor: "#3F3F5F",
+},
+chipActive: {
+  backgroundColor: "#0286FF",
+},
+chipText: {
+  color: "#E5E7EB",
+  fontFamily: "Poppins-Regular",
+  fontSize: 13,
+},
+chipTextActive: {
+  color: "#FFFFFF",
+  fontFamily: "Poppins-SemiBold",
+},
+saveChildBtn: {
+  marginTop: 20,
+  backgroundColor: "#0286FF",
+  paddingVertical: 14,
+  borderRadius: 18,
+  alignItems: "center",
+},
+saveChildBtnDisabled: {
+  backgroundColor: "#3F3F5F",
+},
+saveChildText: {
+  color: "#FFFFFF",
+  fontFamily: "Poppins-Bold",
+  fontSize: 15,
+},
 });

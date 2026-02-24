@@ -4,17 +4,11 @@ export default function ChildrenLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,          
-        headerStyle: { backgroundColor: '#0286FF' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontFamily: 'Poppins-Bold' },
+        headerShown: false,
       }}
     >
-      <Stack.Screen
-        name="index"
-        options={{ headerShown: false }} 
-      />
-      
+      <Stack.Screen name="index" />
+      <Stack.Screen name="[id]" />
     </Stack>
   );
 }

@@ -1,15 +1,17 @@
-import { View, Text,ScrollView,StyleSheet,Image} from 'react-native'
-import React,{useState} from 'react'
+import { View, Text, ScrollView, StyleSheet, Image } from 'react-native'
+import React, { useState } from 'react'
 import { icons, images } from '@/constants'
 import InputField from '@/components/InputField'
 import CustomButton from '@/components/CustomButton'
 import OAuth from '@/components/OAuth'
-import { Link,useRouter } from 'expo-router'
-import {LinearGradient} from 'expo-linear-gradient'
+import { Link, useRouter } from 'expo-router'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useSignIn } from '@clerk/clerk-expo'
+import { useChildrenStore } from '@/store/childrenStore'
 
 const SignIn= () => {
   const router=useRouter()
+  const loadChildren = useChildrenStore((state) => state.loadChildren)
 
   const [form,setForm]=useState({
     email:'',
@@ -29,13 +31,14 @@ const SignIn= () => {
       })
       if(attempt.status==='complete'){
         await setActive({session:attempt.createdSessionId})
+        await loadChildren()
         router.replace('/(root)/(tabs)/home')
       }
       else{
         console.log('sign in problem: ', attempt)
         setErrorMsg(attempt.status)
       }
-    }catch(err){
+    }catch(err:any){
       console.error('sign in error: ',JSON.stringify(err,null,2))
       setErrorMsg(err?.errors?.[0]?.longMessage || 'invalid email or password')
     }finally{
@@ -85,15 +88,17 @@ const SignIn= () => {
           
           {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
            <CustomButton
-            title={isLoading ? 'Signing in...' : 'Sign in'}
-            onPress={handleSubmit}
-            disabled={isLoading}
-            bgVariant="primary"
-            style={styles.button}
-          />
+           title={isLoading ? 'Signing in...' : 'Sign in'}
+           onPress={handleSubmit}
+           disabled={isLoading}
+           bgVariant="primary"
+           style={styles.button}
+           IconLeft={undefined}
+           IconRight={undefined}
+         />
           <OAuth/>
            <Link href="/(auth)/sign-up" style={styles.link}>
-             Don't have an account?{' '}
+             Don&apos;t have an account?{' '}
             <Text style={styles.linkHighlight}>Sign UP</Text>
           </Link>
         </View>
