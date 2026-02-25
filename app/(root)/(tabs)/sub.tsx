@@ -27,53 +27,18 @@ const Sub = () => {
   const { user } = useUser();
   const router = useRouter();
   const setLastPurchasedPlan = useChildrenStore((state) => state.setLastPurchasedPlan);
-
+  
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [childrenCount, setChildrenCount] = useState("1");
   const [duration, setDuration] = useState("Monthly");
 
-  const carouselRef = useRef(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+
 
   const plans = subplans;
 
-  const infoSlides = [
-    {
-      id: "1",
-      title: "Track Growth",
-      text: "See your child's progress in real time.",
-      image:
-        "https://images.unsplash.com/photo-1581092795362-3a7c1e7f4b22?crop=entropy&cs=tinysrgb&fit=max&h=300&w=600",
-    },
-    {
-      id: "2",
-      title: "Smart Suggestions",
-      text: "Personalized AI learning tips.",
-      image:
-        "https://images.unsplash.com/photo-1612831455542-8c32b2f2e0ab?crop=entropy&cs=tinysrgb&fit=max&h=300&w=600",
-    },
-    {
-      id: "3",
-      title: "Fun Activities",
-      text: "Educational games & rewards.",
-      image:
-        "https://images.unsplash.com/photo-1590490360183-0328486c26c1?crop=entropy&cs=tinysrgb&fit=max&h=300&w=600",
-    },
-  ];
-// Auto-scroll carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const nextIndex = (activeIndex + 1) % infoSlides.length;
-      setActiveIndex(nextIndex);
-      carouselRef.current?.scrollToOffset({
-        offset: nextIndex * (width - 60),
-        animated: true,
-      });
-    }, 3800);
 
-    return () => clearInterval(interval);
-  }, [activeIndex]);
+
 
   const openModal = (plan) => {
     setSelectedPlan(plan);
@@ -92,89 +57,46 @@ const Sub = () => {
     return `ETB ${base * Number(childrenCount || 0)}`;
   };
 
-  const renderCarouselItem = ({ item, index }) => (
-    <ImageBackground
-      source={{ uri: item.image }}
-      style={styles.carouselCard}
-      imageStyle={{ borderRadius: 24 }}
-      resizeMode="cover"
-    >
-      <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.75)"]}
-        style={styles.carouselGradient}
-      >
-        <Text style={styles.carouselTitle}>{item.title}</Text>
-        <Text style={styles.carouselText}>{item.text}</Text>
-      </LinearGradient>
-    </ImageBackground>
-  );
+  
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
+      
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.headerTitle}>Choose Your Plan</Text>
+            <Text style={styles.headerTitle}>Choose A Plan </Text>
             <Text style={styles.subheader}>Unlock the best for your children</Text>
           </View>
-          {/* <TouchableOpacity onPress={() => router.replace("/profile")}>
-            <Image
-              source={{ uri: user?.imageUrl || "https://via.placeholder.com/64" }}
-              style={styles.avatar}
-            />
-          </TouchableOpacity> */}
+       
         </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+  
         showsVerticalScrollIndicator={false}
       >
         
-        <View style={styles.carouselContainer}>
-          <FlatList
-            ref={carouselRef}
-            data={infoSlides}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            renderItem={renderCarouselItem}
-            contentContainerStyle={styles.carouselList}
-            onMomentumScrollEnd={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / (width - 60));
-              setActiveIndex(index);
-            }}
-          />
-
-          <View style={styles.dotsContainer}>
-            {infoSlides.map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  i === activeIndex && styles.dotActive,
-                ]}
-              />
-            ))}
-          </View>
-        </View>
+        
 
       
-        <View style={styles.plansContainer}>
+        <View style={[styles.plansContainer]}>
           {plans.map((plan) => (
             <TouchableOpacity
               key={plan.id}
               activeOpacity={0.88}
-              onPress={() => openModal(plan)}
-              style={plan.popular ? styles.popularScale : null}
+              onPress={() => {
+                setSelectedPlan(plan)
+              }}
+          
+  
             >
               <LinearGradient
                 colors={plan.colors}
                 style={[
                   styles.planCard,
-                  plan.popular && styles.popularCard,
+                  selectedPlan?.id === plan.id && styles.chosen
+
                 ]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
@@ -203,6 +125,15 @@ const Sub = () => {
             </TouchableOpacity>
           ))}
         </View>
+        <TouchableOpacity style={{display:"flex",alignItems:"center",justifyContent:"center"}} activeOpacity={0.5}
+        onPress={()=>openModal(selectedPlan)}
+        >
+          <View style={styles.select}>
+            <Text style={{fontSize:18,fontFamily:"Poppins-Bold",color:"white"}}>
+              Buy the plan
+            </Text>
+          </View>
+        </TouchableOpacity>
       </ScrollView>
 
       <Modal
@@ -317,58 +248,23 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     marginTop: 4,
   },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2.5,
-    borderColor: "#ffffff",
-  },
-
-  scrollContent: { paddingBottom: 60 },
-
+ chosen:{
+   transform:[{scale:1.1}],
+   borderColor:'#0286FF',
+   borderWidth:5
+ },
+select: {
+  display:"flex",
+  justifyContent:"center",
+  alignItems:"center",
+  backgroundColor:"#0286FF",
+  width:"90%",
+  padding:20,
+  marginTop:20,
+  borderRadius:50
+},
   
-  carouselContainer: { marginVertical: 16 },
-  carouselList: { paddingHorizontal: 30 },
-  carouselCard: {
-    width: width - 60,
-    height: 200,
-    marginHorizontal: 10,
-    borderRadius: 24,
-    overflow: "hidden",
-  },
-  carouselGradient: {
-    flex: 1,
-    justifyContent: "flex-end",
-    padding: 20,
-  },
-  carouselTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontFamily: "Poppins-Bold",
-    marginBottom: 6,
-  },
-  carouselText: {
-    color: "#e0e0ff",
-    fontSize: 15,
-    fontFamily: "Poppins-Regular",
-  },
-  dotsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 12,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#555",
-    marginHorizontal: 5,
-  },
-  dotActive: {
-    backgroundColor: "#0286FF",
-    width: 24,
-  },
+ 
 
   
   plansContainer: { paddingHorizontal: 20, marginTop: 12 },
@@ -384,13 +280,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 10,
+    
   },
-  popularCard: {
-    borderWidth: 2.5,
-    borderColor: "#FFD700",
-    transform: [{ scale: 1.04 }],
-  },
-  popularScale: { transform: [{ scale: 1.04 }] },
+ 
+ 
   planLeft: { flex: 1 },
   planName: {
     color: "#fff",
@@ -426,7 +319,7 @@ const styles = StyleSheet.create({
     color: "#000",
   },
 
-  /* Modal */
+  
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.7)",

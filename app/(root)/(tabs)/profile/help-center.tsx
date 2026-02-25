@@ -107,7 +107,7 @@ const Help = () => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        // Very important for content not being cut off
+ 
         contentContainerStyle={styles.scrollContent}
         ListHeaderComponent={
           <>
@@ -135,7 +135,7 @@ const Help = () => {
             </Text>
           </View>
         }
-        // Extra bottom padding – adjust as needed
+       
         ListFooterComponentStyle={{ paddingBottom: Platform.select({ ios: 80, android: 100 }) }}
       />
     </SafeAreaView>

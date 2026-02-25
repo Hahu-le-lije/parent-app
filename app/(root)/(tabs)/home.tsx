@@ -122,10 +122,7 @@ const Home = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <LinearGradient
-          colors={['#0286FF', '#005BB5', '#003366']}
-          style={StyleSheet.absoluteFill}
-        />
+    
         <View style={styles.h2}>
           <View>
             <Text style={styles.headerTitle}>

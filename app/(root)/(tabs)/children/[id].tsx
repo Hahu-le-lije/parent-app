@@ -8,16 +8,21 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useChildrenStore } from '@/store/childrenStore';
 
+import Child2 from '@/components/Child2';
+import { icons } from '@/constants';
+
 const ChildDetail = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-
-
   const children = useChildrenStore((state) => state.children);
   const loading = useChildrenStore((state) => state.loading);
   const lastPurchasedPlan = useChildrenStore((state) => state.lastPurchasedPlan);
@@ -28,7 +33,7 @@ const ChildDetail = () => {
 
   const child = useMemo(
     () => children.find((c) => c._id === String(id)),
-    [children, id]
+    [children, id],
   );
 
   const handleAssignPlan = () => {
@@ -38,10 +43,9 @@ const ChildDetail = () => {
 
   const handleDeleteChild = () => {
     if (!child) return;
-
     Alert.alert(
       'Delete child',
-      `Are you sure you want to remove ${child.name} from your children list?`,
+      `Are you sure you want to remove ${child.name}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -56,394 +60,515 @@ const ChildDetail = () => {
     );
   };
 
-  if (!child && loading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-        <Text style={styles.loadingText}>Loading child details...</Text>
-      </SafeAreaView>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <SafeAreaView style={styles.loadingContainer}>
+  //       <ActivityIndicator size="large" color="#3B82F6" />
+  //       <Text style={styles.loadingText}>Loading child details...</Text>
+  //     </SafeAreaView>
+  //   );
+  // }
 
-  if (!child) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <Text style={styles.errorTitle}>Child not found</Text>
-        <Text style={styles.errorText}>
-          Please go back to the children list and try again.
-        </Text>
-        <TouchableOpacity
-          style={styles.backToListButton}
-          onPress={() => router.replace('/(root)/(tabs)/children')}
-        >
-          <Text style={styles.backToListButtonText}>Back to Children</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
+  // if (!child) {
+  //   return (
+  //     <SafeAreaView style={styles.loadingContainer}>
+  //       <Text style={styles.errorTitle}>Child not found</Text>
+  //       <Text style={styles.errorText}>
+  //         Please go back to the children list and try again.
+  //       </Text>
+  //       <TouchableOpacity
+  //         style={styles.backToListButton}
+  //         onPress={() => router.replace('/(root)/(tabs)/children')}
+  //       >
+  //         <Text style={styles.backToListButtonText}>Back to Children</Text>
+  //       </TouchableOpacity>
+  //     </SafeAreaView>
+  //   );
+  // }
 
   const subscriptionActive = child.paid && child.subscription !== 'None';
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <View style={styles.headerTextGroup}>
-            <Text style={styles.headerTitle}>Child details</Text>
-            <Text style={styles.headerSubtitle}>{child.name}</Text>
-          </View>
-        </View>
+  const [open , setOpen] = React.useState(false);
 
-        <View style={styles.profileRow}>
-          <Image source={{ uri: child.image }} style={styles.avatar} />
-          <View>
-            <Text style={styles.childName}>{child.name}</Text>
-            <Text style={styles.childMeta}>Age {child.age}</Text>
-            <Text style={styles.childMeta}>
-              Subscription: {child.subscription || 'None'}
+  const skills = [
+    { label: 'Reading', value: 82, color: '#3B82F6' },
+    { label: 'Listening', value: 74, color: '#8B5CF6' },
+    { label: 'Speaking', value: 68, color: '#EC4899' },
+    { label: 'Writing', value: 90, color: '#10B981' },
+  ];
+    const strongest = skills.reduce((prev, curr) =>
+  curr.value > prev.value ? curr : prev
+);
+
+const weakest = skills.reduce((prev, curr) =>
+  curr.value < prev.value ? curr : prev
+);
+const weeks = [
+  'This Week',
+  'Last Week',
+  '2 Weeks Ago',
+  '3 Weeks Ago',
+  '4 Weeks Ago',
+];
+// ===== WEEK DATA =====
+const weekData = [
+  { day: 'M', minutes: 20 },
+  { day: 'T', minutes: 35 },
+  { day: 'W', minutes: 15 },
+  { day: 'T', minutes: 40 },
+  { day: 'F', minutes: 25 },
+  { day: 'S', minutes: 10 },
+  { day: 'S', minutes: 30 },
+];
+
+const maxMinutes = Math.max(...weekData.map(item => item.minutes));
+const totalMinutes = weekData.reduce((sum, item) => sum + item.minutes, 0);
+
+const [selectedWeek, setSelectedWeek] = React.useState('This Week');
+const [showWeekSelector, setShowWeekSelector] = React.useState(false);
+
+  return (
+   <SafeAreaView style={styles.container} edges={['top']}>
+     <View style={styles.c3}>
+            <TouchableOpacity onPress={()=>router.back()}>
+                <View style={{width:40,height:40,justifyContent:"center",alignItems:"center",backgroundColor:"white",borderRadius:50}}>
+                    <Image source={icons.backArrow} resizeMode='contain' style={{width:20,height:20}}/>
+                </View>
+            </TouchableOpacity>
+            <Text style={{fontSize:20,color:"#fff",marginLeft:50,fontFamily:"Poppins-Bold"}}>
+                Learning Progress
             </Text>
-          </View>
+         
         </View>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 60 }}
+  showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.childProfile}>
+          <Child2 item={child!}/>
+        </View>
+        <View style={styles.ai}>
+          <Text style={styles.aiTitle}>Insights About The child</Text>
+          <TouchableOpacity
+          onPress={()=>{
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setOpen(!open)
+          }}
+          activeOpacity={0.8}
+          >
+            <View style={styles.aiHeader}>
+             
+              <View style={styles.aitoggle}>
+               <Text style={{fontSize: 15,
+    fontFamily: 'Poppins-Regular',
+    color: '#3B82F6',}}>{open===true ? 'Close' : 'Open'}</Text>
+              </View>
+             
+            </View>
+          </TouchableOpacity>
+          {open && (
+            <View style={styles.aiContent}>
+              <Text style={styles.aiIntro}>
+                Quick AI summary for {child?.name || 'this child'}:
+              </Text>
+
+              
+
+              <Text style={styles.recommendation}>
+                Suggestion:{'\n'}
+                Focus more on {weakest.label.toLowerCase()} activities this week.{' '}
+                Short 10–15 minute sessions combined with {strongest.label.toLowerCase()}{' '}
+                tasks usually work best to keep {child?.name?.split(' ')[0] || 'them'} motivated.
+              </Text>
+
+             
+              
+            </View>
+          )}
+        </View>
+        <View style={styles.statsContainer}>
+          {[
+            { label: 'Accuracy', value: '87%' },
+            { label: 'Words Learned', value: '124' },
+            { label: 'Sessions', value: '18' },
+            { label: 'Completed Lessons', value: '9' },
+          ].map((item, index) => (
+            <View key={index} style={styles.statBox}>
+              <Text style={styles.statValue}>{item.value}</Text>
+              <Text style={styles.statLabel}>{item.label}</Text>
+            </View>
+          ))}
+        </View>
+        <View style={styles.streak}>
+
+          <Text style={{fontSize:13,fontFamily:"Poppins-SemiBold",color:"#D1D5DB"}}>💠 Days Streak</Text>
+          <Text style={{fontSize:25,fontFamily:"Poppins-Bold",color:"white"}}>12</Text>
+          <Text style={{fontSize:13,fontFamily:"Poppins-SemiBold",color:"#D1D5DB"}}>Personal Best: 20</Text>
+        </View>
+        <View style={styles.weekContainer}>
+  <View style={styles.weekHeader}>
+    <Text style={styles.sectionTitle}>Time Spent</Text>
+
+    <TouchableOpacity
+      style={styles.dropdown}
+      onPress={() => setShowWeekSelector(!showWeekSelector)}
+    >
+      <Text style={styles.dropdownText}>{selectedWeek}</Text>
+    </TouchableOpacity>
+  </View>
+
+  {showWeekSelector && (
+    <View style={styles.weekList}>
+      {weeks.map((week, index) => (
+        <TouchableOpacity
+          key={index}
+          style={styles.weekItem}
+          onPress={() => {
+            setSelectedWeek(week);
+            setShowWeekSelector(false);
+          }}
+        >
+          <Text style={styles.weekItemText}>{week}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  )}
+
+ 
+  <Text style={styles.totalTime}>
+    Total: {totalMinutes} minutes
+  </Text>
+
+ 
+  <View style={styles.chartContainer}>
+    {weekData.map((item, index) => {
+      const heightPercentage = (item.minutes / maxMinutes) * 120;
+
+      return (
+        <View key={index} style={styles.barWrapper}>
+          <Text style={styles.barValue}>
+            {item.minutes}m
+          </Text>
+
+          <View
+            style={[
+              styles.bar,
+              { height: heightPercentage },
+            ]}
+          />
+
+          <Text style={styles.barLabel}>{item.day}</Text>
+        </View>
+      );
+    })}
+  </View>
+</View>
+
+        <View style={styles.performanceContainer}>
+  <Text style={styles.sectionTitle}>Performance by Category</Text>
+
+  {skills.map((skill, index) => (
+    <View key={index} style={{ marginTop: 14 }}>
+      <View style={styles.skillHeader}>
+        <Text style={styles.skillLabel}>{skill.label}</Text>
+        <Text style={styles.skillPercent}>{skill.value}%</Text>
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Current Subscription</Text>
-          <Text style={styles.sectionBody}>
-            Status:{' '}
-            <Text
-              style={[
-                styles.statusPill,
-                subscriptionActive ? styles.statusActive : styles.statusInactive,
-              ]}
-            >
-              {subscriptionActive ? 'Active' : 'No active plan'}
-            </Text>
-          </Text>
-          <Text style={styles.sectionBody}>
-            Plan:{' '}
-            <Text style={styles.highlight}>
-              {child.subscription || 'Not assigned'}
-            </Text>
-          </Text>
-        </View>
-
-        {lastPurchasedPlan && (
-          <View style={styles.assignCard}>
-            <Text style={styles.assignTitle}>New plan purchased</Text>
-            <Text style={styles.assignBody}>
-              You recently bought{' '}
-              <Text style={styles.assignHighlight}>
-                {lastPurchasedPlan.name}
-              </Text>
-              . You can assign it to {child.name}.
-            </Text>
-            <TouchableOpacity
-              style={styles.assignButton}
-              onPress={handleAssignPlan}
-            >
-              <Text style={styles.assignButtonText}>Assign to this child</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Learning Snapshot</Text>
-          <Text style={styles.sectionBody}>
-            This is a preview of how {child.name}&apos;s skills could look once
-            connected to your backend. Values below are placeholder analytics.
-          </Text>
-
-          <View style={styles.metricRow}>
-            <Text style={styles.metricLabel}>Reading</Text>
-            <Text style={styles.metricValue}>82%</Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: '82%' }]} />
-          </View>
-
-          <View style={styles.metricRow}>
-            <Text style={styles.metricLabel}>Listening</Text>
-            <Text style={styles.metricValue}>74%</Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: '74%' }]} />
-          </View>
-
-          <View style={styles.metricRow}>
-            <Text style={styles.metricLabel}>Speaking</Text>
-            <Text style={styles.metricValue}>68%</Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: '68%' }]} />
-          </View>
-
-          <View style={styles.metricRow}>
-            <Text style={styles.metricLabel}>Writing</Text>
-            <Text style={styles.metricValue}>90%</Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: '90%' }]} />
-          </View>
-
-          <Text style={[styles.sectionBody, { marginTop: 10 }]}>
-            You can later drive these numbers from real progress data (e.g. per
-            activity or per level) and expand this section with charts or
-            history.
-          </Text>
-        </View>
-
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            activeOpacity={0.85}
-            onPress={handleDeleteChild}
-          >
-            <Text style={styles.deleteButtonText}>Delete child</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.progressBackground}>
+        <View
+          style={[
+            styles.progressFill,
+            {
+              width: `${skill.value}%`,
+              backgroundColor: skill.color,
+            },
+          ]}
+        />
+      </View>
+    </View>
+  ))}
+</View>
       </ScrollView>
-    </SafeAreaView>
+   </SafeAreaView>
   );
 };
 
 export default ChildDetail;
 
 const styles = StyleSheet.create({
+  weekList: {
+  backgroundColor: '#1E1E38',
+  borderRadius: 12,
+  paddingVertical: 6,
+  marginBottom: 12,
+  marginTop: 6,
+
+ 
+
+  elevation: 6,
+},
+
+weekItem: {
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderBottomWidth: 0.5,
+  borderBottomColor: '#2F2F42',
+},
+
+weekItemText: {
+  color: '#fff',
+  fontSize: 14,
+  fontFamily: 'Poppins-Regular',
+},
+  weekContainer: {
+  width: '95%',
+  alignSelf: 'center',
+  marginTop: 20,
+  backgroundColor: '#2F2F42',
+  borderRadius: 12,
+  padding: 16,
+},
+
+totalTime: {
+  color: '#D1D5DB',
+  fontSize: 13,
+  fontFamily: 'Poppins-Regular',
+  marginBottom: 12,
+},
+
+chartContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'flex-end',
+  height: 160,
+},
+
+barWrapper: {
+  alignItems: 'center',
+  flex: 1,
+},
+
+bar: {
+  width: 16,
+  backgroundColor: '#3B82F6',
+  borderRadius: 8,
+  marginBottom: 6,
+},
+
+barLabel: {
+  fontSize: 12,
+  color: '#D1D5DB',
+  fontFamily: 'Poppins-Regular',
+},
+
+barValue: {
+  fontSize: 12,
+  color: '#fff',
+  fontFamily: 'Poppins-Regular',
+  marginBottom: 4,
+},
   container: {
     flex: 1,
     backgroundColor: '#1F1F39',
   },
-  header: {
-    height: 190,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    justifyContent: 'flex-end',
-    backgroundColor: '#111827',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+  childProfile:{
+    width:"100%",
+    display:"flex",
+    alignItems:"center",
+    marginTop:20
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
+   c3:{
+        display:"flex",
+        flexDirection:"row",
+      
+        
+        alignItems:"center",
+        justifyContent:"flex-start",
+        paddingHorizontal:16,
+        width:"100%",
+        marginTop:20
+        
+    },
+    ai:{
+    backgroundColor: '#3B82F6',
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    backgroundColor: 'rgba(15,23,42,0.9)',
-  },
-  backIcon: {
-    color: '#F9FAFB',
-    fontSize: 18,
-    marginTop: -1,
-  },
-  headerTextGroup: {
-    flexDirection: 'column',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#F9FAFB',
-  },
-  headerSubtitle: {
-    marginTop: 2,
-    fontSize: 13,
-    fontFamily: 'Poppins-Regular',
-    color: '#E5E7EB',
-    opacity: 0.9,
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 3,
-    borderColor: '#fff',
-    backgroundColor: '#e0e0e0',
-  },
-  childName: {
-    fontSize: 20,
-    fontFamily: 'Poppins-Bold',
-    color: '#fff',
-  },
-  childMeta: {
-    fontSize: 13,
-    fontFamily: 'Poppins-Regular',
-    color: '#E5E7EB',
-    opacity: 0.9,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  sectionCard: {
-    backgroundColor: '#26264A',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  sectionBody: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-    color: '#D1D5DB',
-    lineHeight: 20,
-  },
-  metricRow: {
+    marginBottom: 10,
+    overflow: 'hidden',
+    marginTop:20,
+    width:"95%",
+    marginHorizontal:10,
+    opacity:0.9
+    },
+    aiHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
-  metricLabel: {
-    fontSize: 13,
-    fontFamily: 'Poppins-Medium',
-    color: '#E5E7EB',
-  },
-  metricValue: {
-    fontSize: 13,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#A5B4FC',
-  },
-  progressTrack: {
-    width: '100%',
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: '#1F2937',
-    overflow: 'hidden',
-    marginTop: 4,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: '#3B82F6',
-  },
-  statusPill: {
-    fontFamily: 'Poppins-SemiBold',
-  },
-  statusActive: {
-    color: '#4ADE80',
-  },
-  statusInactive: {
-    color: '#FCA5A5',
-  },
-  highlight: {
-    fontFamily: 'Poppins-SemiBold',
-    color: '#60A5FA',
-  },
-  assignCard: {
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 16,
-  },
-  assignTitle: {
-    fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  assignBody: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-    color: '#ECFDF5',
-    marginBottom: 10,
-  },
-  assignHighlight: {
+  aiTitle: {
+    fontSize: 20,
     fontFamily: 'Poppins-Bold',
-  },
-  assignButton: {
-    marginTop: 4,
-    backgroundColor: '#065F46',
-    paddingVertical: 10,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  assignButtonText: {
-    color: '#ECFDF5',
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 14,
-  },
-  actionsRow: {
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  deleteButton: {
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(248,113,113,0.9)',
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(153,27,27,0.15)',
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#FCA5A5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1F1F39',
-  },
-  loadingText: {
-    marginTop: 12,
-    color: '#E5E7EB',
-    fontFamily: 'Poppins-Regular',
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontFamily: 'Poppins-Bold',
-    color: '#FCA5A5',
-    marginBottom: 4,
-  },
-  errorText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-    color: '#E5E7EB',
-    textAlign: 'center',
-    marginHorizontal: 24,
-    marginBottom: 16,
-  },
-  backToListButton: {
-    marginTop: 8,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: '#3B82F6',
-  },
-  backToListButtonText: {
     color: '#fff',
-    fontFamily: 'Poppins-SemiBold',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
-});
+  aitoggle:{
+    backgroundColor:"white",
+    height:30,
+    width:80,
+    borderRadius:50,
+    justifyContent:"center",
+    alignItems:"center"
+  },
+  aiContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  aiIntro: {
+    fontSize: 15,
+    color: '#C7C7FF',
+    marginBottom: 16,
+    lineHeight: 22,
+    fontFamily: 'Poppins-Regular',
+  },
 
+  recommendation: {
+    fontSize: 14.5,
+    color: '#D0D0FF',
+    lineHeight: 22,
+    marginTop: 8,
+    marginBottom: 20,
+    padding: 12,
+    backgroundColor: '#1E1E38',
+    borderRadius: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#10B981',
+  },
+  
+  streak:{
+    backgroundColor:"#2F2F42",
+    width:"95%",
+    marginHorizontal:10,
+    height:100,
+    borderRadius:10,
+    marginTop:20,
+    display:"flex",
+    alignItems:"flex-start",
+    paddingLeft:20,
+    justifyContent:"center",
+    paddingBottom:20,
+    paddingTop:20
+  },
+  statsContainer: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  width: '95%',
+  alignSelf: 'center',
+  marginTop: 20,
+},
+statBox: {
+  width: '48%',
+  backgroundColor: '#2F2F42',
+  borderRadius: 12,
+  paddingVertical: 16,
+  paddingHorizontal: 12,
+  marginBottom: 12,
+},
+statValue: {
+  fontSize: 20,
+  fontFamily: 'Poppins-Bold',
+  color: '#fff',
+},
+statLabel: {
+  fontSize: 13,
+  fontFamily: 'Poppins-Regular',
+  color: '#D1D5DB',
+  marginTop: 4,
+},
+weekContainer: {
+  width: '95%',
+  alignSelf: 'center',
+  marginTop: 20,
+  backgroundColor: '#2F2F42',
+  borderRadius: 12,
+  padding: 16,
+},
+weekHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 16,
+},
+sectionTitle: {
+  fontSize: 16,
+  fontFamily: 'Poppins-Bold',
+  color: '#fff',
+},
+dropdown: {
+  backgroundColor: '#3B82F6',
+  paddingHorizontal: 12,
+  paddingVertical: 6,
+  borderRadius: 20,
+},
+dropdownText: {
+  color: '#fff',
+  fontSize: 13,
+  fontFamily: 'Poppins-Regular',
+},
+chartContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'flex-end',
+},
+barWrapper: {
+  alignItems: 'center',
+  flex: 1,
+},
+bar: {
+  width: 16,
+  backgroundColor: '#3B82F6',
+  borderRadius: 8,
+  marginBottom: 6,
+},
+barLabel: {
+  fontSize: 12,
+  color: '#D1D5DB',
+  fontFamily: 'Poppins-Regular',
+},
+performanceContainer: {
+  width: '95%',
+  alignSelf: 'center',
+  marginTop: 20,
+  marginBottom: 30,
+  backgroundColor: '#2F2F42',
+  borderRadius: 12,
+  padding: 16,
+},
+skillHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginBottom: 6,
+},
+skillLabel: {
+  fontSize: 14,
+  fontFamily: 'Poppins-SemiBold',
+  color: '#fff',
+},
+skillPercent: {
+  fontSize: 14,
+  fontFamily: 'Poppins-Regular',
+  color: '#D1D5DB',
+},
+progressBackground: {
+  height: 10,
+  backgroundColor: '#1E1E38',
+  borderRadius: 8,
+  overflow: 'hidden',
+},
+progressFill: {
+  height: '100%',
+  borderRadius: 8,
+},
+})
