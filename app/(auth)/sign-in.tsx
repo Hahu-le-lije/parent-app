@@ -97,7 +97,7 @@ const SignIn= () => {
            IconRight={undefined}
          />
           <OAuth/>
-           <Link href="/(auth)/sign-up" style={styles.link}>
+           <Link href="/(auth)/sign-upf" style={styles.link}>
              Don&apos;t have an account?{' '}
             <Text style={styles.linkHighlight}>Sign UP</Text>
           </Link>

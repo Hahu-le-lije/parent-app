@@ -1,11 +1,11 @@
 import { View, Text, TouchableOpacity,StyleSheet,Image } from 'react-native'
-import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Swiper from "react-native-swiper"
-import { useRef ,useState} from 'react'
+import React,{ useRef ,useState} from 'react'
 import { useRouter } from 'expo-router'
 import { onboardingData } from '@/constants'
 import CustomButton from '@/components/CustomButton'
+
 const onboarding = () => {
     const router=useRouter()
     const swipeRef = useRef<Swiper>(null);
@@ -14,7 +14,7 @@ const onboarding = () => {
   return (
     <SafeAreaView style={styles.container}>
         
-        <TouchableOpacity style={styles.skip} onPress={()=>router.replace('./sign-up')}>
+        <TouchableOpacity style={styles.skip} onPress={()=>router.replace('./sign-upf')}>
             <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
     <Swiper ref={swipeRef}
@@ -41,7 +41,7 @@ const onboarding = () => {
             }
         </Swiper>
     <CustomButton title={last? "Get Started":"Next"}
-    onPress={()=> last? router.replace('/(auth)/sign-up'):  swipeRef.current?.scrollBy(1)}
+    onPress={()=> last? router.replace('/(auth)/sign-upf'):  swipeRef.current?.scrollBy(1)}
     style={{marginTop:20,width:"90%",marginBottom:20,fontFamily:"Poppins-SemiBold",backgroundColor:"#3D5CFF"}}
     />
     </SafeAreaView>

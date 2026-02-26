@@ -21,7 +21,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { parentStore } from '@/store/parentStore';
 
 
-const SignUp = () => {
+const SignUpF = () => {
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
 
@@ -47,11 +47,14 @@ const SignUp = () => {
   const phoneNumber=parentStore((state)=>state.phoneNumber)
   const password=parentStore((state)=>state.password)
   const confirmPassword=parentStore((state)=>state.confirmPassword)
-  const remove=parentStore((state)=>state.remove)
+
 
   const setPhoneNumber=parentStore((state)=>state.setPhoneNumber)
   const setPassword=parentStore((state)=>state.setPassword)
   const setConfirmPassword=parentStore((state)=>state.setConfirmPassword)
+  const setFirstName=parentStore((state)=>state.setFirstName)
+  const setLastName=parentStore((state)=>state.setLastName)
+  const setEmail=parentStore((state)=>state.setEmail)
   
 
   const handleSubmit = async () => {
@@ -59,24 +62,10 @@ const SignUp = () => {
     if (!isLoaded) return;
     setIsLoading(true);
 
-    try {
-      await signUp.create({
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        emailAddress: email.trim(),
-        password: password,
-      });
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-
-      setPendingVerified(true);
-      setCode('');
-    } catch (err: any) {
-      setErrorMsg(err?.errors?.[0]?.longMessage || 'Something went wrong');
-      console.error(JSON.stringify(err, null, 2));
-    } finally {
-      setIsLoading(false);
-    }
-    remove();
+    console.log(firstName,lastName,email,phoneNumber,password,confirmPassword)
+    router.push('/(auth)/sign-up')
+    setIsLoading(false);
+  
   };
 
   const handleVerify = async () => {
@@ -134,28 +123,28 @@ const SignUp = () => {
            
             
             <InputField
-              label="Phone Number"
-              placeholder="Enter your Phone Number"
-              icon={icons.marker}
-              value={phoneNumber}
-              onChangeText={(value) => setPhoneNumber(value)}
-              keyboardType="phone-pad"
+              label="First Name"
+              placeholder="Enter your first name"
+              icon={icons.person}
+              value={firstName}
+              onChangeText={(value) => setFirstName(value)}
+              
             />
             <InputField
-              label="Password"
-              placeholder="Enter your password"
-              icon={icons.lock}
-              value={password}
-              onChangeText={(value) => setPassword(value)}
-              secureTextEntry
+              label="Last Name"
+              placeholder="Enter your Last Name"
+              icon={icons.person}
+              value={lastName}
+              onChangeText={(value) => setLastName(value)}
+              
             />
             <InputField
-              label="Confirm Password"
+              label="Email Address"
               placeholder="Confirm Your Password"
               icon={icons.lock}
-              value={confirmPassword}
-              onChangeText={(value) => setConfirmPassword(value)}
-              secureTextEntry
+              value={email}
+              onChangeText={(value) => setEmail(value)}
+              keyboardType='email-address'
             />
 
             {errorMsg && !pendingVerified && (
@@ -163,7 +152,7 @@ const SignUp = () => {
             )}
 
             <CustomButton
-              title={isLoading ? 'Creating...' : 'Sign Up'}
+              title='Continue'
               onPress={handleSubmit}
               disabled={isLoading}
               bgVariant="primary"
@@ -280,7 +269,7 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default SignUpF;
 
 const styles = StyleSheet.create({
   container: {
