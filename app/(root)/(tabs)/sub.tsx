@@ -1,411 +1,317 @@
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
-  FlatList,
-  ImageBackground,
-  Image,
+  ScrollView,
   Modal,
   TextInput,
-  ScrollView,
   KeyboardAvoidingView,
+  Alert,
+  Image,
   Platform,
 } from "react-native";
-import React, { useState, useRef, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import {  subplans } from "@/constants";
 import { useChildrenStore } from "@/store/childrenStore";
-
-const { width, height } = Dimensions.get("window");
+import { subplans } from "@/constants";
+import ChapaPaymentModal from "@/components/ChapaPayementModal";
 
 const Sub = () => {
-  const { user } = useUser();
-  const router = useRouter();
-  const setLastPurchasedPlan = useChildrenStore((state) => state.setLastPurchasedPlan);
-  
+  const { children, lastPurchasedPlan, assignLastPurchasedToChild, setLastPurchasedPlan } = useChildrenStore();
+
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [showInventoryModal, setShowInventoryModal] = useState(false);
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState(null);
+
   const [childrenCount, setChildrenCount] = useState("1");
   const [duration, setDuration] = useState("Monthly");
 
+ 
+  const [showChapaModal, setShowChapaModal] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState("");
 
+  const [inventory, setInventory] = useState([
+    { id: 'inv_1', name: 'Premium', type: 'Monthly', children: 1, boughtAt: '2024-05-10', expiresAt: '2024-06-10' },
+    { id: 'inv_2', name: 'Basic', type: 'Yearly', children: 2, boughtAt: '2024-05-12', expiresAt: '2025-05-12' },
+  ]);
 
-  const plans = subplans;
+    const handlePurchaseComplete = () => {
+    if (!selectedPlan) return;
 
+    // In production: const { checkout_url } = await api.post('/initialize-payment', { ... })
+    setPaymentUrl("https://chapa.co/demo/checkout");
 
+    setShowPurchaseModal(false); 
+    setShowChapaModal(true);    
+  };
 
+  const onPaymentSuccess = () => {
+    setShowChapaModal(false);
+    
+  
+    if (!selectedPlan) return;
+    setLastPurchasedPlan({ id: selectedPlan.id.toString(), name: selectedPlan.name });
 
-  const openModal = (plan) => {
-    setSelectedPlan(plan);
-    setShowModal(true);
+    
+    const newItem = {
+      id: Math.random().toString(),
+      name: selectedPlan.name,
+      type: duration,
+      children: parseInt(childrenCount),
+      boughtAt: new Date().toLocaleDateString(),
+      expiresAt: duration === "Monthly" ? "In 30 Days" : "In 1 Year",
+    };
+    
+    setInventory([newItem, ...inventory]);
+    Alert.alert("Payment Successful", "Your plan has been added to inventory.");
   };
 
   const calculatePrice = () => {
     if (!selectedPlan) return 0;
-    if (selectedPlan.priceMonthly === 0) return "Free";
-
-    const base =
-      duration === "Monthly"
-        ? selectedPlan.priceMonthly
-        : selectedPlan.priceYearly;
-
-    return `ETB ${base * Number(childrenCount || 0)}`;
+    const base = duration === "Monthly" ? selectedPlan.priceMonthly : selectedPlan.priceYearly;
+    return (base * Number(childrenCount || 0)).toLocaleString();
   };
 
-  
-
   return (
-    <SafeAreaView style={styles.container}>
-      
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.headerTitle}>Choose A Plan </Text>
-            <Text style={styles.subheader}>Unlock the best for your children</Text>
-          </View>
-       
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+        
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Subscription Hub</Text>
+          <Text style={styles.subheader}>Manage access for your children</Text>
         </View>
-      </View>
-
-      <ScrollView
-  
-        showsVerticalScrollIndicator={false}
-      >
-        
-        
 
       
-        <View style={[styles.plansContainer]}>
-          {plans.map((plan) => (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Purchased Plans (Unused)</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {inventory.map((item) => (
+              <TouchableOpacity 
+                key={item.id} 
+                style={styles.inventoryCard}
+                onPress={() => {
+                  setSelectedInventoryItem(item);
+                  setShowInventoryModal(true);
+                }}
+              >
+                <Text style={styles.invName}>{item.name}</Text>
+                <Text style={styles.invType}>{item.type}</Text>
+                <View style={styles.invBadge}><Text style={styles.invBadgeText}>Ready</Text></View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Child Subscriptions</Text>
+          {children.map((child) => (
+            <View key={child._id} style={styles.childCardLarge}>
+              <View style={styles.childInfoRow}>
+                <Image source={{ uri: child.image }} style={styles.childAvatarLarge} />
+                <View style={{ flex: 1, marginLeft: 15 }}>
+                  <Text style={styles.childNameLarge}>{child.name}</Text>
+                  <Text style={[styles.statusTextLarge, { color: child.paid ? '#10B981' : '#FFA500' }]}>
+                    {child.paid ? `${child.subscription} Active` : 'No Active Plan'}
+                  </Text>
+                </View>
+
+                {child.paid ? (
+                  <TouchableOpacity style={styles.renewBtn}>
+                    <Text style={styles.renewBtnText}>Renew</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity 
+                    style={styles.assignActionBtnLarge}
+                    onPress={() => lastPurchasedPlan ? assignLastPurchasedToChild(child._id) : Alert.alert("No Plans", "Purchase a plan first.")}
+                  >
+                    <Text style={styles.assignActionTextLarge}>Assign Plan</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {child.paid && (
+                <View style={styles.expiryRowLarge}>
+                  <View style={styles.detailBox}>
+                    <Text style={styles.detailLabel}>Expires In</Text>
+                    <Text style={styles.detailValue}>22 Days</Text>
+                  </View>
+                  <View style={styles.detailBox}>
+                    <Text style={styles.detailLabel}>Plan Type</Text>
+                    <Text style={styles.detailValue}>{child.subscription}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Upgrade or Buy New</Text>
+          {subplans.map((plan) => (
             <TouchableOpacity
               key={plan.id}
-              activeOpacity={0.88}
-              onPress={() => {
-                setSelectedPlan(plan)
-              }}
-          
-  
+              onPress={() => setSelectedPlan(plan)}
+              style={styles.planWrapper}
             >
-              <LinearGradient
-                colors={plan.colors}
-                style={[
-                  styles.planCard,
-                  selectedPlan?.id === plan.id && styles.chosen
-
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <View style={styles.planLeft}>
-                  <Text style={styles.planName}>{plan.name}</Text>
-                  <Text style={styles.planDesc}>{plan.desc}</Text>
+              <LinearGradient colors={plan.colors} style={styles.planGradientLarge} start={{x:0, y:0}} end={{x:1, y:1}}>
+                <View style={{flex: 1}}>
+                  <Text style={styles.planNameLarge}>{plan.name}</Text>
+                  <Text style={styles.planDescLarge}>{plan.desc}</Text>
                 </View>
-
-                <View style={styles.planRight}>
-                  <Text style={styles.price}>
-                    {plan.priceMonthly === 0 ? "Free" : `ETB ${plan.priceMonthly}`}
-                    <Text style={styles.priceSmall}>/mo</Text>
-                  </Text>
-
-                  {plan.badge && (
-                    <View style={[
-                      styles.badge,
-                      plan.popular && styles.popularBadge,
-                    ]}>
-                      <Text style={styles.badgeText}>{plan.badge}</Text>
-                    </View>
-                  )}
+                <View style={{alignItems: 'flex-end'}}>
+                  <Text style={styles.planPriceLarge}>ETB {plan.priceMonthly}</Text>
+                  <Text style={styles.planUnitLarge}>/month</Text>
                 </View>
               </LinearGradient>
+              {selectedPlan?.id === plan.id && <View style={styles.selectionBorder} />}
             </TouchableOpacity>
           ))}
         </View>
-        <TouchableOpacity style={{display:"flex",alignItems:"center",justifyContent:"center"}} activeOpacity={0.5}
-        onPress={()=>openModal(selectedPlan)}
-        >
-          <View style={styles.select}>
-            <Text style={{fontSize:18,fontFamily:"Poppins-Bold",color:"white"}}>
-              Buy the plan
-            </Text>
-          </View>
-        </TouchableOpacity>
+
+        {selectedPlan && (
+          <TouchableOpacity style={styles.mainBuyBtn} onPress={() => setShowPurchaseModal(true)}>
+            <Text style={styles.mainBuyBtnText}>Continue with {selectedPlan.name}</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
-      <Modal
-        visible={showModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowModal(false)}
-      >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
+      {/* MODAL: INPUT DETAILS */}
+      <Modal visible={showPurchaseModal} transparent animationType="slide">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : "height"} style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {selectedPlan?.name || "Plan"}
-              </Text>
-              <TouchableOpacity onPress={() => setShowModal(false)}>
-                <Text style={styles.closeText}>Close</Text>
-              </TouchableOpacity>
-            </View>
+             <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Checkout</Text>
+                <TouchableOpacity onPress={() => setShowPurchaseModal(false)}><Text style={styles.closeText}>Close</Text></TouchableOpacity>
+             </View>
 
-            {selectedPlan?.priceMonthly > 0 && (
-              <View style={styles.durationToggle}>
+             <View style={styles.durationToggle}>
                 {["Monthly", "Yearly"].map((d) => (
-                  <TouchableOpacity
-                    key={d}
-                    onPress={() => setDuration(d)}
-                    style={[
-                      styles.durationBtn,
-                      duration === d && styles.durationBtnActive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.durationText,
-                        duration === d && styles.durationTextActive,
-                      ]}
-                    >
-                      {d}
-                      {d === "Yearly" && (
-                        <Text style={styles.saveText}> Save ~17%</Text>
-                      )}
-                    </Text>
+                  <TouchableOpacity key={d} onPress={() => setDuration(d)} style={[styles.durationBtn, duration === d && styles.durationBtnActive]}>
+                    <Text style={[styles.durationText, duration === d && styles.durationTextActive]}>{d}</Text>
                   </TouchableOpacity>
                 ))}
-              </View>
-            )}
+             </View>
 
-            <Text style={styles.childrenLabel}>Number of children</Text>
-            <TextInput
-              value={childrenCount}
-              onChangeText={(text) => setChildrenCount(text.replace(/[^0-9]/g, ""))}
-              keyboardType="numeric"
-              placeholder="1"
-              placeholderTextColor="#888"
-              style={styles.input}
-              maxLength={2}
-            />
+             <Text style={styles.inputLabel}>Number of Children</Text>
+             <TextInput style={styles.modalInput} value={childrenCount} onChangeText={setChildrenCount} keyboardType="numeric" />
 
-            <TouchableOpacity
-              style={[
-                styles.buyBtn,
-                selectedPlan?.priceMonthly === 0 && styles.freeBtn,
-              ]}
-              onPress={() => {
-                if (selectedPlan) {
-                  setLastPurchasedPlan({ id: selectedPlan.id, name: selectedPlan.name });
-                }
-                alert(`Processing: ${calculatePrice()} – ${duration}`);
-              }}
-            >
-              <Text style={styles.buyText}>
-                {selectedPlan?.priceMonthly === 0 ? "Start Free" : `Pay ${calculatePrice()}`}
-                {selectedPlan?.priceMonthly > 0 && (
-                  <Text style={styles.perChild}> ({duration.toLowerCase()})</Text>
-                )}
-              </Text>
-            </TouchableOpacity>
+             <TouchableOpacity style={styles.payBtn} onPress={handlePurchaseComplete}>
+                <Text style={styles.payBtnText}>Pay ETB {calculatePrice()}</Text>
+             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* MODAL: INVENTORY INFO */}
+      <Modal visible={showInventoryModal} transparent animationType="fade">
+        <View style={styles.infoOverlay}>
+          <View style={styles.infoCard}>
+            <Text style={styles.infoTitle}>Subscription Info</Text>
+            <DetailRow label="Plan Name" value={selectedInventoryItem?.name} />
+            <DetailRow label="Billing" value={selectedInventoryItem?.type} />
+            <DetailRow label="Child Slots" value={`${selectedInventoryItem?.children} Child(ren)`} />
+            <DetailRow label="Purchased" value={selectedInventoryItem?.boughtAt} />
+            <DetailRow label="Valid Until" value={selectedInventoryItem?.expiresAt} />
+            
+            <TouchableOpacity style={styles.closeInfoBtn} onPress={() => setShowInventoryModal(false)}>
+                <Text style={styles.closeInfoBtnText}>Got it</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+    
+      <ChapaPaymentModal 
+        visible={showChapaModal}
+        checkoutUrl={paymentUrl}
+        onClose={() => setShowChapaModal(false)}
+        onMessage={(msg: string) => {
+            if(msg === "success") onPaymentSuccess();
+        }}
+      />
+
     </SafeAreaView>
   );
 };
 
+const DetailRow = ({ label, value }: { label: string, value: string }) => (
+    <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={styles.infoValue}>{value}</Text>
+    </View>
+);
+
 export default Sub;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0F0F1A" },
-
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 20,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontFamily: "Poppins-Bold",
-    color: "#ffffff",
-    letterSpacing: -0.5,
-  },
-  subheader: {
-    fontSize: 16,
-    fontFamily: "Poppins-Regular",
-    color: "#d0d0ff",
-    opacity: 0.85,
-    marginTop: 4,
-  },
- chosen:{
-   transform:[{scale:1.1}],
-   borderColor:'#0286FF',
-   borderWidth:5
- },
-select: {
-  display:"flex",
-  justifyContent:"center",
-  alignItems:"center",
-  backgroundColor:"#0286FF",
-  width:"90%",
-  padding:20,
-  marginTop:20,
-  borderRadius:50
-},
-  
- 
-
-  
-  plansContainer: { paddingHorizontal: 20, marginTop: 12 },
-  planCard: {
-    padding: 24,
-    borderRadius: 24,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 10,
-    
-  },
- 
- 
-  planLeft: { flex: 1 },
-  planName: {
-    color: "#fff",
-    fontSize: 22,
-    fontFamily: "Poppins-Bold",
-  },
-  planDesc: {
-    color: "#ddd",
-    fontSize: 14,
-    marginTop: 6,
-    fontFamily: "Poppins-Regular",
-  },
-  planRight: { alignItems: "flex-end" },
-  price: {
-    color: "#fff",
-    fontSize: 26,
-    fontFamily: "Poppins-Bold",
-  },
-  priceSmall: { fontSize: 16, opacity: 0.9 },
-  badge: {
-    backgroundColor: "rgba(255,255,255,0.25)",
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+  container: { flex: 1, backgroundColor: "#1F1F39" },
+  header: { padding: 25 },
+  headerTitle: { fontSize: 28, fontFamily: "Poppins-Bold", color: "#fff" },
+  subheader: { fontSize: 15, fontFamily: "Poppins-Regular", color: "#9CA3AF" },
+  section: { paddingHorizontal: 20, marginTop: 25 },
+  sectionTitle: { fontSize: 18, fontFamily: "Poppins-Bold", color: "#fff", marginBottom: 15 },
+  inventoryCard: {
+    backgroundColor: "#2F2F42",
+    width: 130,
+    height: 110,
     borderRadius: 20,
-    marginTop: 8,
+    padding: 15,
+    marginRight: 15,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#3B82F6',
   },
-  popularBadge: {
-    backgroundColor: "#FFD700",
-  },
-  badgeText: {
-    fontSize: 12,
-    fontFamily: "Poppins-Bold",
-    color: "#000",
-  },
-
-  
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#1A1A2E",
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: 28,
-    paddingBottom: Platform.OS === "ios" ? 40 : 28,
-    maxHeight: height * 0.78,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontFamily: "Poppins-Bold",
-    color: "#fff",
-  },
-  closeText: {
-    color: "#4dabf7",
-    fontSize: 17,
-    fontFamily: "Poppins-Medium",
-  },
-  durationToggle: {
-    flexDirection: "row",
-    backgroundColor: "#252540",
-    borderRadius: 30,
-    padding: 6,
-    marginBottom: 28,
-  },
-  durationBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 24,
-    alignItems: "center",
-  },
-  durationBtnActive: {
-    backgroundColor: "#0286FF",
-  },
-  durationText: {
-    color: "#aaa",
-    fontSize: 16,
-    fontFamily: "Poppins-Medium",
-  },
-  durationTextActive: { color: "#fff" },
-  saveText: { fontSize: 13, color: "#a0f7bf" },
-
-  childrenLabel: {
-    color: "#ccc",
-    fontSize: 16,
-    fontFamily: "Poppins-Medium",
-    marginBottom: 10,
-  },
-  input: {
-    backgroundColor: "#252540",
-    borderRadius: 16,
-    padding: 16,
-    color: "#fff",
-    fontSize: 18,
-    marginBottom: 28,
-    fontFamily: "Poppins-Regular",
-  },
-
-  buyBtn: {
-    backgroundColor: "#00d4c9",
-    paddingVertical: 18,
-    borderRadius: 20,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  freeBtn: {
-    backgroundColor: "#4caf50",
-  },
-  buyText: {
-    color: "#fff",
-    fontSize: 18,
-    fontFamily: "Poppins-Bold",
-  },
-  perChild: {
-    fontSize: 14,
-    opacity: 0.9,
-  },
+  invName: { color: '#fff', fontSize: 16, fontFamily: 'Poppins-Bold' },
+  invType: { color: '#9CA3AF', fontSize: 13 },
+  invBadge: { backgroundColor: '#10B981', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginTop: 8 },
+  invBadgeText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
+  childCardLarge: { backgroundColor: "#2F2F42", borderRadius: 20, padding: 20, marginBottom: 15 },
+  childInfoRow: { flexDirection: "row", alignItems: "center" },
+  childAvatarLarge: { width: 55, height: 55, borderRadius: 28, backgroundColor: '#1E1E38' },
+  childNameLarge: { color: "#fff", fontSize: 18, fontFamily: "Poppins-SemiBold" },
+  statusTextLarge: { fontSize: 13, fontFamily: "Poppins-Regular", marginTop: 2 },
+  assignActionBtnLarge: { backgroundColor: "#3B82F6", paddingHorizontal: 15, paddingVertical: 8, borderRadius: 10 },
+  assignActionTextLarge: { color: "#fff", fontSize: 13, fontFamily: "Poppins-Bold" },
+  renewBtn: { borderWidth: 1, borderColor: "#3B82F6", paddingHorizontal: 15, paddingVertical: 8, borderRadius: 10 },
+  renewBtnText: { color: "#3B82F6", fontSize: 13, fontFamily: "Poppins-Bold" },
+  expiryRowLarge: { flexDirection: "row", marginTop: 20, paddingTop: 15, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.05)" },
+  detailBox: { flex: 1 },
+  detailLabel: { color: "#9CA3AF", fontSize: 12, fontFamily: "Poppins-Regular" },
+  detailValue: { color: "#fff", fontSize: 14, fontFamily: "Poppins-SemiBold", marginTop: 2 },
+  planWrapper: { borderRadius: 24, overflow: 'hidden', marginBottom: 15, position: 'relative' },
+  planGradientLarge: { padding: 25, flexDirection: 'row', alignItems: 'center' },
+  planNameLarge: { color: '#fff', fontSize: 22, fontFamily: 'Poppins-Bold' },
+  planDescLarge: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 4 },
+  planPriceLarge: { color: '#fff', fontSize: 24, fontFamily: 'Poppins-Bold' },
+  planUnitLarge: { color: '#fff', fontSize: 12, opacity: 0.8 },
+  selectionBorder: { ...StyleSheet.absoluteFillObject, borderWidth: 4, borderColor: '#3B82F6', borderRadius: 24 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#2F2F42', borderTopLeftRadius: 35, borderTopRightRadius: 35, padding: 30 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
+  modalTitle: { color: '#fff', fontSize: 22, fontFamily: 'Poppins-Bold' },
+  closeText: { color: '#3B82F6', fontSize: 16 },
+  durationToggle: { flexDirection: 'row', backgroundColor: '#1E1E38', borderRadius: 15, padding: 6, marginBottom: 25 },
+  durationBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12 },
+  durationBtnActive: { backgroundColor: '#3B82F6' },
+  durationText: { color: '#9CA3AF', fontSize: 15 },
+  durationTextActive: { color: '#fff', fontFamily: 'Poppins-Bold' },
+  inputLabel: { color: "#9CA3AF", fontSize: 15, marginBottom: 10 },
+  modalInput: { backgroundColor: '#1E1E38', color: '#fff', borderRadius: 15, padding: 18, fontSize: 18, marginBottom: 25 },
+  payBtn: { backgroundColor: '#10B981', padding: 20, borderRadius: 18, alignItems: 'center' },
+  payBtnText: { color: '#fff', fontSize: 18, fontFamily: 'Poppins-Bold' },
+  infoOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' },
+  infoCard: { width: '88%', backgroundColor: '#2F2F42', borderRadius: 28, padding: 30 },
+  infoTitle: { color: '#fff', fontSize: 22, fontFamily: 'Poppins-Bold', marginBottom: 25, textAlign: 'center' },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
+  infoLabel: { color: '#9CA3AF', fontSize: 15 },
+  infoValue: { color: '#fff', fontSize: 15, fontFamily: 'Poppins-SemiBold' },
+  closeInfoBtn: { marginTop: 25, backgroundColor: '#3B82F6', padding: 15, borderRadius: 15, alignItems: 'center' },
+  closeInfoBtnText: { color: '#fff', fontFamily: 'Poppins-Bold', fontSize: 16 },
+  mainBuyBtn: { backgroundColor: "#3B82F6", margin: 25, padding: 20, borderRadius: 20, alignItems: 'center' },
+  mainBuyBtnText: { color: '#fff', fontSize: 18, fontFamily: 'Poppins-Bold' },
 });
