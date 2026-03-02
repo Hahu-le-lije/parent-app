@@ -28,46 +28,18 @@ const Sub = () => {
 
   const [childrenCount, setChildrenCount] = useState("1");
   const [duration, setDuration] = useState("Monthly");
+  const [visible, setVisible] = useState(false);
 
  
-  const [showChapaModal, setShowChapaModal] = useState(false);
-  const [paymentUrl, setPaymentUrl] = useState("");
+
+  
 
   const [inventory, setInventory] = useState([
     { id: 'inv_1', name: 'Premium', type: 'Monthly', children: 1, boughtAt: '2024-05-10', expiresAt: '2024-06-10' },
     { id: 'inv_2', name: 'Basic', type: 'Yearly', children: 2, boughtAt: '2024-05-12', expiresAt: '2025-05-12' },
   ]);
 
-    const handlePurchaseComplete = () => {
-    if (!selectedPlan) return;
-
-    // In production: const { checkout_url } = await api.post('/initialize-payment', { ... })
-    setPaymentUrl("https://chapa.co/demo/checkout");
-
-    setShowPurchaseModal(false); 
-    setShowChapaModal(true);    
-  };
-
-  const onPaymentSuccess = () => {
-    setShowChapaModal(false);
     
-  
-    if (!selectedPlan) return;
-    setLastPurchasedPlan({ id: selectedPlan.id.toString(), name: selectedPlan.name });
-
-    
-    const newItem = {
-      id: Math.random().toString(),
-      name: selectedPlan.name,
-      type: duration,
-      children: parseInt(childrenCount),
-      boughtAt: new Date().toLocaleDateString(),
-      expiresAt: duration === "Monthly" ? "In 30 Days" : "In 1 Year",
-    };
-    
-    setInventory([newItem, ...inventory]);
-    Alert.alert("Payment Successful", "Your plan has been added to inventory.");
-  };
 
   const calculatePrice = () => {
     if (!selectedPlan) return 0;
@@ -180,7 +152,7 @@ const Sub = () => {
         )}
       </ScrollView>
 
-      {/* MODAL: INPUT DETAILS */}
+      
       <Modal visible={showPurchaseModal} transparent animationType="slide">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : "height"} style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -200,14 +172,13 @@ const Sub = () => {
              <Text style={styles.inputLabel}>Number of Children</Text>
              <TextInput style={styles.modalInput} value={childrenCount} onChangeText={setChildrenCount} keyboardType="numeric" />
 
-             <TouchableOpacity style={styles.payBtn} onPress={handlePurchaseComplete}>
+             <TouchableOpacity style={styles.payBtn} onPress={() => setVisible(true)}>
                 <Text style={styles.payBtnText}>Pay ETB {calculatePrice()}</Text>
              </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* MODAL: INVENTORY INFO */}
       <Modal visible={showInventoryModal} transparent animationType="fade">
         <View style={styles.infoOverlay}>
           <View style={styles.infoCard}>
@@ -227,12 +198,14 @@ const Sub = () => {
 
     
       <ChapaPaymentModal 
-        visible={showChapaModal}
-        checkoutUrl={paymentUrl}
-        onClose={() => setShowChapaModal(false)}
-        onMessage={(msg: string) => {
-            if(msg === "success") onPaymentSuccess();
-        }}
+       visible={visible}
+       onClose={()=>setVisible(false)}
+       data={{
+            amount: calculatePrice(),         
+            children: childrenCount,            
+            duration: duration,                 
+            planName: selectedPlan?.name || "Unknown Plan"
+       }}
       />
 
     </SafeAreaView>
