@@ -1,12 +1,26 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 const settings = () => {
   return (
-    <View>
-      <Text>settings</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Settings</Text>
     </View>
-  )
-}
+  );
+};
 
-export default settings
+export default settings;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#0D1B12",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    color: "#FFF8D8",
+    fontSize: 24,
+    fontFamily: "Poppins-Bold",
+  },
+});

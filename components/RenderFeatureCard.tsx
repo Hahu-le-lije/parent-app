@@ -1,11 +1,16 @@
-import { View, Text,ImageBackground,StyleSheet, Dimensions } from 'react-native'
-import React from 'react'
+import React from "react";
+import {
+  Dimensions,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const RenderFeatureCard = ({ item }) => {
-  
-    return (
+  return (
     <ImageBackground
       source={{ uri: item.imageUri }}
       style={styles.featureCard}
@@ -16,31 +21,32 @@ const RenderFeatureCard = ({ item }) => {
         <Text style={styles.featureDescription}>{item.description}</Text>
       </View>
     </ImageBackground>
-  )};
+  );
+};
 
-export default RenderFeatureCard
+export default RenderFeatureCard;
 const styles = StyleSheet.create({
   featureCard: {
     width: SCREEN_WIDTH - 40,
     height: 200,
     marginRight: 0,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
     borderRadius: 18,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   featureOverlay: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: "rgba(11,39,22,0.78)",
     padding: 20,
   },
   featureTitle: {
-    color: '#fff',
+    color: "#FFF8D9",
     fontSize: 20,
-    fontFamily: 'Poppins-Bold',
+    fontFamily: "Poppins-Bold",
     marginBottom: 6,
   },
   featureDescription: {
-    color: '#e0e0e0',
+    color: "#EFE7BD",
     fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-  }
-})
+    fontFamily: "Poppins-Regular",
+  },
+});

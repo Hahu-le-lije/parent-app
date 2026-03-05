@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter } from "expo-router";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type ChildProps = {
   item: {
@@ -10,29 +10,27 @@ type ChildProps = {
     subscription: string;
     paid: boolean;
     image: string;
-  }
-}
+  };
+};
 
 const Child = ({ item }: ChildProps) => {
-  const router = useRouter()
+  const router = useRouter();
 
   const goToDetails = () => {
     router.push({
-      pathname: '/(root)/(tabs)/children/[id]',
+      pathname: "/(root)/(tabs)/children/[id]",
       params: { id: item._id },
-    })
-  }
+    });
+  };
 
   return (
     <TouchableOpacity style={styles.container} onPress={goToDetails}>
-     
       <Image
-        resizeMode='cover'
+        resizeMode="cover"
         source={{ uri: item.image }}
         style={styles.imageH}
       />
 
-    
       <View style={styles.main}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.age}>Age: {item.age}</Text>
@@ -41,26 +39,33 @@ const Child = ({ item }: ChildProps) => {
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{item.subscription}</Text>
           </View>
-          <View style={[styles.badge, item.paid ? { backgroundColor: "#28a745" } : { backgroundColor: "#dc3545" }]}>
-            <Text style={styles.badgeText}>{item.paid ? "Paid" : "Unpaid"}</Text>
+          <View
+            style={[
+              styles.badge,
+              item.paid
+                ? { backgroundColor: "#078930" }
+                : { backgroundColor: "#DA121A" },
+            ]}
+          >
+            <Text style={styles.badgeText}>
+              {item.paid ? "Paid" : "Unpaid"}
+            </Text>
           </View>
         </View>
       </View>
 
       <Text style={styles.arrow}>→</Text>
-     
     </TouchableOpacity>
-  )
-}
+  );
+};
 
-export default Child
-
+export default Child;
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     width: "90%",
-    backgroundColor: "#2F2F42",
+    backgroundColor: "#1A301F",
     borderRadius: 12,
     marginVertical: 8,
     padding: 12,
@@ -76,7 +81,7 @@ const styles = StyleSheet.create({
     height: 68,
     borderRadius: 34,
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: "#FCD116",
     backgroundColor: "#C4C4C4",
   },
   main: {
@@ -91,7 +96,7 @@ const styles = StyleSheet.create({
   age: {
     fontSize: 14,
     fontFamily: "Poppins-Regular",
-    color: "#ddd",
+    color: "#E8E8CE",
     marginTop: 2,
   },
   badges: {
@@ -105,13 +110,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   badgeText: {
-    color: "#fff",
+    color: "#FFF9DD",
     fontSize: 12,
     fontFamily: "Poppins-SemiBold",
   },
   arrow: {
-  fontSize: 24,
-  color: "#fff",
-  marginLeft: 8,
-}
-})
+    fontSize: 24,
+    color: "#FCD116",
+    marginLeft: 8,
+  },
+});

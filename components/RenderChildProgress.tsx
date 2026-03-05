@@ -1,18 +1,17 @@
-import  { useEffect, useRef } from 'react';
+import { useRouter } from "expo-router";
+import { useEffect, useRef } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  Alert,
+  Animated,
   Image,
   StyleSheet,
-  Animated,
-  Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
   const router = useRouter();
-
 
   const animValues = {
     writing: useRef(new Animated.Value(0)).current,
@@ -21,7 +20,6 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
     reading: useRef(new Animated.Value(0)).current,
   };
 
-  
   useEffect(() => {
     Object.keys(item.progress).forEach((skill) => {
       animValues[skill].setValue(0);
@@ -35,10 +33,10 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
   }, [timeFilter]);
 
   const colorMap = {
-    writing: '#FF6B6B',
-    speaking: '#4ECDC4',
-    listening: '#5A9CFF',
-    reading: '#A66BFF',
+    writing: "#DA121A",
+    speaking: "#B58A00",
+    listening: "#078930",
+    reading: "#FCD116",
   };
 
   return (
@@ -47,18 +45,16 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
       activeOpacity={0.92}
       onPress={() => Alert.alert("coming soon wait")}
     >
-      
       <Image source={{ uri: item.imageUri }} style={styles.avatar} />
 
       <View style={{ flex: 1 }}>
-       
         <View style={styles.headerRow}>
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.badge}>{item.achievements} achievements</Text>
         </View>
 
         <View style={styles.filterRow}>
-          {['daily', 'weekly', 'monthly', 'yearly'].map((filter) => (
+          {["daily", "weekly", "monthly", "yearly"].map((filter) => (
             <TouchableOpacity
               key={filter}
               onPress={() => setTimeFilter(filter)}
@@ -83,7 +79,7 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
           {Object.entries(item.progress).map(([skill, value]) => {
             const animatedWidth = animValues[skill].interpolate({
               inputRange: [0, 100],
-              outputRange: ['0%', '100%'],
+              outputRange: ["0%", "100%"],
             });
 
             return (
@@ -107,7 +103,7 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
                 <Animated.Text style={styles.percent}>
                   {animValues[skill].interpolate({
                     inputRange: [0, value],
-                    outputRange: ['0%', `${value}%`],
+                    outputRange: ["0%", `${value}%`],
                   })}
                 </Animated.Text>
               </View>
@@ -123,20 +119,20 @@ export default RenderChildProgress;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1E1E2E',
+    backgroundColor: "#14261A",
     borderRadius: 26,
     padding: 20,
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 22,
 
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 18,
     elevation: 10,
 
     borderWidth: 1,
-    borderColor: '#2F2F48',
+    borderColor: "#3F5A3B",
   },
 
   avatar: {
@@ -145,35 +141,35 @@ const styles = StyleSheet.create({
     borderRadius: 31,
     marginRight: 18,
     borderWidth: 3,
-    borderColor: '#0286FF',
+    borderColor: "#FCD116",
   },
 
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 14,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   name: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontFamily: 'Poppins-Bold',
+    fontFamily: "Poppins-Bold",
   },
 
   badge: {
-    backgroundColor: '#2A2A4A',
-    color: '#FFD166',
+    backgroundColor: "#213523",
+    color: "#FCD116",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     fontSize: 12,
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: "Poppins-SemiBold",
   },
 
   filterRow: {
-    flexDirection: 'row',
-    backgroundColor: '#2A2A4A',
+    flexDirection: "row",
+    backgroundColor: "#203322",
     borderRadius: 14,
     padding: 4,
     marginBottom: 18,
@@ -182,63 +178,63 @@ const styles = StyleSheet.create({
   filterBtn: {
     flex: 1,
     paddingVertical: 8,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 10,
   },
 
   filterActive: {
-    backgroundColor: '#0286FF',
+    backgroundColor: "#078930",
   },
 
   filterText: {
-    color: '#aaa',
+    color: "#aaa",
     fontSize: 12,
-    fontFamily: 'Poppins-Medium',
+    fontFamily: "Poppins-Medium",
   },
 
   filterTextActive: {
-    color: '#fff',
-    fontFamily: 'Poppins-SemiBold',
+    color: "#fff",
+    fontFamily: "Poppins-SemiBold",
   },
 
   /* GRID */
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
 
   skillCard: {
-    width: '48%',
-    backgroundColor: '#25253A',
+    width: "48%",
+    backgroundColor: "#1D3020",
     borderRadius: 18,
     padding: 14,
     marginBottom: 12,
   },
 
   skillTitle: {
-    color: '#EAEAF5',
+    color: "#FFF7D8",
     fontSize: 14,
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: "Poppins-SemiBold",
     marginBottom: 10,
   },
 
   barBg: {
     height: 8,
-    backgroundColor: '#3A3A55',
+    backgroundColor: "#2B472E",
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 
   barFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 10,
   },
 
   percent: {
-    color: '#bbb',
+    color: "#D6D7BA",
     fontSize: 12,
     marginTop: 6,
-    fontFamily: 'Poppins-Medium',
+    fontFamily: "Poppins-Medium",
   },
 });

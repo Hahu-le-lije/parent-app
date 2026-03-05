@@ -15,7 +15,7 @@ const AuthLayout = () => {
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color="#7C3AED" />
+        <ActivityIndicator size="large" color="#078930" />
       </View>
     );
   }

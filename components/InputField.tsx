@@ -1,16 +1,16 @@
+import { InputFieldProps } from "@/types/type";
+import React, { useState } from "react";
 import {
-  TextInput,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  View,
-  StyleSheet,
-  Text,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import React, { useState } from 'react';
-import { InputFieldProps } from '@/types/type';
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 const InputField = ({
   labelStyle,
@@ -27,20 +27,20 @@ const InputField = ({
   const [focused, setFocused] = useState(false);
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={[styles.container, containerStyle]}>
-          <Text style={[styles.text, labelStyle]}>
-            {label}
-          </Text>
+          <Text style={[styles.text, labelStyle]}>{label}</Text>
 
           <View
             style={[
               styles.input,
               focused && {
-                borderColor: '#7C3AED',
+                borderColor: "#FCD116",
                 borderWidth: 2,
-                backgroundColor: '#37324F', // subtle darker/lifted look on focus
+                backgroundColor: "#1B3521",
               },
               inputStyle,
             ]}
@@ -48,7 +48,15 @@ const InputField = ({
             {icon && (
               <Image
                 source={icon}
-                style={[{ width: 22, height: 22, marginLeft: 12, tintColor: '#9ca3af' }, iconStyle]}
+                style={[
+                  {
+                    width: 22,
+                    height: 22,
+                    marginLeft: 12,
+                    tintColor: "#CBB55A",
+                  },
+                  iconStyle,
+                ]}
                 resizeMode="contain"
               />
             )}
@@ -59,17 +67,17 @@ const InputField = ({
               style={[
                 {
                   flex: 1,
-                  fontFamily: 'Poppins-Regular',
+                  fontFamily: "Poppins-Regular",
                   fontSize: 16,
-                  color: 'white',
-                  paddingVertical: 12,     
+                  color: "white",
+                  paddingVertical: 12,
                   paddingHorizontal: 8,
                 },
                 style,
               ]}
               secureTextEntry={secureTextEntry}
               placeholder={placeholder}
-              placeholderTextColor="#858597"
+              placeholderTextColor="#9BA588"
               {...props}
             />
           </View>
@@ -84,23 +92,23 @@ export default InputField;
 const styles = StyleSheet.create({
   container: {
     marginVertical: 10,
-    width: '100%',
+    width: "100%",
   },
   text: {
     fontSize: 15,
     lineHeight: 24,
-    fontFamily: 'Poppins-Regular',
+    fontFamily: "Poppins-Regular",
     marginBottom: 6,
-    color: '#d1d5db',          // lighter gray — better visibility on dark bg
+    color: "#E8E6C8",
   },
   input: {
-    height: 56,                // modern comfortable height
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: '#2D2D44', // darker subtle bg
+    height: 56, // modern comfortable height
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    backgroundColor: "#1B2319",
     borderRadius: 16,
-    borderColor: '#4B5563',
+    borderColor: "#4E6445",
     borderWidth: 1.5,
   },
 });

@@ -1,5 +1,4 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
-import { useRouter } from 'expo-router'
+import { Image, StyleSheet, Text, View } from "react-native";
 
 type ChildProps = {
   item: {
@@ -10,24 +9,14 @@ type ChildProps = {
     subscription: string;
     paid: boolean;
     image: string;
-  }
-}
+  };
+};
 
 const Child2 = ({ item }: ChildProps) => {
- 
-
-  
-
   return (
-    <View style={styles.container} >
-     
-      <Image
-    
-        source={{ uri: item.image }}
-        style={styles.imageH}
-      />
+    <View style={styles.container}>
+      <Image source={{ uri: item.image }} style={styles.imageH} />
 
-    
       <View style={styles.main}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.age}>Age: {item.age}</Text>
@@ -36,25 +25,31 @@ const Child2 = ({ item }: ChildProps) => {
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{item.subscription}</Text>
           </View>
-          <View style={[styles.badge, item.paid ? { backgroundColor: "#28a745" } : { backgroundColor: "#dc3545" }]}>
-            <Text style={styles.badgeText}>{item.paid ? "Paid" : "Unpaid"}</Text>
+          <View
+            style={[
+              styles.badge,
+              item.paid
+                ? { backgroundColor: "#078930" }
+                : { backgroundColor: "#DA121A" },
+            ]}
+          >
+            <Text style={styles.badgeText}>
+              {item.paid ? "Paid" : "Unpaid"}
+            </Text>
           </View>
         </View>
       </View>
-
-     
     </View>
-  )
-}
+  );
+};
 
-export default Child2
-
+export default Child2;
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     width: "95%",
-    backgroundColor: "#2F2F42",
+    backgroundColor: "#1A301F",
     borderRadius: 12,
     marginVertical: 8,
     padding: 12,
@@ -64,14 +59,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    height:150
+    height: 150,
   },
   imageH: {
     width: 120,
     height: 120,
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: "#FCD116",
     backgroundColor: "#C4C4C4",
   },
   main: {
@@ -86,7 +81,7 @@ const styles = StyleSheet.create({
   age: {
     fontSize: 18,
     fontFamily: "Poppins-Regular",
-    color: "#ddd",
+    color: "#E8E8CE",
     marginTop: 2,
   },
   badges: {
@@ -100,9 +95,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   badgeText: {
-    color: "#fff",
+    color: "#FFF9DD",
     fontSize: 12,
     fontFamily: "Poppins-SemiBold",
   },
-  
-})
+});

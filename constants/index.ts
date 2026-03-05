@@ -55,19 +55,19 @@ export const icons = {
   target,
   to,
 };
-export const images={
+export const images = {
   Logo,
   On3,
   On2,
-  On4
-}
+  On4,
+};
 export const onboardingData = [
   {
     id: 1,
     title: "Welcome to Hahu Lallije",
     description:
       "Help your child learn Amharic letters, numbers, and words in a fun and interactive way.",
-    image:images.Logo,
+    image: images.Logo,
   },
   {
     id: 2,
@@ -86,40 +86,39 @@ export const onboardingData = [
   {
     id: 4,
     title: "Parental Control & Safety",
-    description:
-      "Manage your child’s learning safely.",
+    description: "Manage your child’s learning safely.",
     image: images.On4,
   },
 ];
 export const subplans = [
-    {
-      id: "1",
-      name: "Basic",
-      priceMonthly: 0,
-      priceYearly: 0,
-      desc: "Perfect to get started",
-      badge: "Free",
-      colors: ["#2C2F3A", "#242731"], 
-      popular: false,
-    },
-    {
-      id: "2",
-      name: "Premium",
-      priceMonthly: 250,
-      priceYearly: 2500,
-      desc: "All features unlocked",
-      badge: "Popular",
-      colors: ["#3A5F6B", "#2F4F5A"], 
-      popular: true,
-    },
-    {
-      id: "3",
-      name: "Ultimate",
-      priceMonthly: 400,
-      priceYearly: 4000,
-      desc: "Advanced + analytics",
-      badge: "Best Value",
-      colors: ["#4A3C5E", "#3A2F4C"], 
-      popular: false,
-    },
-  ];
+  {
+    id: "1",
+    name: "Basic",
+    priceMonthly: 0,
+    priceYearly: 0,
+    desc: "Perfect to get started",
+    badge: "Free",
+    colors: ["#1D3B25", "#13291B"],
+    popular: false,
+  },
+  {
+    id: "2",
+    name: "Premium",
+    priceMonthly: 250,
+    priceYearly: 2500,
+    desc: "All features unlocked",
+    badge: "Popular",
+    colors: ["#8C6A00", "#6E5200"],
+    popular: true,
+  },
+  {
+    id: "3",
+    name: "Ultimate",
+    priceMonthly: 400,
+    priceYearly: 4000,
+    desc: "Advanced + analytics",
+    badge: "Best Value",
+    colors: ["#7A1C21", "#5D1419"],
+    popular: false,
+  },
+];

@@ -44,6 +44,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0d09334a-74d1-4375-a2df-36f96ee3f0cb"
+      }
+    },
+    "owner": "kumnegerbs-organization"
   }
 }
