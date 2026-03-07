@@ -257,7 +257,7 @@ const SignUpF = () => {
               style={{ marginTop: 20 }}
             >
               <Text style={styles.resendText}>
-                Didn't receive code? <Text style={{ color: '#08f573' }}>Resend</Text>
+                Did not receive code? <Text style={{ color: '#08f573' }}>Resend</Text>
               </Text>
           </TouchableOpacity>
         </KeyboardAvoidingView>

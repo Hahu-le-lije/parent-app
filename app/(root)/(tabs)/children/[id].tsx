@@ -6,11 +6,9 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   Alert,
   LayoutAnimation,
-  Platform,
-  UIManager,
+
 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,8 +22,7 @@ const ChildDetail = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const children = useChildrenStore((state) => state.children);
-  const loading = useChildrenStore((state) => state.loading);
-  const lastPurchasedPlan = useChildrenStore((state) => state.lastPurchasedPlan);
+  
   const assignLastPurchasedToChild = useChildrenStore(
     (state) => state.assignLastPurchasedToChild,
   );
@@ -36,29 +33,29 @@ const ChildDetail = () => {
     [children, id],
   );
 
-  const handleAssignPlan = () => {
-    if (!child) return;
-    assignLastPurchasedToChild(child._id);
-  };
+  // const handleAssignPlan = () => {
+  //   if (!child) return;
+  //   assignLastPurchasedToChild(child._id);
+  // };
 
-  const handleDeleteChild = () => {
-    if (!child) return;
-    Alert.alert(
-      'Delete child',
-      `Are you sure you want to remove ${child.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            deleteChild(child._id);
-            router.replace('/(root)/(tabs)/children');
-          },
-        },
-      ],
-    );
-  };
+  // const handleDeleteChild = () => {
+  //   if (!child) return;
+  //   Alert.alert(
+  //     'Delete child',
+  //     `Are you sure you want to remove ${child.name}?`,
+  //     [
+  //       { text: 'Cancel', style: 'cancel' },
+  //       {
+  //         text: 'Delete',
+  //         style: 'destructive',
+  //         onPress: () => {
+  //           deleteChild(child._id);
+  //           router.replace('/(root)/(tabs)/children');
+  //         },
+  //       },
+  //     ],
+  //   );
+  // };
 
   // if (loading) {
   //   return (
@@ -86,7 +83,7 @@ const ChildDetail = () => {
   //   );
   // }
 
-  const subscriptionActive = child.paid && child.subscription !== 'None';
+ 
 
   const [open , setOpen] = React.useState(false);
 
@@ -487,14 +484,6 @@ statLabel: {
   color: '#D1D5DB',
   marginTop: 4,
 },
-weekContainer: {
-  width: '95%',
-  alignSelf: 'center',
-  marginTop: 20,
-  backgroundColor: '#2F2F42',
-  borderRadius: 12,
-  padding: 16,
-},
 weekHeader: {
   flexDirection: 'row',
   justifyContent: 'space-between',
@@ -515,26 +504,6 @@ dropdown: {
 dropdownText: {
   color: '#fff',
   fontSize: 13,
-  fontFamily: 'Poppins-Regular',
-},
-chartContainer: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'flex-end',
-},
-barWrapper: {
-  alignItems: 'center',
-  flex: 1,
-},
-bar: {
-  width: 16,
-  backgroundColor: '#3B82F6',
-  borderRadius: 8,
-  marginBottom: 6,
-},
-barLabel: {
-  fontSize: 12,
-  color: '#D1D5DB',
   fontFamily: 'Poppins-Regular',
 },
 performanceContainer: {

@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router'
 import { onboardingData } from '@/constants'
 import CustomButton from '@/components/CustomButton'
 
-const onboarding = () => {
+const Onboarding = () => {
     const router=useRouter()
     const swipeRef = useRef<Swiper>(null);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -45,10 +45,10 @@ const onboarding = () => {
     style={{marginTop:20,width:"90%",marginBottom:20,fontFamily:"Poppins-SemiBold",backgroundColor:"#3D5CFF"}}
     />
     </SafeAreaView>
-  )
+  );
 }
 
-export default onboarding
+export default Onboarding
 const styles=StyleSheet.create({
     container:{
         display:"flex",

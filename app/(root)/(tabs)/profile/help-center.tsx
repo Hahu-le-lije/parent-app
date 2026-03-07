@@ -201,10 +201,6 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
   },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
-  },
   infoCard: {
     backgroundColor: '#26264A',
     borderRadius: 18,
