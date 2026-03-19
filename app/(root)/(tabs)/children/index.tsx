@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2F2F42",
     borderTopLeftRadius:20,
     borderTopRightRadius:20,
-    paddingBottom:Platform.OS ==='ios'? 40: 20
+    minHeight: height * 0.75
   },
   bottomSheet: {
     height: height * 0.75, 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList,  ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import Modal from 'react-native-modal'; 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import InputField from './InputField'
@@ -51,17 +51,14 @@ const AddChild = () => {
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
+   <View style={styles.container}>
     <ScrollView
-    contentContainerStyle={{flexGrow:1}}
+    contentContainerStyle={styles.scrollContent}
     keyboardShouldPersistTaps="handled"
     >
 
    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <View style={styles.container}>
+    
      
       <View style={styles.sheetHeader}>
         <Text style={styles.headerTitle}>Add New Child</Text>
@@ -116,8 +113,12 @@ const AddChild = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Nested Avatar Picker Modal */}
-      <Modal 
+
+      
+    
+    </TouchableWithoutFeedback>
+     </ScrollView>
+     <Modal 
         isVisible={isPickerVisible}
         onBackdropPress={() => setPickerVisible(false)}
         backdropOpacity={0.8}
@@ -146,15 +147,18 @@ const AddChild = () => {
           </TouchableOpacity>
         </View>
       </Modal>
-    </View>
-    </TouchableWithoutFeedback>
-     </ScrollView>
-    </KeyboardAvoidingView>
+     </View>
+  
   )
 }
-
+const {height}=Dimensions.get("window")
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { paddingBottom: 20, height:height*0.75,backgroundColor:"#2F2F42",borderTopLeftRadius: 20,
+    borderTopRightRadius: 20 },
+  scrollContent: {
+    padding: 24,
+    paddingBottom: 40, 
+  },
   sheetHeader: { marginBottom: 20 },
   headerTitle: { fontFamily: "Poppins-Bold", fontSize: 18, color: "white" },
   sheetContent: { flex: 1 },
