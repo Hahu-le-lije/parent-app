@@ -1,25 +1,22 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text, Image,Alert } from 'react-native'
 import React from 'react'
 import CustomButton from './CustomButton'
 import { icons } from '@/constants'
 import {useOAuth} from '@clerk/clerk-expo'
+import { googleOAuth } from '@/lib/auth'
+import { useRouter } from 'expo-router'
 const OAuth = () => {
-  const {startOAuthFlow,isLoading}=useOAuth({strategy:'oauth_google'})
+  const router=useRouter()
+  const {startOAuthFlow}=useOAuth({strategy:'oauth_google'})
     const handle=async()=>{
-        try{
-          const {createdSessionId,signIn,signUp,setActive}=await startOAuthFlow()
-          if(createdSessionId){
-            setActive!({session:createdSessionId})
+      const result=await googleOAuth(startOAuthFlow)
+      if (result.success) {
+            Alert.alert("Success", result.message);
+            router.replace("/(root)/(tabs)/home");
+          } 
+      else {
+            Alert.alert("Error", result.message);
           }
-          else if(signUp?.createdSessionId){
-            setActive!({session:signUp.createdSessionId})
-          }
-          else if(signIn?.createdSessionId){
-            setActive!({session:signIn.createdSessionId})
-          }
-        }catch(err:any){
-            console.error('google auth error: ',err)
-        }
     }
   return (
     <View style={{
@@ -43,7 +40,6 @@ const OAuth = () => {
       <CustomButton
         title="Log In With Google"
         onPress={handle}
-        disabled={isLoading}
         style={{width:"100%",backgroundColor:'transparent',borderWidth:1,borderColor:'#B8B8D2'}}
         IconLeft={() => (
           <Image
