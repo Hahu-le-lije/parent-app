@@ -18,20 +18,20 @@ import { Link, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSignUp } from '@clerk/clerk-expo';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { parentStore } from '@/store/parentStore';
 
 
 const SignUp = () => {
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
 
-  // const [form, setForm] = useState({
-  //   firstname: '',
-  //   lastname: '',
-  //   email: '',
-  //   phoneNumber: '',
-  //   password: '',
-  // });
+  const [form, setForm] = useState({
+    firstname: '',
+    lastname: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+
+  });
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,18 +41,11 @@ const SignUp = () => {
 
   const codeInputRef = useRef<TextInput>(null);
 
-  const firstName=parentStore((state)=>state.firstName)
-  const lastName=parentStore((state)=>state.lastName)
-  const email=parentStore((state)=>state.email)
-  const phoneNumber=parentStore((state)=>state.phoneNumber)
-  const password=parentStore((state)=>state.password)
-  const confirmPassword=parentStore((state)=>state.confirmPassword)
-  const remove=parentStore((state)=>state.remove)
 
-  const setPhoneNumber=parentStore((state)=>state.setPhoneNumber)
-  const setPassword=parentStore((state)=>state.setPassword)
-  const setConfirmPassword=parentStore((state)=>state.setConfirmPassword)
+
   
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword,setConfirmPassword]=useState(false)
 
   const handleSubmit = async () => {
     setErrorMsg(null);
@@ -61,10 +54,10 @@ const SignUp = () => {
 
     try {
       await signUp.create({
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        emailAddress: email.trim(),
-        password: password,
+        firstName:form.firstname.trim(),
+        lastName: form.lastname.trim(),
+        emailAddress: form.email.trim(),
+        password: form.password,
       });
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
 
@@ -76,7 +69,7 @@ const SignUp = () => {
     } finally {
       setIsLoading(false);
     }
-    remove();
+  
   };
 
   const handleVerify = async () => {
@@ -134,27 +127,42 @@ const SignUp = () => {
            
             
             <InputField
-              label="Phone Number"
-              placeholder="Enter your Phone Number"
-              icon={icons.marker}
-              value={phoneNumber}
-              onChangeText={(value) => setPhoneNumber(value)}
-              keyboardType="phone-pad"
+              label="First Name"
+              placeholder="Enter your First Name"
+              icon={icons.person}
+              value={form.firstname}
+              onChangeText={(value) => setForm({ ...form, firstname: value })}
             />
+            <InputField
+              label="Last Name"
+              placeholder="Enter your Last Name"
+              icon={icons.person}
+              value={form.lastname}
+              onChangeText={(value) => setForm({ ...form, lastname: value })}
+            />
+            <InputField
+            label="Email"
+            placeholder='Enter Your Email'
+            icon={icons.email}
+            value={form.email}
+            onChangeText={(value) => setForm({ ...form, email: value })}
+            keyboardType='email-address'
+            />
+
             <InputField
               label="Password"
               placeholder="Enter your password"
               icon={icons.lock}
-              value={password}
-              onChangeText={(value) => setPassword(value)}
+              value={form.password}
+              onChangeText={(value) => setForm({ ...form, password: value })}
               secureTextEntry
             />
             <InputField
               label="Confirm Password"
               placeholder="Confirm Your Password"
               icon={icons.lock}
-              value={confirmPassword}
-              onChangeText={(value) => setConfirmPassword(value)}
+              value={form.confirmPassword}
+              onChangeText={(value) => setForm({ ...form, confirmPassword: value })}
               secureTextEntry
             />
 
@@ -224,7 +232,7 @@ const SignUp = () => {
            <Text style={styles.modalSubtitle}>
               Enter the 6-digit code sent to{'\n'}
               <Text style={{ fontFamily: 'Poppins-Regular', fontWeight: 'bold',color:"#3aed58" }}>
-                {email}
+                {form.email}
               </Text>
             </Text>
           <TextInput

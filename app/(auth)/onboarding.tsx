@@ -14,7 +14,7 @@ const Onboarding = () => {
   return (
     <SafeAreaView style={styles.container}>
         
-        <TouchableOpacity style={styles.skip} onPress={()=>router.replace('./sign-upf')}>
+        <TouchableOpacity style={styles.skip} onPress={()=>router.replace('./sign-up')}>
             <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
     <Swiper ref={swipeRef}

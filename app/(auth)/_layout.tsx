@@ -24,7 +24,6 @@ const AuthLayout = () => {
       <StatusBar translucent={true} style="auto" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" />
-        <Stack.Screen name="sign-upf" />
         <Stack.Screen name="sign-in" />
         <Stack.Screen name="sign-up" />
         <Stack.Screen name="forgot-password" />
