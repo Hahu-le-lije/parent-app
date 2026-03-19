@@ -1,10 +1,12 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList,Modal,Dimensions, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList,Dimensions, TextInput, Image, Platform } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Child from '@/components/Child';
 import InputField from '@/components/InputField';
 import { useChildrenStore } from '@/store/childrenStore';
+import Modal from 'react-native-modal'
+import AddChild from '@/components/AddChild';
 
 const Children = () => {
   const [filter, setFilter] = useState("All"); 
@@ -15,8 +17,7 @@ const Children = () => {
   const [subscriptionType, setSubscriptionType] = useState<string>('Basic')
   const [isPaid, setIsPaid] = useState<boolean>(true)
 
-  // Select individual slices from the store to avoid
-  // returning a new object from the selector on every render.
+  
   const children = useChildrenStore((state) => state.children);
   const loading = useChildrenStore((state) => state.loading);
   const loadChildren = useChildrenStore((state) => state.loadChildren);
@@ -71,14 +72,6 @@ const filteredData = children.filter(child => {
             <Text style={styles.headerTitle}>Your children</Text>
             <Text style={styles.subheader}>Manage Them</Text>
           </View>
-
-          {/* <TouchableOpacity onPress={() => router.replace('/profile')}>
-            <Image
-              source={avatarSource}
-              style={styles.avatar}
-              resizeMode="cover"
-            />
-          </TouchableOpacity> */}
         </View>
       </View>
 
@@ -119,95 +112,16 @@ const filteredData = children.filter(child => {
     </LinearGradient>
   </TouchableOpacity>
         <Modal
-        visible={showAddChild}
-        animationType='slide'
-        transparent
-        onRequestClose={()=>setShowAddChild(false)}
+          isVisible={showAddChild}
+         onBackdropPress={()=>setShowAddChild(false)}
+        onSwipeComplete={()=>setShowAddChild(false)}
+        swipeDirection="down"
+        avoidKeyboard={true}
+        propagateSwipe={true}
+          style={{justifyContent: 'flex-end', margin: 0}}
         >
-
-       
         <View style={styles.modalOverlay}>
-        <View style={styles.bottomSheet}>
-          <View style={styles.sheetHeader}>
-            <Text style={{fontFamily:"Poppins-Bold",fontSize:18,color:"white"}}>
-              Add New Child
-            </Text>
-            <TouchableOpacity onPress={()=>setShowAddChild(false)}>
-              <Text style={{color:"#0286FF",fontSize:16}}>Close</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.sheetContent}>
-            <InputField
-              label="Child name"
-              placeholder="Enter child's full name"
-              value={childName}
-              onChangeText={setChildName}
-              autoCapitalize="words"
-            />
-            <InputField
-              label="Age"
-              placeholder="e.g. 9"
-              keyboardType="number-pad"
-              value={childAge}
-              onChangeText={(value) => setChildAge(value.replace(/[^0-9]/g, ''))}
-            />
-
-            <Text style={styles.modalLabel}>Subscription</Text>
-            <View style={styles.chipRow}>
-              {['Basic', 'Standard', 'Premium'].map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.chip,
-                    subscriptionType === type && styles.chipActive,
-                  ]}
-                  onPress={() => setSubscriptionType(type)}
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      subscriptionType === type && styles.chipTextActive,
-                    ]}
-                  >
-                    {type}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.modalLabel}>Payment status</Text>
-            <View style={styles.chipRow}>
-              <TouchableOpacity
-                style={[styles.chip, isPaid && styles.chipActive]}
-                onPress={() => setIsPaid(true)}
-              >
-                <Text
-                  style={[styles.chipText, isPaid && styles.chipTextActive]}
-                >
-                  Paid
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.chip, !isPaid && styles.chipActive]}
-                onPress={() => setIsPaid(false)}
-              >
-                <Text
-                  style={[styles.chipText, !isPaid && styles.chipTextActive]}
-                >
-                  Unpaid
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.saveChildBtn, !isFormValid && styles.saveChildBtnDisabled]}
-              onPress={handleSaveChild}
-              disabled={!isFormValid}
-            >
-              <Text style={styles.saveChildText}>Save Child</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+          <AddChild/>
         </View>
         </Modal>
 
@@ -341,9 +255,10 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
   modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
+    backgroundColor: "#2F2F42",
+    borderTopLeftRadius:20,
+    borderTopRightRadius:20,
+    paddingBottom:Platform.OS ==='ios'? 40: 20
   },
   bottomSheet: {
     height: height * 0.75, 
@@ -352,12 +267,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 24,
   },
-  sheetHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16
-  },
+ 
   sheetContent: {
     flex: 1,
     
