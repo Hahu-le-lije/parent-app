@@ -8,6 +8,7 @@ import {
   Image,
   Keyboard,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import React, { useState } from 'react';
 import { InputFieldProps } from '@/types/type';
@@ -22,6 +23,8 @@ const InputField = ({
   iconStyle,
   placeholder,
   style,
+  rightText,
+  onRightPress,
   ...props
 }: InputFieldProps) => {
   const [focused, setFocused] = useState(false);
@@ -72,6 +75,13 @@ const InputField = ({
               placeholderTextColor="#858597"
               {...props}
             />
+            {rightText && (
+              <TouchableOpacity onPress={onRightPress}>
+                  <Text style={styles.rightText}>
+                    {rightText}
+                  </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -102,5 +112,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderColor: '#4B5563',
     borderWidth: 1.5,
+    
   },
+  rightText:{
+    color: '#3D5CFF',
+    fontSize: 13,
+    fontFamily: 'Poppins-SemiBold',
+    paddingHorizontal:8
+  }
 });

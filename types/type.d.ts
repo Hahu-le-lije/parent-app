@@ -31,4 +31,6 @@ declare interface InputFieldProps extends TextInputProps {
     inputStyle?: string;
     iconStyle?: string;
     className?: string;
+    rightText?: string;
+    onRightPress?: () => void;
 }

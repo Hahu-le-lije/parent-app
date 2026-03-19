@@ -47,31 +47,61 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword,setConfirmPassword]=useState(false)
 
-  const handleSubmit = async () => {
-    setErrorMsg(null);
-    if (!isLoaded) return;
-    setIsLoading(true);
-
-    try {
-      await signUp.create({
-        firstName:form.firstname.trim(),
-        lastName: form.lastname.trim(),
-        emailAddress: form.email.trim(),
-        password: form.password,
-      });
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-
-      setPendingVerified(true);
-      setCode('');
-    } catch (err: any) {
-      setErrorMsg(err?.errors?.[0]?.longMessage || 'Something went wrong');
-      console.error(JSON.stringify(err, null, 2));
-    } finally {
-      setIsLoading(false);
+  const validateFrom=()=>{
+    if(!form.firstname.trim() || !form.lastname.trim() || !form.email.trim() || !form.password.trim() || !form.confirmPassword.trim()){
+      return "All Fields are required";
     }
-  
-  };
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(form.email)) {
+    return "Invalid email address";
+  }
+    if(form.password.length<6){
+      return "Password must be at least 6 characters"
+    }
+      if (!/[A-Z]/.test(form.password)) {
+    return "Password must include at least one uppercase letter";
+  }
 
+  if (!/[0-9]/.test(form.password)) {
+    return "Password must include at least one number";
+  }
+
+    if(form.password !== form.confirmPassword){
+      return "Passwords do not match"
+    }
+    return null
+  }
+
+  const handleSubmit = async () => {
+  setErrorMsg(null);
+
+  const error = validateFrom();
+  if (error) {
+    setErrorMsg(error);
+    return;
+  }
+
+  if (!isLoaded) return;
+  setIsLoading(true);
+
+  try {
+    await signUp.create({
+      firstName: form.firstname.trim(),
+      lastName: form.lastname.trim(),
+      emailAddress: form.email.trim(),
+      password: form.password,
+    });
+
+    await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+
+    setPendingVerified(true);
+    setCode('');
+  } catch (err: any) {
+    setErrorMsg(err?.errors?.[0]?.longMessage || 'Something went wrong');
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handleVerify = async () => {
     if (!isLoaded || !code.trim()) return;
     setErrorMsg(null);
@@ -103,10 +133,11 @@ const SignUp = () => {
     style={styles.container}
     enableOnAndroid={true}
     extraScrollHeight={40}
+    extraHeight={120}
     keyboardShouldPersistTaps="handled"
-    contentContainerStyle={{ flexGrow: 1 }}
+    contentContainerStyle={{ flexGrow: 1,paddingBottom:40 }}
     showsVerticalScrollIndicator={false}
-    
+    enableAutomaticScroll={true}
     
     >
      
@@ -155,7 +186,9 @@ const SignUp = () => {
               icon={icons.lock}
               value={form.password}
               onChangeText={(value) => setForm({ ...form, password: value })}
-              secureTextEntry
+              secureTextEntry={!showPassword}
+              rightText={showConfirmPassword ? "Hide" : "Show"}
+              onRightPress={() => setShowPassword(!showPassword)}
             />
             <InputField
               label="Confirm Password"
@@ -163,7 +196,9 @@ const SignUp = () => {
               icon={icons.lock}
               value={form.confirmPassword}
               onChangeText={(value) => setForm({ ...form, confirmPassword: value })}
-              secureTextEntry
+              secureTextEntry={!showConfirmPassword}
+              rightText={showConfirmPassword ? "Hide" : "Show"}
+              onRightPress={() => setConfirmPassword(!showConfirmPassword)}
             />
 
             {errorMsg && !pendingVerified && (
@@ -295,9 +330,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1F1F39',
   },
-  content: {
-    flex: 1,
-  },
+  
   header: {
     position: 'relative',
     width: '100%',
@@ -318,11 +351,12 @@ const styles = StyleSheet.create({
   form: {
     paddingHorizontal: 24,
     paddingTop: 32,
-    paddingBottom: 40,
-    marginBottom:20
+    paddingBottom: 80,
+    marginBottom:50,
+    
   },
   button: {
-    marginTop: 28,
+    marginTop: 60,
     width: '100%',
     backgroundColor: '#3D5CFF',
   },
