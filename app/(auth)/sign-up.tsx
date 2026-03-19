@@ -214,6 +214,9 @@ const SignUp = () => {
             />
 
             <OAuth />
+            <Link href='/(auth)/forgot-password' style={styles.link}>
+                        <Text style={styles.linkHighlight}>Forgot Password?</Text>
+            </Link>
 
             <Link href="/(auth)/sign-in" style={styles.link}>
               Already have an account? <Text style={styles.linkHighlight}>Log in</Text>
