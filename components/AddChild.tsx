@@ -1,8 +1,12 @@
 import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList,  ScrollView, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native'
-import Modal from 'react-native-modal'; 
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, ScrollView, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native'
+import Modal from 'react-native-modal';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import InputField from './InputField'
+import InputField from './InputField'; // Ensure this path is correct
+import CustomButton from './CustomButton'; // Using your custom button for consistency
+import { icons } from '@/constants';
+
+const { height } = Dimensions.get("window");
 
 const LOCAL_AVATARS = [
   { id: '1', source: require('../assets/images/hahu_logo.png') },
@@ -12,21 +16,31 @@ const LOCAL_AVATARS = [
 
 const AddChild = () => {
   const [form, setForm] = useState({
-    avatar: null,
+    avatar: null as any,
     firstName: '',
     lastName: '',
     dOB: new Date()
   })
-  
+
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false)
 
-  const onDateChange = (event, selectedDate) => {
-    setShowDatePicker(false)
-    if (selectedDate) setForm({ ...form, dOB: selectedDate })
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    // For Android, the picker closes immediately. For iOS, it's usually inline.
+    if (Platform.OS === 'android') setShowDatePicker(false);
+    
+    if (selectedDate) {
+      setForm({ ...form, dOB: selectedDate });
+    }
   }
 
   const handleSave = async () => {
+    if (!form.firstName.trim() || !form.lastName.trim()) {
+     
+      console.log("Validation failed");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append('firstName', form.firstName);
@@ -34,98 +48,116 @@ const AddChild = () => {
       formData.append('dob', form.dOB.toISOString());
 
       if (form.avatar) {
-        const asset = Image.resolveAssetSource(form.avatar);
        
+        const asset = Image.resolveAssetSource(form.avatar);
         formData.append('avatar', {
-          uri: Platform.OS === 'ios' ? asset.uri :asset.uri.replace('file://',''),
+          uri: asset.uri,
           name: 'avatar.png',
           type: 'image/png',
-        }as any);
+        } as any);
       }
 
       console.log("Saving Child...", formData);
-    
+      // Add your API call or Store action here
     } catch (error) {
       console.error("Save Error:", error);
     }
   }
 
   return (
-   <View style={styles.container}>
-    <View style={styles.handle} />
+    <View style={styles.container}>
+    
+      <View style={styles.handle} />
+
       <View style={styles.sheetHeader}>
         <Text style={styles.headerTitle}>Add New Child</Text>
       </View>
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    
-     <View style={{ flex: 1 }}>
-    <ScrollView
-    contentContainerStyle={styles.scrollContent}
-    keyboardShouldPersistTaps="handled"
-    bounces={false}
-    >
 
-  
-      <View style={styles.sheetContent}>
-       
-        <TouchableOpacity 
-          style={styles.avatarTrigger} 
-          onPress={() => setPickerVisible(true)}
-        >
-          {form.avatar ? (
-            <Image source={form.avatar} style={styles.avatarImage} />
-          ) : (
-            <View style={[styles.avatarImage, styles.avatarPlaceholder]}>
-              <Text style={{color: '#aaa', fontSize: 12}}>Optional</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1 }}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+           
+            <TouchableOpacity
+              style={styles.avatarTrigger}
+              onPress={() => setPickerVisible(true)}
+            >
+              <View style={styles.avatarWrapper}>
+                {form.avatar ? (
+                  <Image source={form.avatar} style={styles.avatarImage} />
+                ) : (
+                  <View style={[styles.avatarImage, styles.avatarPlaceholder]}>
+                    <Image 
+                      source={icons.person} 
+                      style={{ width: 40, height: 40, tintColor: '#BABBC9' }} 
+                    />
+                  </View>
+                )}
+                <View style={styles.editBadge}>
+                   <Text style={{ fontSize: 10, color: 'white', fontWeight: 'bold' }}>EDIT</Text>
+                </View>
+              </View>
+              <Text style={styles.avatarText}>Choose Avatar</Text>
+            </TouchableOpacity>
 
-        <InputField
-          label="First name"
-          placeholder="Enter First name"
-          value={form.firstName}
-          onChangeText={(v) => setForm({ ...form, firstName: v })}
-        />
+            
+            <InputField
+              label="First Name"
+              placeholder="Enter First Name"
+              value={form.firstName}
+              icon={icons.person}
+              onChangeText={(v) => setForm({ ...form, firstName: v })}
+            />
 
-        <InputField
-          label="Last Name"
-          placeholder="Enter Last Name"
-          value={form.lastName}
-          onChangeText={(v) => setForm({ ...form, lastName: v })}
-        />
+            <InputField
+              label="Last Name"
+              placeholder="Enter Last Name"
+              value={form.lastName}
+              icon={icons.person}
+              onChangeText={(v) => setForm({ ...form, lastName: v })}
+            />
 
-        <TouchableOpacity style={styles.dateInput} onPress={() => setShowDatePicker(true)}>
-          <Text style={styles.dateLabel}>Date of Birth</Text>
-          <Text style={styles.dateValue}>{form.dOB.toDateString()}</Text>
-        </TouchableOpacity>
+            <Text style={styles.inputLabel}>Date of Birth</Text>
+            <TouchableOpacity 
+              style={styles.dateInput} 
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Image source={icons.checkmark} style={styles.calendarIcon} />
+              <Text style={styles.dateValue}>{form.dOB.toDateString()}</Text>
+            </TouchableOpacity>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={form.dOB}
-            mode="date"
-            display="default"
-            onChange={onDateChange}
-            maximumDate={new Date()}
-          />
-        )}
+            {showDatePicker && (
+              <DateTimePicker
+                value={form.dOB}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onDateChange}
+                maximumDate={new Date()}
+                textColor="white" 
+              />
+            )}
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save Child</Text>
-        </TouchableOpacity>
-      </View>
+            <CustomButton
+              title="Save Child"
+              onPress={handleSave}
+              style={styles.saveButton}
+              IconLeft={null}
+              IconRight={null}
+            />
+          </ScrollView>
+        </View>
+      </TouchableWithoutFeedback>
 
-    </ScrollView>
-      
-    </View>
-    </TouchableWithoutFeedback>
-    
-     <Modal 
+
+      <Modal
         isVisible={isPickerVisible}
         onBackdropPress={() => setPickerVisible(false)}
-        backdropOpacity={0.8}
-        animationIn="fadeInUp"
-        animationOut="fadeOutDown"
+        backdropOpacity={0.5}
+        animationIn="zoomIn"
+        animationOut="zoomOut"
         style={styles.modalCenter}
       >
         <View style={styles.pickerBox}>
@@ -136,64 +168,171 @@ const AddChild = () => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContainer}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => {
-                setForm({...form, avatar: item.source});
-                setPickerVisible(false);
-              }}>
+              <TouchableOpacity 
+                style={styles.avatarOption}
+                onPress={() => {
+                  setForm({ ...form, avatar: item.source });
+                  setPickerVisible(false);
+                }}
+              >
                 <Image source={item.source} style={styles.gridImage} />
               </TouchableOpacity>
             )}
           />
-          <TouchableOpacity onPress={() => setPickerVisible(false)} style={styles.cancelBtn}>
-             <Text style={{color: '#0286FF', fontSize: 16}}>Cancel</Text>
+          <TouchableOpacity 
+            onPress={() => setPickerVisible(false)} 
+            style={styles.cancelBtn}
+          >
+            <Text style={styles.cancelBtnText}>Cancel</Text>
           </TouchableOpacity>
         </View>
       </Modal>
-     </View>
-  
+    </View>
   )
 }
-const {height}=Dimensions.get("window")
+
 const styles = StyleSheet.create({
-  container: { 
-  paddingBottom: 20, 
-  height: height * 0.75, 
-  backgroundColor: "#2F2F42", 
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20 
-},
-handle: {
-  width: 40,
-  height: 4,
-  backgroundColor: '#555', 
-  borderRadius: 2,
-  alignSelf: 'center',
-  marginTop: 10,
-  marginBottom: 10,
-},
+  container: {
+    height: height * 0.8,
+    backgroundColor: "#1F1F39", 
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+  },
+  handle: {
+    width: 50,
+    height: 5,
+    backgroundColor: '#3E3E55',
+    borderRadius: 10,
+    alignSelf: 'center',
+    marginTop: 12,
+  },
   scrollContent: {
     padding: 24,
-    paddingBottom: 40, 
+    paddingBottom: 60,
   },
-  sheetHeader: { marginBottom: 20 , alignSelf:'center', marginTop:10},
-  headerTitle: { fontFamily: "Poppins-Bold", fontSize: 25, color: "white" },
-  sheetContent: { flex: 1 },
-  avatarTrigger: { alignSelf: 'center', marginBottom: 20 },
-  avatarImage: { width: 90, height: 90, borderRadius: 45, borderWidth: 1, borderColor: '#3D3D5C' },
-  avatarPlaceholder: { backgroundColor: '#3D3D5C', justifyContent: 'center', alignItems: 'center' },
-  dateInput: { backgroundColor: '#3D3D5C', padding: 15, borderRadius: 10, marginVertical: 10 },
-  dateLabel: { color: '#888', fontSize: 12 },
-  dateValue: { color: 'white', marginTop: 5 },
-  saveButton: { backgroundColor: '#0286FF', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 20 },
-  saveButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  
-
-  modalCenter: { margin: 0, justifyContent: 'center', alignItems: 'center' },
-  pickerBox: { backgroundColor: '#2F2F42', padding: 20, borderRadius: 20, width: '85%' },
-  pickerTitle: { color: 'white', textAlign: 'center', marginBottom: 15, fontSize: 18, fontWeight: 'bold' },
-  listContainer: { alignItems: 'center' },
-  gridImage: { width: 70, height: 70, margin: 10, borderRadius: 35 },
-  cancelBtn: { marginTop: 15, alignItems: 'center' }
+  sheetHeader: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontFamily: "Poppins-Bold",
+    fontSize: 22,
+    color: "white",
+  },
+  avatarTrigger: {
+    alignItems: 'center',
+    marginBottom: 30,
+    marginTop: 10,
+  },
+  avatarWrapper: {
+    position: 'relative',
+  },
+  avatarImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: '#3D5CFF',
+  },
+  avatarPlaceholder: {
+    backgroundColor: '#2F2F42',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderStyle: 'dashed',
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#3D5CFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#1F1F39',
+  },
+  avatarText: {
+    color: '#BABBC9',
+    marginTop: 10,
+    fontFamily: 'Poppins-Medium',
+    fontSize: 14,
+  },
+  inputLabel: {
+    color: 'white',
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 16,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  dateInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2F2F42',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    marginBottom: 20,
+  },
+  calendarIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#3D5CFF',
+    marginRight: 12,
+  },
+  dateValue: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'Poppins-Regular',
+  },
+  saveButton: {
+    backgroundColor: '#3D5CFF',
+    height: 56,
+    borderRadius: 16,
+    marginTop: 10,
+  },
+  modalCenter: {
+    margin: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerBox: {
+    backgroundColor: '#2F2F42',
+    padding: 24,
+    borderRadius: 24,
+    width: '85%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  pickerTitle: {
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontSize: 18,
+    fontFamily: 'Poppins-Bold',
+  },
+  listContainer: {
+    justifyContent: 'center',
+  },
+  avatarOption: {
+    padding: 5,
+  },
+  gridImage: {
+    width: 75,
+    height: 75,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  cancelBtn: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    color: '#BABBC9',
+    fontSize: 16,
+    fontFamily: 'Poppins-Medium',
+  }
 })
 
 export default AddChild;

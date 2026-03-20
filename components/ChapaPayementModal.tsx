@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import React, { useState, useEffect } from "react";
 import {
   Modal,
@@ -8,20 +8,22 @@ import {
   TouchableOpacity,
   Text,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import { WebView } from "react-native-webview";
 
+
 const ChapaPaymentModal = ({ visible, onClose, data }) => {
   const { user } = useUser();
+  const { getToken } = useAuth(); 
+  
   const [loading, setLoading] = useState(true);
-  const [checkoutUrl, setCheckoutUrl] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isProcessed, setIsProcessed] = useState(false);
 
-  // IMPORTANT: Use your own return URL
-  // Option A: Deep link (Expo / custom scheme) → your app handles it
-  // Option B: A page on your domain that shows success & can close window
-  const RETURN_URL = "https://your-domain.com/payment/success"; // change this!
+
+  const RETURN_URL = "https://your-domain.com/payment/success"; 
 
   const initializeFromBackend = async () => {
     if (!user) {
@@ -34,7 +36,8 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
       setLoading(true);
       setErrorMsg(null);
 
-      // Clean amount (remove commas if any)
+      const token = await getToken();
+ 
       const cleanAmount = typeof data.amount === "string" 
         ? data.amount.replace(/,/g, "") 
         : data.amount.toString();
@@ -44,16 +47,16 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
         children: data.children,
         duration: data.duration,
         planName: data.planName,
-        // You can pass more: child IDs, userId, etc.
+        email: user.primaryEmailAddress?.emailAddress,
+        first_name: user.firstName,
+        last_name: user.lastName,
       };
 
-      // Call YOUR backend endpoint
       const response = await fetch("https://your-backend.com/api/payments/chapa/initialize", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // If using Clerk/JWT: Authorization: `Bearer ${await getToken()}`
-          // Or session cookie if backend shares auth
+          "Authorization": `Bearer ${token}` 
         },
         body: JSON.stringify(payload),
       });
@@ -61,18 +64,17 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Backend error");
+        throw new Error(result.message || "Backend initialization failed");
       }
 
       if (result.success && result.checkout_url) {
         setCheckoutUrl(result.checkout_url);
       } else {
-        throw new Error(result.message || "Failed to get payment URL");
+        throw new Error("Could not retrieve checkout URL");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Payment init error:", err);
       setErrorMsg(err.message || "Could not start payment. Try again.");
-      Alert.alert("Error", err.message || "Payment initialization failed");
     } finally {
       setLoading(false);
     }
@@ -80,6 +82,8 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
 
   useEffect(() => {
     if (visible) {
+      setIsProcessed(false);
+      setCheckoutUrl(null);
       initializeFromBackend();
     }
   }, [visible]);
@@ -87,21 +91,13 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
   const handleNavigationStateChange = (navState) => {
     const { url } = navState;
 
-    // Detect redirect to your return_url → success
     if (url.startsWith(RETURN_URL) && !isProcessed) {
       setIsProcessed(true);
-      Alert.alert("Payment Successful", "Your subscription has been activated!");
-      onClose();
-      // Optional: refresh children store / call API to get updated subscription status
-    }
-
-    // Optional fallback: detect Chapa success page (less reliable)
-    if (url.includes("checkout.chapa.co") && url.includes("success")) {
-      if (!isProcessed) {
-        setIsProcessed(true);
-        Alert.alert("Payment Completed", "Thank you!");
+     
+      setTimeout(() => {
+        Alert.alert("Success", "Payment confirmed! Your plan is now active.");
         onClose();
-      }
+      }, 1000);
     }
   };
 
@@ -109,63 +105,52 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={false}
+      presentationStyle="pageSheet" 
       onRequestClose={onClose}
     >
-      <View style={{ flex: 1, backgroundColor: "#1F1F39" }}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.webViewHeader}>
-          <Text style={styles.headerText}>Secure Payment</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.closeBtn}>Cancel</Text>
+          <Text style={styles.headerTitle}>Secure Payment</Text>
+          <TouchableOpacity onPress={onClose} style={styles.cancelTouch}>
+            <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
         </View>
 
-        {loading || errorMsg || !checkoutUrl ? (
+        {loading ? (
           <View style={styles.loaderContainer}>
-            {errorMsg ? (
-              <>
-                <Text style={{ color: "#EF4444", fontSize: 16, marginBottom: 10 }}>
-                  {errorMsg}
-                </Text>
-                <TouchableOpacity onPress={initializeFromBackend}>
-                  <Text style={{ color: "#3B82F6", fontSize: 16 }}>Retry</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <ActivityIndicator size="large" color="#3B82F6" />
-                <Text style={{ color: "#fff", marginTop: 10 }}>
-                  {loading ? "Contacting payment server..." : "Preparing checkout..."}
-                </Text>
-              </>
-            )}
+            <ActivityIndicator size="large" color="#3D5CFF" />
+            <Text style={styles.loaderText}>Connecting to Chapa...</Text>
+          </View>
+        ) : errorMsg ? (
+          <View style={styles.loaderContainer}>
+            <Text style={styles.errorText}>{errorMsg}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={initializeFromBackend}>
+              <Text style={styles.retryText}>Try Again</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <WebView
-            source={{ uri: checkoutUrl }}
+            source={{ uri: checkoutUrl! }}
             onNavigationStateChange={handleNavigationStateChange}
             startInLoadingState={true}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
             renderLoading={() => (
               <View style={styles.loaderContainer}>
-                <ActivityIndicator size="large" color="#3B82F6" />
-                <Text style={{ color: "#fff", marginTop: 10 }}>Loading secure checkout...</Text>
+                <ActivityIndicator size="large" color="#3D5CFF" />
               </View>
             )}
-            onError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.warn("WebView error:", nativeEvent);
-              setErrorMsg("Failed to load payment page. Check your connection.");
-            }}
+            style={styles.webview}
           />
         )}
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#1F1F39",
+  },
   webViewHeader: {
     height: 60,
     backgroundColor: "#2F2F42",
@@ -173,13 +158,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.05)",
   },
-  headerText: { color: "#fff", fontFamily: "Poppins-Bold", fontSize: 16 },
-  closeBtn: { color: "#EF4444", fontWeight: "bold", fontSize: 14 },
+  headerTitle: { 
+    color: "#fff", 
+    fontFamily: "Poppins-Bold", 
+    fontSize: 17 
+  },
+  cancelTouch: {
+    padding: 5,
+  },
+  cancelText: { 
+    color: "#FF6B6B", 
+    fontFamily: "Poppins-Medium", 
+    fontSize: 14 
+  },
   loaderContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: 20,
+  },
+  loaderText: { 
+    color: "#BABBC9", 
+    marginTop: 15, 
+    fontFamily: "Poppins-Regular" 
+  },
+  errorText: { 
+    color: "#FF6B6B", 
+    fontSize: 15, 
+    textAlign: "center", 
+    marginBottom: 20,
+    fontFamily: "Poppins-Medium" 
+  },
+  retryBtn: {
+    backgroundColor: "#3D5CFF",
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryText: { 
+    color: "white", 
+    fontFamily: "Poppins-Bold" 
+  },
+  webview: {
+    flex: 1,
     backgroundColor: "#1F1F39",
   },
 });

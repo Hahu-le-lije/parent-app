@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontFamily: 'Poppins-Bold',
     color: '#fff',
   },

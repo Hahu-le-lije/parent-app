@@ -1,14 +1,15 @@
-import { View, Text, StyleSheet, Image, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { images } from '@/constants';
+import { View, Text, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { icons, images } from '@/constants';
+import InputField from '@/components/InputField';
 import CustomButton from '@/components/CustomButton';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter,useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
 
 const ResetPassword = () => {
   const router = useRouter();
-  const {email,code} = useLocalSearchParams<{email:string,code:string}>(); 
+  const { email, code } = useLocalSearchParams<{ email: string; code: string }>();
   const { signIn, isLoaded } = useSignIn();
 
   const [form, setForm] = useState({
@@ -17,12 +18,19 @@ const ResetPassword = () => {
     confirmPassword: '',
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleResetPassword = async () => {
     if (!form.password || !form.confirmPassword) {
       setErrorMsg('Both password fields are required');
+      return;
+    }
+
+    if (form.password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters');
       return;
     }
 
@@ -36,6 +44,7 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
+      
       const attempt = await signIn.attemptFirstFactor({
         strategy: 'reset_password_email_code',
         code: code!,
@@ -43,9 +52,10 @@ const ResetPassword = () => {
       });
 
       if (attempt.status === 'complete') {
+       
         router.replace('/(auth)/sign-in');
       } else {
-        setErrorMsg('Failed to reset password');
+        setErrorMsg('Failed to reset password. Please try again.');
       }
     } catch (err: any) {
       setErrorMsg(err?.errors?.[0]?.longMessage || 'Failed to reset password');
@@ -56,58 +66,75 @@ const ResetPassword = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <LinearGradient
-              colors={['#0286FF', '#005BB5', '#003366']}
-              style={StyleSheet.absoluteFill}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-            <Image source={images.Logo} style={styles.image} resizeMode='contain' />
-            <Text style={styles.title}>Reset Password</Text>
-          </View>
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        <View style={styles.header}>
+          <LinearGradient
+            colors={['#0286FF', '#1F1F39']}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          <Image source={images.Logo} style={styles.logo} resizeMode='contain' />
+          <Text style={styles.title}>New Password</Text>
+        </View>
 
-          <View style={styles.form}>
-            <TextInput
-              placeholder='Email'
-              value={form.email}
-              editable={false} 
-              style={[styles.input, { backgroundColor: '#3F3F5E' }]}
-            />
+        <View style={styles.form}>
+          <Text style={styles.instructionText}>
+            Set a strong password to protect your account.
+          </Text>
 
-            <TextInput
-              placeholder='New Password'
-              value={form.password}
-              onChangeText={(text) => setForm({ ...form, password: text })}
-              secureTextEntry
-              style={styles.input}
-            />
+          <InputField
+            label='Email'
+            placeholder='Email'
+            value={form.email}
+            editable={false}
+            icon={icons.email}
+            style={{ opacity: 0.6 }} 
+          />
 
-            <TextInput
-              placeholder='Confirm Password'
-              value={form.confirmPassword}
-              onChangeText={(text) => setForm({ ...form, confirmPassword: text })}
-              secureTextEntry
-              style={styles.input}
-            />
+          <InputField
+            label="New Password"
+            placeholder="••••••••"
+            icon={icons.lock}
+            value={form.password}
+            onChangeText={(text) => setForm({ ...form, password: text })}
+            secureTextEntry={!showPassword}
+            rightText={showPassword ? "Hide" : "Show"}
+            onRightPress={() => setShowPassword(!showPassword)}
+          />
 
-            {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+          <InputField
+            label="Confirm Password"
+            placeholder="••••••••"
+            icon={icons.lock}
+            value={form.confirmPassword}
+            onChangeText={(text) => setForm({ ...form, confirmPassword: text })}
+            secureTextEntry={!showConfirmPassword}
+            rightText={showConfirmPassword ? "Hide" : "Show"}
+            onRightPress={() => setShowConfirmPassword(!showConfirmPassword)}
+          />
 
-            <CustomButton
-              title={isLoading ? 'Resetting...' : 'Reset Password'}
-              onPress={handleResetPassword}
-              disabled={isLoading}
-              style={styles.button}
-              bgVariant="primary"
-              IconLeft={null}
-              IconRight={null}
-            />
-          </View>
+          {errorMsg && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{errorMsg}</Text>
+            </View>
+          )}
+
+          <CustomButton
+            title={isLoading ? 'Resetting...' : 'Update Password'}
+            onPress={handleResetPassword}
+            disabled={isLoading}
+            style={styles.button}
+            IconLeft={null}
+            IconRight={null}
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -122,51 +149,49 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F1F39',
   },
   header: {
-    position: 'relative',
     width: '100%',
-    height: 260,
-  },
-  image: {
-    width: '100%',
-    height: 260,
-  },
-  title: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    fontSize: 28,
-    fontFamily: 'Poppins-Bold',
-    color: 'white',
-  },
-  form: {
-    flex: 1,
+    height: 240,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  logo: {
+    width: 100,
+    height: 100,
+  },
+  title: {
+    fontSize: 26,
+    fontFamily: 'Poppins-Bold',
+    color: 'white',
+    marginTop: 10,
+  },
+  form: {
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 20,
     paddingBottom: 40,
   },
-  input: {
-    width: '90%',
-    maxWidth: 400,
-    height: 56,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    backgroundColor: '#2F2F42',
-    color: '#fff',
-    fontSize: 16,
+  instructionText: {
+    fontSize: 15,
+    color: '#BABBC9',
+    fontFamily: 'Poppins-Regular',
+    textAlign: 'center',
+    marginBottom: 25,
   },
   button: {
-    marginTop: 16,
-    width: '90%',
-    maxWidth: 400,
+    marginTop: 30,
+    backgroundColor: '#3D5CFF',
+    height: 56,
+    borderRadius: 16,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(231, 74, 74, 0.1)',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 15,
   },
   errorText: {
-    color: '#dc2626',
-    fontSize: 14,
+    color: '#FF6B6B',
+    fontSize: 13,
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 12,
+    fontFamily: 'Poppins-Medium',
   },
 });

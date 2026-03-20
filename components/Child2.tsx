@@ -53,7 +53,7 @@ export default Child2
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    width: "95%",
+    width: "100%",
     backgroundColor: "#2F2F42",
     borderRadius: 12,
     marginVertical: 8,

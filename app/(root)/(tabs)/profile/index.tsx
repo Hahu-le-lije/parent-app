@@ -1,16 +1,10 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
+import { 
+  View, Text, StyleSheet, Image, TouchableOpacity, 
+  Alert, ActivityIndicator, ScrollView 
 } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons } from '@/constants';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useClerk, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -28,130 +22,107 @@ const Profile = () => {
       await signOut();
       router.replace('/(auth)/sign-in');
     } catch (error) {
-      console.error('Logout failed:', error);
-      Alert.alert('Error', 'Failed to log out. Please try again.');
+      Alert.alert('Error', 'Failed to log out.');
     }
   };
 
-const pickImage = async () => {
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (status !== 'granted') {
-    Alert.alert('Permission Denied', 'We need gallery access to update your profile picture.');
-    return;
-  }
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Gallery access is required.');
+      return;
+    }
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    aspect: [1, 1],
-    quality: 0.7,          
-    base64: true,          
-  });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5, // Reduced quality for faster base64 upload
+      base64: true,
+    });
 
-  if (result.canceled || !result.assets?.[0]?.base64) return;
+    if (result.canceled || !result.assets?.[0]?.base64) return;
 
-  const asset = result.assets[0];
-  setPreviewUri(asset.uri); 
+    const asset = result.assets[0];
+    setPreviewUri(asset.uri);
 
-  try {
-    setUploading(true);
-
-  
-    const mimeType = asset.mimeType || 'image/jpeg'; 
-    const base64DataUrl = `data:${mimeType};base64,${asset.base64}`;
-
-    console.log('Uploading base64 preview (first 50 chars):', base64DataUrl.substring(0, 50)); 
-
-    
-    await user?.setProfileImage({ file: base64DataUrl });
-
-    
-    await user?.reload();
-
-    
-    console.log('After reload - new imageUrl:', user?.imageUrl);
-
-    Alert.alert('Success', 'Profile picture updated!');
-    setPreviewUri(null);
-  } catch (err: any) {
-    console.error('Upload error details:', err);
-    Alert.alert(
-      'Upload Failed',
-      err?.message || 'Check console for details. Image may be too large or invalid format.'
-    );
-    setPreviewUri(null);
-  } finally {
-    setUploading(false);
-  }
-};
+    try {
+      setUploading(true);
+      const base64DataUrl = `data:${asset.mimeType || 'image/jpeg'};base64,${asset.base64}`;
+      await user?.setProfileImage({ file: base64DataUrl });
+      await user?.reload();
+      Alert.alert('Success', 'Profile picture updated!');
+      setPreviewUri(null);
+    } catch (err: any) {
+      Alert.alert('Upload Failed', 'Image may be too large.');
+      setPreviewUri(null);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const displayImage = previewUri || user?.imageUrl || icons.person;
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        
-        <Text style={styles.headerTitle}>Account</Text>
-      </View>
-
-      
-      <View style={styles.profileSection}>
-        <TouchableOpacity onPress={pickImage} disabled={uploading}>
-          <View style={styles.imageWrapper}>
-            <Image
-              source={typeof displayImage === 'string' ? { uri: displayImage } : displayImage}
-              style={styles.profileImage}
-            />
-            {uploading && (
-              <View style={styles.uploadingOverlay}>
-                <ActivityIndicator color="#fff" size="small" />
-              </View>
-            )}
-            <View style={styles.cameraBadge}>
-              <Text style={styles.cameraEmoji}>📷</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        <Text style={styles.name}>
-          {user?.firstName} {user?.lastName}
-        </Text>
-        <Text style={styles.email}>
-          {user?.primaryEmailAddress?.emailAddress ?? 'No email'}
-        </Text>
-
-        {uploading && <Text style={styles.uploadingText}>Updating profile picture...</Text>}
-      </View>
-
-      
-      <View style={styles.card}>
-        <MenuItem title="Edit Account" onPress={() => router.push('/profile/edit-account')} />
-        <MenuItem title="Settings" onPress={() => router.push('/profile/settings')} />
-        <MenuItem title="Help Center" onPress={() => router.push('/profile/help-center')} />
-        <MenuItem title="About App" onPress={() => router.push('/profile/about')} />
-      </View>
-
-    
-      <TouchableOpacity
-        style={[styles.logoutBtn, uploading && styles.logoutBtnDisabled]}
-        onPress={handleLogout}
-        disabled={uploading}
+      {/* ScrollView ensures the Logout button is reachable above the Tab Bar */}
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={styles.scrollContent}
       >
-        <Text style={styles.logoutText}>Log Out</Text>
-      </TouchableOpacity>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Account</Text>
+          <Text style={styles.subheader}>Manage your personal info</Text>
+        </View>
+
+        <View style={styles.profileSection}>
+          <TouchableOpacity onPress={pickImage} disabled={uploading} activeOpacity={0.8}>
+            <View style={styles.imageWrapper}>
+              <Image
+                source={typeof displayImage === 'string' ? { uri: displayImage } : displayImage}
+                style={styles.profileImage}
+              />
+              {uploading && (
+                <View style={styles.uploadingOverlay}>
+                  <ActivityIndicator color="#fff" size="small" />
+                </View>
+              )}
+              <View style={styles.cameraBadge}>
+                 <Text style={{fontSize: 14}}>📷</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
+          <Text style={styles.email}>{user?.primaryEmailAddress?.emailAddress}</Text>
+        </View>
+
+        <View style={styles.menuCard}>
+          <MenuItem title="Edit Account" onPress={() => {router.push('/(root)/(tabs)/profile/edit-account')}} />
+          <MenuItem title="Settings" onPress={() => router.push('/(root)/(tabs)/profile/settings')} />
+          <MenuItem title="Help Center" onPress={() => {router.push('/(root)/(tabs)/profile/help-center')}} />
+          <MenuItem title="Privacy Policy" onPress={() => {router.push('/(root)/(tabs)/profile/about')}} isLast />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.logoutBtn, uploading && styles.logoutBtnDisabled]}
+          onPress={handleLogout}
+          disabled={uploading}
+        >
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+        
+        
+        <View style={{ height: 40 }} />
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
-type MenuItemProps = {
-  title: string;
-  onPress?: () => void;
-};
-
-const MenuItem = ({ title, onPress }: MenuItemProps) => (
-  <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+const MenuItem = ({ title, onPress, isLast }: { title: string, onPress: () => void, isLast?: boolean }) => (
+  <TouchableOpacity style={[styles.menuItem, isLast && { borderBottomWidth: 0 }]} onPress={onPress}>
     <Text style={styles.menuText}>{title}</Text>
-    <Image source={icons.arrowDown} style={styles.arrow} />
+    <Image source={ icons.arrowDown} style={styles.arrow} />
   </TouchableOpacity>
 );
 
@@ -162,119 +133,111 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1F1F39',
   },
+  scrollContent: {
+    paddingBottom: 40, 
+  },
   header: {
-    height: 140,
+    height: 120, 
     justifyContent: 'flex-end',
     paddingHorizontal: 24,
-    paddingBottom: 20,
+    paddingBottom: 10,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontFamily: 'Poppins-Bold',
     color: '#fff',
-    letterSpacing: -0.5,
+  },
+  subheader: {
+    fontSize: 14,
+    color: '#9AA0C3',
+    fontFamily: 'Poppins-Regular',
   },
   profileSection: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: 30,
   },
   imageWrapper: {
     position: 'relative',
   },
   profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     borderWidth: 3,
-    borderColor: '#fff',
-    backgroundColor: '#e0e0e0',
+    borderColor: '#0286FF',
   },
   cameraBadge: {
     position: 'absolute',
-    bottom: 4,
-    right: 4,
+    bottom: 0,
+    right: 0,
     backgroundColor: '#0286FF',
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
-  },
-  cameraEmoji: {
-    fontSize: 18,
+    borderColor: '#1F1F39',
   },
   uploadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: 55,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },
   name: {
     fontSize: 22,
     fontFamily: 'Poppins-SemiBold',
-    marginTop: 16,
-    color: 'white',
+    marginTop: 15,
+    color: '#fff',
   },
   email: {
-    fontSize: 15,
-    color: '#6B7280',
-    marginTop: 6,
-    fontFamily: 'Poppins-Regular',
-  },
-  uploadingText: {
-    marginTop: 12,
-    color: '#0286FF',
     fontSize: 14,
-    fontFamily: 'Poppins-Medium',
+    color: '#9AA0C3',
+    marginTop: 4,
   },
-  card: {
-    backgroundColor: '#1F1F39',
-    marginHorizontal: 20,
-    borderRadius: 16,
+  menuCard: {
+    backgroundColor: '#26264A', 
+    marginHorizontal: 24,
+    borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    marginTop: 10,
   },
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 18,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   menuText: {
     fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
-    color: 'white',
+    fontFamily: 'Poppins-Medium',
+    color: '#fff',
   },
   arrow: {
-    width: 20,
-    height: 20,
-    resizeMode: 'contain',
-    transform: [{ rotate: '-90deg' }],
-    tintColor: '#9CA3AF',
+    width: 16,
+    height: 16,
+    tintColor: '#9AA0C3',
+    transform: [{ rotate: '-90deg' }], 
   },
   logoutBtn: {
-    marginTop: 32,
-    marginHorizontal: 20,
-    backgroundColor: '#EF4444',
+    marginTop: 30,
+    marginHorizontal: 24,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+    borderWidth: 1,
+    borderColor: '#EF4444',
     paddingVertical: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     alignItems: 'center',
   },
   logoutBtnDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   logoutText: {
-    color: '#fff',
+    color: '#EF4444',
     fontFamily: 'Poppins-Bold',
     fontSize: 16,
   },

@@ -1,261 +1,282 @@
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform  } from 'react-native'
+import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import React, { useRef, useState } from 'react'
 import { icons, images } from '@/constants'
 import InputField from '@/components/InputField'
 import CustomButton from '@/components/CustomButton'
-
-import {  useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSignIn } from '@clerk/clerk-expo'
 import Modal from 'react-native-modal'
 
-
 const ForgotPassword = () => {
-  const router=useRouter()
-
-  const {signIn,isLoaded,setActive}=useSignIn()
+  const router = useRouter()
+  const { signIn, isLoaded } = useSignIn()
+  
   const [email, setEmail] = useState('');
-  const [code,setCode]=useState('')
+  const [code, setCode] = useState('')
   const [showModal, setShowModal] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string|null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const codeInputRef=useRef<TextInput>(null);
+  const codeInputRef = useRef<TextInput>(null);
 
-  const handleSendCode=async()=>{
-    if(!email.trim()){
+  const handleSendCode = async () => {
+    if (!email.trim()) {
       setErrorMsg('Email is required')
       return
     }
     setErrorMsg(null)
-    if(!isLoaded)return 
+    if (!isLoaded) return
     setIsLoading(true);
-    try{
+    try {
       await signIn.create({
-        strategy:'reset_password_email_code',
-        identifier:email.trim()
+        strategy: 'reset_password_email_code',
+        identifier: email.trim()
       })
       setShowModal(true)
       setCode('')
-    }catch(err:any){
+    } catch (err: any) {
       setErrorMsg(err?.errors?.[0]?.longMessage || 'Failed to send code');
-    }finally{
+    } finally {
       setIsLoading(false)
     }
   }
-  const handleVefrifyCode=async()=>{
-    if(!code.trim() || code.length!==6) return;
+
+  const handleVerifyCode = async () => {
+    if (!code.trim() || code.length !== 6) return;
     setErrorMsg(null)
-    if(!isLoaded)return
+    if (!isLoaded) return
     setIsLoading(true)
-    try{
-      const attempt=await signIn.attemptFirstFactor({
-        strategy:'reset_password_email_code',
-        code:code.trim()
-      })
+    try {
+     
       setShowModal(false)
       router.push({
-        pathname:'/(auth)/reset-password',
-        params:{email:email.trim(),code:code.trim()}
+        pathname: '/(auth)/reset-password',
+        params: { email: email.trim(), code: code.trim() }
       })
-    }catch(err:any){
+    } catch (err: any) {
       setErrorMsg(err?.errors?.[0]?.longMessage || 'Failed to verify code');
-    }finally{
+    } finally {
       setIsLoading(false)
     }
   }
-  
+
   return (
-   <KeyboardAvoidingView
-  style={[{ flex: 1 },styles.container]}
-  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
->
-      
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
         <View style={styles.header}>
-             <LinearGradient
-                      colors={['#0286FF', '#005BB5', '#003366']} 
-                      style={StyleSheet.absoluteFill}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      />
-          <Image source={images.Logo} style={styles.image} resizeMode='contain'/>
+          <LinearGradient
+            colors={['#0286FF', '#1F1F39']}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          <Image source={images.Logo} style={styles.logo} resizeMode='contain' />
           <Text style={styles.title}>Forgot Password</Text>
         </View>
 
         <View style={styles.form}>
-        <View style={styles.inputWrapper}>
-           <InputField
-              label='Email'
-              placeholder='Enter your email'
-              value={email}
-                onChangeText={setEmail}
-                icon={icons.email}
-                keyboardType='email-address'
-            
+          <Text style={styles.instructionText}>
+            Enter your email address and we'll send you a 6-digit confirmation code to reset your password.
+          </Text>
+
+          <InputField
+            label='Email'
+            placeholder='Enter your email'
+            value={email}
+            onChangeText={setEmail}
+            icon={icons.email}
+            keyboardType='email-address'
+            autoCapitalize="none"
           />
-          </View>
-        {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}  
-        <CustomButton
-        title={isLoading ? 'Sending...' : 'Send Code'}
-        onPress={handleSendCode}
-        disabled={isLoading}
-        style={styles.button}
-        bgVariant="primary"
-        IconLeft={undefined}
-        IconRight={undefined}
-        />
+
+          {errorMsg && !showModal && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{errorMsg}</Text>
+            </View>
+          )}
+
+          <CustomButton
+            title={isLoading ? 'Sending...' : 'Send Code'}
+            onPress={handleSendCode}
+            disabled={isLoading}
+            style={styles.button}
+            IconLeft={null}
+              IconRight={null}
+          />
+
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>Back to Sign In</Text>
+          </TouchableOpacity>
         </View>
-        <Modal
-  isVisible={showModal}
-  onBackdropPress={() => setShowModal(false)}
-  animationIn="slideInUp"
-  animationOut="slideOutDown"
-  backdropOpacity={0.6}
-  avoidKeyboard={true}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Enter Verification Code</Text>
-      <Text style={styles.modalSubtitle}>
-        We sent a 6-digit code to your email:{"\n"}
-        <Text style={{ fontWeight: "bold", color: "#3aed58" }}>{email}</Text>
-      </Text>
+      </ScrollView>
 
-      <TextInput
-        ref={codeInputRef}
-        placeholder="123456"
-        value={code}
-        onChangeText={setCode}
-        keyboardType="number-pad"
-        maxLength={6}
-        style={styles.codeInput}
-        placeholderTextColor="#9ca3af"
-        autoFocus
-
-      />
-
-      {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
-
-      <CustomButton
-        title={isLoading ? "Verifying..." : "Verify Code"}
-        onPress={handleVefrifyCode}
-        disabled={isLoading || code.length !== 6}
-        bgVariant="primary"
-        IconLeft={undefined}
-        IconRight={undefined}
-        style={styles.button}
-      />
-
-      <TouchableOpacity
-        onPress={handleSendCode}
-        style={{ marginTop: 16 }}
+      
+      <Modal
+        isVisible={showModal}
+        onBackdropPress={() => setShowModal(false)}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        backdropOpacity={0.7}
+        avoidKeyboard={true}
       >
-        <Text style={{ color: "#3D5CFF" }}>Resend Code</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Verify Email</Text>
+            <Text style={styles.modalSubtitle}>
+              Enter the 6-digit code sent to{"\n"}
+              <Text style={{ fontWeight: "bold", color: "#10B981" }}>{email}</Text>
+            </Text>
 
-  </KeyboardAvoidingView>
+            <TextInput
+              ref={codeInputRef}
+              placeholder="000000"
+              value={code}
+              onChangeText={setCode}
+              keyboardType="number-pad"
+              maxLength={6}
+              style={styles.codeInput}
+              placeholderTextColor="#9ca3af"
+            />
+
+            {errorMsg && <Text style={[styles.errorText, { marginBottom: 10 }]}>{errorMsg}</Text>}
+
+            <CustomButton
+              title={isLoading ? "Verifying..." : "Verify Code"}
+              onPress={handleVerifyCode}
+              disabled={isLoading || code.length !== 6}
+              style={{ width: '100%', backgroundColor: '#0286FF' }}
+              IconLeft={null}
+              IconRight={null}
+            />
+
+            <TouchableOpacity
+              onPress={handleSendCode}
+              style={{ marginTop: 20 }}
+            >
+              <Text style={styles.resendText}>
+                Didn't receive code? <Text style={{ color: '#0286FF', fontWeight: 'bold' }}>Resend</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </KeyboardAvoidingView>
   )
 }
 
 export default ForgotPassword
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1F1F39',
   },
-  inputWrapper: {
-  width: '90%',          
-  maxWidth: 400,        
-  marginBottom: 16,  
-    
-},
-  content: {
-    flex: 1,
-  },
   header: {
-    position: 'relative',
     width: '100%',
-    height: 260,
-    
+    height: 240,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  image: {
-    width: '100%',
-    height: 260,
+  logo: {
+    width: 150,
+    height: 150,
   },
   title: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    fontSize: 28,
+    fontSize: 26,
     fontFamily: 'Poppins-Bold',
     color: 'white',
+    marginTop: 15,
+    alignSelf:"flex-start",
+    paddingLeft:10
+
   },
   form: {
-     flex: 1,
-  justifyContent: 'center', 
-  alignItems: 'center',     
-  paddingHorizontal: 24,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  instructionText: {
+    fontSize: 15,
+    color: '#BABBC9',
+    fontFamily: 'Poppins-Regular',
+    textAlign: 'center',
+    marginBottom: 25,
+    lineHeight: 22,
   },
   button: {
-    marginTop: 28,
-    width: '100%',
+    marginTop: 20,
+    backgroundColor: '#3D5CFF',
+    height: 56,
+    borderRadius: 16,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(231, 74, 74, 0.1)',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 15,
   },
   errorText: {
-    color: '#dc2626',
-    fontSize: 14,
+    color: '#FF6B6B',
+    fontSize: 13,
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 12,
+    fontFamily: 'Poppins-Medium',
   },
-  link: {
-    marginTop: 28,
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#4b5563',
+  backButton: {
+    marginTop: 20,
+    alignItems: 'center',
   },
-  linkHighlight: {
-    color: '#7C3AED',
+  backButtonText: {
+    color: '#0286FF',
     fontFamily: 'Poppins-SemiBold',
+    fontSize: 15,
   },
   modalOverlay: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "rgba(0,0,0,0.6)",
-},
-modalContent: {
-  backgroundColor: "#2F2F42",
-  borderRadius: 20,
-  padding: 28,
-  width: "85%",
-  alignItems: "center",
-},
-modalTitle: {
-  fontSize: 20,
-  color: "white",
-  fontFamily: "Poppins-Bold",
-  marginBottom: 8,
-},
-modalSubtitle: {
-  fontSize: 14,
-  color: "#6b7280",
-  textAlign: "center",
-  marginBottom: 16,
-},
-codeInput: {
-  width: "100%",
-  height: 56,
-  fontSize: 20,
-  borderWidth: 2,
-  borderColor: "#d1d5db",
-  borderRadius: 12,
-  paddingHorizontal: 16,
-  textAlign: "center",
-  color: "#fff",
-  letterSpacing: 8,
-  marginBottom: 12,
-},
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#26264A",
+    borderRadius: 24,
+    padding: 28,
+    width: "90%",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  modalTitle: {
+    fontSize: 22,
+    color: "white",
+    fontFamily: "Poppins-Bold",
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: "#BABBC9",
+    textAlign: "center",
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  codeInput: {
+    width: "100%",
+    height: 60,
+    fontSize: 24,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 16,
+    backgroundColor: '#1F1F39',
+    color: '#FFFFFF',
+    marginBottom: 20,
+    textAlign: "center",
+    letterSpacing: 10,
+    fontFamily: 'Poppins-Bold',
+  },
+  resendText: {
+    fontSize: 14,
+    color: '#BABBC9',
+    fontFamily: 'Poppins-Regular'
+  }
 });

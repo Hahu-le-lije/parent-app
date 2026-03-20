@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -26,26 +28,22 @@ const FAQS: FaqItem[] = [
   {
     id: '1',
     question: 'How do I add a child?',
-    answer:
-      'Go to the Children tab and tap on "Add a Child". Fill in the basic information such as name, age and subscription type, then save the profile.',
+    answer: 'Go to the Children tab and tap on "Add a Child". Fill in the basic information such as name and age, then save the profile.',
   },
   {
     id: '2',
     question: 'How does progress tracking work?',
-    answer:
-      'We track progress across key skills like reading, listening, speaking and writing. Each activity your child completes contributes to their overall progress in these areas.',
+    answer: 'We track progress across key skills like reading, listening, speaking and writing. Every activity contributes to their growth.',
   },
   {
     id: '3',
-    question: 'How do subscriptions and payments work?',
-    answer:
-      'Subscriptions unlock premium content and features for your child. You can see which children are paid or unpaid from your dashboard and manage billing from your account settings.',
+    question: 'How do subscriptions work?',
+    answer: 'Subscriptions unlock premium content. You can manage billing and see subscription status directly from your dashboard.',
   },
   {
     id: '4',
-    question: 'I found a bug or something looks wrong.',
-    answer:
-      'We appreciate you taking the time to report issues. Please send a short description and screenshots (if possible) to support@hahu.app so we can investigate quickly.',
+    question: 'I found a bug or error.',
+    answer: 'Please send a description and screenshots to support@hahu.app so our team can investigate immediately.',
   },
 ];
 
@@ -65,11 +63,15 @@ const Help = () => {
       <View style={styles.faqCard}>
         <TouchableOpacity
           onPress={() => toggleItem(item.id)}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
           style={styles.faqHeader}
         >
           <Text style={styles.faqQuestion}>{item.question}</Text>
-          <Text style={styles.faqToggle}>{isOpen ? '−' : '+'}</Text>
+          <Ionicons 
+            name={isOpen ? "chevron-up" : "chevron-down"} 
+            size={20} 
+            color={isOpen ? "#0286FF" : "#9CA3AF"} 
+          />
         </TouchableOpacity>
 
         {isOpen && (
@@ -82,22 +84,22 @@ const Help = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container}>
+      
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.headerTitle}>Help Center</Text>
-            <Text style={styles.headerSubtitle}>
-              Find quick answers or reach out for support
-            </Text>
-          </View>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>Help Center</Text>
+          <Text style={styles.headerSubtitle}>
+            Find quick answers or reach out for support
+          </Text>
         </View>
       </View>
 
@@ -106,18 +108,16 @@ const Help = () => {
         renderItem={renderFaqItem}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
- 
         contentContainerStyle={styles.scrollContent}
         ListHeaderComponent={
           <>
             <View style={styles.infoCard}>
               <Text style={styles.infoTitle}>Getting Started</Text>
               <Text style={styles.infoBody}>
-                1. Create your account and sign in.{'\n'}
-                2. Add your children from the Children tab.{'\n'}
-                3. Explore the Home dashboard to see progress and recommendations.{'\n'}
-                4. Upgrade to premium to unlock all features.
+                • Create your account and sign in.{'\n'}
+                • Add children from the Children tab.{'\n'}
+                • Explore progress on your dashboard.{'\n'}
+                • Upgrade to premium for full access.
               </Text>
             </View>
             <Text style={styles.sectionHeader}>Frequently Asked Questions</Text>
@@ -127,16 +127,15 @@ const Help = () => {
           <View style={styles.contactCard}>
             <Text style={styles.contactTitle}>Still need help?</Text>
             <Text style={styles.contactBody}>
-              Our team is here to support you. Reach out any time and we&apos;ll get back to you as
-              soon as possible.
+              Email our support team and we'll get back to you as soon as possible.
             </Text>
-            <Text style={styles.contactBody}>
-              Email: <Text style={styles.contactHighlight}>support@hahu.app</Text>
-            </Text>
+            <TouchableOpacity style={styles.emailRow}>
+               <Text style={styles.contactBody}>
+                 Email: <Text style={styles.contactHighlight}>support@hahu.app</Text>
+               </Text>
+            </TouchableOpacity>
           </View>
         }
-       
-        ListFooterComponentStyle={{ paddingBottom: Platform.select({ ios: 80, android: 100 }) }}
       />
     </SafeAreaView>
   );
@@ -149,138 +148,126 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1F1F39',
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: Platform.select({
-      ios: 120,   
-      android: 100, 
-    }),
-  },
   header: {
-    height: 150,
-    justifyContent: 'flex-end',
     paddingHorizontal: 24,
-    paddingBottom: 20,
-    backgroundColor: '#111827',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    paddingTop: 10,
+    paddingBottom: 15,
   },
   backButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#26264A',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-    backgroundColor: 'rgba(15,23,42,0.9)',
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
-  backIcon: {
-    color: '#F9FAFB',
-    fontSize: 18,
-    marginTop: -1,
+  headerTextContainer: {
+    marginBottom: 5,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: 'Poppins-Bold',
     color: '#fff',
     letterSpacing: -0.5,
   },
   headerSubtitle: {
-    marginTop: 4,
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
-    color: '#E5E7EB',
-    opacity: 0.9,
+    color: '#9AA0C3',
+    marginTop: 2,
   },
-  scroll: {
-    flex: 1,
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    paddingBottom: 120, 
   },
   infoCard: {
     backgroundColor: '#26264A',
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 18,
+    borderRadius: 22,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.03)',
   },
   infoTitle: {
     fontSize: 18,
     fontFamily: 'Poppins-Bold',
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   infoBody: {
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
-    color: '#D1D5DB',
-    lineHeight: 20,
+    color: '#BABBC9',
+    lineHeight: 22,
   },
   sectionHeader: {
-    fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#E5E7EB',
-    marginBottom: 10,
+    fontSize: 18,
+    fontFamily: 'Poppins-Bold',
+    color: '#fff',
+    marginBottom: 16,
   },
   faqCard: {
     backgroundColor: '#26264A',
-    borderRadius: 16,
-    marginBottom: 10,
+    borderRadius: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.03)',
     overflow: 'hidden',
   },
   faqHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
   },
   faqQuestion: {
     flex: 1,
     fontSize: 15,
     fontFamily: 'Poppins-SemiBold',
     color: '#fff',
-    marginRight: 8,
-  },
-  faqToggle: {
-    fontSize: 22,
-    color: '#9CA3AF',
-    width: 22,
-    textAlign: 'center',
+    paddingRight: 10,
   },
   faqBodyWrapper: {
-    paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    marginTop: -5,
   },
   faqAnswer: {
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
-    color: '#D1D5DB',
-    lineHeight: 20,
+    color: '#BABBC9',
+    lineHeight: 22,
   },
   contactCard: {
-    marginTop: 18,
-    borderRadius: 20,
-    padding: 18,
-    backgroundColor: '#26264A',
+    marginTop: 20,
+    borderRadius: 22,
+    padding: 20,
+    backgroundColor: 'rgba(2, 134, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(2, 134, 255, 0.2)',
   },
   contactTitle: {
     fontSize: 17,
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: 'Poppins-Bold',
     color: '#fff',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   contactBody: {
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
-    color: '#E5E7EB',
+    color: '#BABBC9',
     lineHeight: 20,
   },
+  emailRow: {
+    marginTop: 10,
+  },
   contactHighlight: {
-    fontFamily: 'Poppins-SemiBold',
-    color: '#60A5FA',
+    fontFamily: 'Poppins-Bold',
+    color: '#0286FF',
   },
 });

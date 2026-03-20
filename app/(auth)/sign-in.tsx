@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet, Image } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { icons, images } from '@/constants'
 import InputField from '@/components/InputField'
@@ -9,72 +9,76 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useSignIn } from '@clerk/clerk-expo'
 import { useChildrenStore } from '@/store/childrenStore'
 
-const SignIn= () => {
-  const router=useRouter()
+const SignIn = () => {
+  const router = useRouter()
   const loadChildren = useChildrenStore((state) => state.loadChildren)
 
-  const [form,setForm]=useState({
-    email:'',
-    password:'',
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
   })
-  const [errorMsg,setErrorMsg]=useState<string|null>(null)
+  
+  const [showPassword, setShowPassword] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false);
-  const {signIn,setActive,isLoaded}=useSignIn()
-  const handleSubmit=async()=>{
-    if(!isLoaded ||  isLoading) return;
+  
+  const { signIn, setActive, isLoaded } = useSignIn()
+
+  const handleSubmit = async () => {
+    if (!isLoaded || isLoading) return;
+    
     setIsLoading(true);
     setErrorMsg(null);
-    try{
-      const attempt=await signIn.create({
-        identifier:form.email,
-        password:form.password
+    
+    try {
+      const attempt = await signIn.create({
+        identifier: form.email.trim(),
+        password: form.password
       })
-      if(attempt.status==='complete'){
-        await setActive({session:attempt.createdSessionId})
+
+      if (attempt.status === 'complete') {
+        await setActive({ session: attempt.createdSessionId })
         await loadChildren()
         router.replace('/(root)/(tabs)/home')
+      } else {
+        setErrorMsg("Please complete all sign-in steps.")
       }
-      else{
-        console.log('sign in problem: ', attempt)
-        setErrorMsg(attempt.status)
-      }
-    }catch(err:any){
-      console.error('sign in error: ',JSON.stringify(err,null,2))
-      setErrorMsg(err?.errors?.[0]?.longMessage || 'invalid email or password')
-    }finally{
+    } catch (err: any) {
+      setErrorMsg(err?.errors?.[0]?.longMessage || 'Invalid email or password')
+    } finally {
       setIsLoading(false)
-      setForm({email:'',password:''})
     }
   }
+
   return (
     <ScrollView
-    style={styles.container}
-    keyboardShouldPersistTaps="handled"
-    contentContainerStyle={{flexGrow:1}}
+      style={styles.container}
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{ flexGrow: 1 }}
+      showsVerticalScrollIndicator={false}
     >
       <View style={styles.content}>
         <View style={styles.header}>
-             <LinearGradient
-                      colors={['#0286FF', '#005BB5', '#003366']} 
-                      style={StyleSheet.absoluteFill}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      />
-          <Image source={images.Logo} style={styles.image} resizeMode='contain'/>
-          <Text style={styles.title}>Welcome 👋</Text>
+          <LinearGradient
+            colors={['#0286FF', '#1F1F39']} 
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          <Image source={images.Logo} style={styles.logo} resizeMode='contain' />
+          <Text style={styles.title}>Welcome Back 👋</Text>
         </View>
 
         <View style={styles.form}>
-          
           <InputField
-          label='Email Address'
-          placeholder='Enter your Email'
-          icon={icons.email}
-          value={form.email}
-          onChangeText={(value)=>setForm({...form,email:value})}
-          autoCapitalize='none'
-          keyboardType='email-address'
-          autoCorrect={false}
+            label='Email Address'
+            placeholder='Enter your Email'
+            icon={icons.email}
+            value={form.email}
+            onChangeText={(value) => setForm({ ...form, email: value })}
+            autoCapitalize='none'
+            keyboardType='email-address'
+            autoCorrect={false}
           />
           
           <InputField
@@ -83,27 +87,37 @@ const SignIn= () => {
             icon={icons.lock}
             value={form.password}
             onChangeText={(value) => setForm({ ...form, password: value })}
-            secureTextEntry
+            secureTextEntry={!showPassword}
+            rightText={showPassword ? "Hide" : "Show"}
+            onRightPress={() => setShowPassword(!showPassword)}
           />
           
-          {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
-           <CustomButton
-           title={isLoading ? 'Signing in...' : 'Sign in'}
-           onPress={handleSubmit}
-           disabled={isLoading}
-           bgVariant="primary"
-           style={styles.button}
-           IconLeft={undefined}
-           IconRight={undefined}
-         />
-          <OAuth/>
-          <Link href='/(auth)/forgot-password' style={styles.link}>
-            <Text style={styles.linkHighlight}>Forgot Password?</Text>
-          </Link>
-           <Link href="/(auth)/sign-up" style={styles.link}>
-             Don&apos;t have an account?{' '}
-            <Text style={styles.linkHighlight}>Sign UP</Text>
-          </Link>
+          {errorMsg && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{errorMsg}</Text>
+            </View>
+          )}
+
+          <CustomButton
+            title={isLoading ? 'Signing in...' : 'Sign In'}
+            onPress={handleSubmit}
+            disabled={isLoading}
+            style={styles.button}
+          />
+
+          <OAuth />
+
+          <View style={styles.footerLinks}>
+            <Link href='/(auth)/forgot-password' style={styles.link}>
+              <Text style={styles.linkSub}>Forgot Password?</Text>
+            </Link>
+
+            <Link href="/(auth)/sign-up" style={styles.link}>
+              <Text style={styles.linkSub}>
+                Don't have an account? <Text style={styles.linkHighlight}>Sign Up</Text>
+              </Text>
+            </Link>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -111,6 +125,7 @@ const SignIn= () => {
 }
 
 export default SignIn
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -120,47 +135,61 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    position: 'relative',
     width: '100%',
-    height: 260,
-    
+    height: 240,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  image: {
-    width: '100%',
-    height: 260,
+  logo: {
+    width: 150,
+    height: 150,
   },
   title: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
     fontSize: 28,
     fontFamily: 'Poppins-Bold',
     color: 'white',
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    paddingLeft:10,
   },
   form: {
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 20,
     paddingBottom: 40,
   },
   button: {
-    marginTop: 28,
-    width: '100%',
+    marginTop: 30,
+    backgroundColor: '#3D5CFF',
+    height: 56,
+    borderRadius: 16,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(231, 74, 74, 0.1)',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 15,
   },
   errorText: {
-    color: '#dc2626',
-    fontSize: 14,
+    color: '#FF6B6B',
+    fontSize: 13,
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 12,
+    fontFamily: 'Poppins-Medium',
+  },
+  footerLinks: {
+    marginTop: 25,
+    alignItems: 'center',
+    gap: 15,
   },
   link: {
-    marginTop: 28,
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#4b5563',
+    paddingVertical: 5,
+  },
+  linkSub: {
+    fontSize: 15,
+    color: '#BABBC9', 
+    fontFamily: 'Poppins-Regular',
   },
   linkHighlight: {
-    color: '#7C3AED',
-    fontFamily: 'Poppins-SemiBold',
+    color: '#0286FF', 
+    fontFamily: 'Poppins-Bold',
   },
 });

@@ -35,9 +35,10 @@ export default function ProfileLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
         name="edit-account"
-        options={{ title: 'Edit Account' }}
+        options={{ title: 'Edit Account' ,headerShown:false}}
+        
       />
-      <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+      <Stack.Screen name="settings" options={{ title: 'Settings',headerShown:false }} />
       <Stack.Screen
         name="help-center"
         options={{ headerShown: false }}
@@ -46,6 +47,7 @@ export default function ProfileLayout() {
         name="about"
         options={{ headerShown: false }}
       />
+
     </Stack>
   );
 }

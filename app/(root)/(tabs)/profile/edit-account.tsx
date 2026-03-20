@@ -13,14 +13,16 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import InputField from '@/components/InputField'; // adjust path
+import { Ionicons } from '@expo/vector-icons';
+import InputField from '@/components/InputField'; 
 import { LinearGradient } from 'expo-linear-gradient';
 
 const EditAccount = () => {
   const { user, isLoaded } = useUser();
   const router = useRouter();
 
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -29,28 +31,25 @@ const EditAccount = () => {
 
   useEffect(() => {
     if (isLoaded && user) {
-      setFullName(user.firstName || '');
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
     }
   }, [isLoaded, user]);
 
   const handleSave = async () => {
     if (!isLoaded || !user) return;
-
     setError(null);
 
-    if (!fullName.trim()) {
-      setError('Full name is required');
+    // Validation
+    if (!firstName.trim()) {
+      setError('First name is required');
       return;
     }
 
     let passwordUpdate = {};
     if (newPassword || currentPassword) {
       if (!currentPassword) {
-        setError('Current password is required');
-        return;
-      }
-      if (!newPassword) {
-        setError('New password is required');
+        setError('Current password is required to set a new one');
         return;
       }
       if (newPassword !== confirmPassword) {
@@ -71,8 +70,8 @@ const EditAccount = () => {
 
     try {
       await user.update({
-        firstName: fullName.trim(),
-        lastName: '',
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         ...passwordUpdate,
       });
 
@@ -88,7 +87,6 @@ const EditAccount = () => {
         msg = err.errors[0].message;
       }
       setError(msg);
-      Alert.alert('Error', msg);
     } finally {
       setLoading(false);
     }
@@ -97,85 +95,98 @@ const EditAccount = () => {
   if (!isLoaded) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#7C3AED" />
+        <ActivityIndicator size="large" color="#0286FF" />
       </View>
     );
   }
-
-  const currentNamePlaceholder = fullName
-    ? `Current: ${fullName}`
-    : 'Enter your full name';
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.title}>Edit Account</Text>
-          <Text style={styles.subtitle}>Update your information</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          
+          {/* HEADER WITH BACK BUTTON */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.title}>Edit Account</Text>
+            <Text style={styles.subtitle}>Update your personal information</Text>
+          </View>
 
+          {/* NAME SECTION */}
           <View style={styles.card}>
             <InputField
-              label="Full Name"
-              placeholder={currentNamePlaceholder}
-              value={fullName}
-              onChangeText={setFullName}
+              label="First Name"
+              placeholder="Enter first name"
+              value={firstName}
+              onChangeText={setFirstName}
               autoCapitalize="words"
-              returnKeyType="next"
+            />
+            <View style={{ height: 15 }} />
+            <InputField
+              label="Last Name"
+              placeholder="Enter last name"
+              value={lastName}
+              onChangeText={setLastName}
+              autoCapitalize="words"
             />
           </View>
 
-          <Text style={styles.sectionTitle}>Change Password</Text>
+          {/* PASSWORD SECTION */}
+          <Text style={styles.sectionTitle}>Security</Text>
           <View style={styles.card}>
             <InputField
               label="Current Password"
-              placeholder="Enter current password"
+              placeholder="Required to change password"
               value={currentPassword}
               onChangeText={setCurrentPassword}
               secureTextEntry
-              returnKeyType="next"
             />
+            <View style={{ height: 15 }} />
             <InputField
               label="New Password"
-              placeholder="Enter new password (min 8 chars)"
+              placeholder="Min 8 characters"
               value={newPassword}
               onChangeText={setNewPassword}
               secureTextEntry
-              returnKeyType="next"
             />
+            <View style={{ height: 15 }} />
             <InputField
               label="Confirm New Password"
-              placeholder="Confirm new password"
+              placeholder="Repeat new password"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
-              returnKeyType="done"
             />
           </View>
 
           {error && <Text style={styles.errorText}>{error}</Text>}
 
-          <LinearGradient
-            colors={['#7C3AED', '#5B21B6']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.saveButton}
+          <TouchableOpacity
+            onPress={handleSave}
+            disabled={loading}
+            activeOpacity={0.8}
           >
-            <TouchableOpacity
-              onPress={handleSave}
-              disabled={loading}
-              style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+            <LinearGradient
+              colors={['#0286FF', '#005BB5']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.saveButton}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.saveButtonText}>Save Changes</Text>
               )}
-            </TouchableOpacity>
-          </LinearGradient>
+            </LinearGradient>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.cancelButton}
@@ -204,54 +215,60 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F1F39',
   },
   scrollContent: {
-    padding: 24,
+    paddingHorizontal: 24,
     paddingBottom: 60,
+  },
+  header: {
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#26264A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   title: {
     fontSize: 28,
     fontFamily: 'Poppins-Bold',
     color: '#fff',
-    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#A1A1AA',
-    marginBottom: 20,
+    fontSize: 15,
+    color: '#9AA0C3',
+    fontFamily: 'Poppins-Regular',
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: 'Poppins-Bold',
     color: '#fff',
     marginBottom: 12,
-    marginTop: 20,
+    marginTop: 10,
   },
   card: {
-    backgroundColor: '#2A2A4A',
-    borderRadius: 20,
+    backgroundColor: '#26264A',
+    borderRadius: 22,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
   },
   errorText: {
     color: '#EF4444',
     fontSize: 14,
-    marginBottom: 12,
+    marginBottom: 15,
     textAlign: 'center',
     fontFamily: 'Poppins-Medium',
   },
   saveButton: {
-    borderRadius: 50,
+    borderRadius: 18,
     paddingVertical: 16,
-    marginTop: 16,
-    shadowColor: '#7C3AED',
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
   },
   saveButtonText: {
     color: '#fff',
@@ -259,13 +276,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Bold',
   },
   cancelButton: {
-    marginTop: 12,
+    marginTop: 10,
     paddingVertical: 16,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#A1A1AA',
-    fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
+    color: '#9AA0C3',
+    fontSize: 15,
+    fontFamily: 'Poppins-Medium',
   },
 });

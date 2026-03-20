@@ -223,8 +223,8 @@ export default Sub;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1F1F39" },
-  header: { padding: 25 },
-  headerTitle: { fontSize: 28, fontFamily: "Poppins-Bold", color: "#fff" },
+  header: { padding: 25, marginTop:20 },
+  headerTitle: { fontSize: 26, fontFamily: "Poppins-Bold", color: "#fff" },
   subheader: { fontSize: 15, fontFamily: "Poppins-Regular", color: "#9CA3AF" },
   section: { paddingHorizontal: 20, marginTop: 25 },
   sectionTitle: { fontSize: 18, fontFamily: "Poppins-Bold", color: "#fff", marginBottom: 15 },

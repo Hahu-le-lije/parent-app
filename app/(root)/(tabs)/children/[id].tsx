@@ -1,543 +1,342 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   ScrollView,
-  Alert,
   LayoutAnimation,
-
-
+  Platform,
+  UIManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useChildrenStore } from '@/store/childrenStore';
-
+import { Ionicons } from '@expo/vector-icons';
 import Child2 from '@/components/Child2';
-import { icons } from '@/constants';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const ChildDetail = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const children = useChildrenStore((state) => state.children);
   
-  const assignLastPurchasedToChild = useChildrenStore(
-    (state) => state.assignLastPurchasedToChild,
-  );
-  const deleteChild = useChildrenStore((state) => state.deleteChild);
-
   const child = useMemo(
     () => children.find((c) => c._id === String(id)),
     [children, id],
   );
 
-  // const handleAssignPlan = () => {
-  //   if (!child) return;
-  //   assignLastPurchasedToChild(child._id);
-  // };
-
-  // const handleDeleteChild = () => {
-  //   if (!child) return;
-  //   Alert.alert(
-  //     'Delete child',
-  //     `Are you sure you want to remove ${child.name}?`,
-  //     [
-  //       { text: 'Cancel', style: 'cancel' },
-  //       {
-  //         text: 'Delete',
-  //         style: 'destructive',
-  //         onPress: () => {
-  //           deleteChild(child._id);
-  //           router.replace('/(root)/(tabs)/children');
-  //         },
-  //       },
-  //     ],
-  //   );
-  // };
-
-  // if (loading) {
-  //   return (
-  //     <SafeAreaView style={styles.loadingContainer}>
-  //       <ActivityIndicator size="large" color="#3B82F6" />
-  //       <Text style={styles.loadingText}>Loading child details...</Text>
-  //     </SafeAreaView>
-  //   );
-  // }
-
-  // if (!child) {
-  //   return (
-  //     <SafeAreaView style={styles.loadingContainer}>
-  //       <Text style={styles.errorTitle}>Child not found</Text>
-  //       <Text style={styles.errorText}>
-  //         Please go back to the children list and try again.
-  //       </Text>
-  //       <TouchableOpacity
-  //         style={styles.backToListButton}
-  //         onPress={() => router.replace('/(root)/(tabs)/children')}
-  //       >
-  //         <Text style={styles.backToListButtonText}>Back to Children</Text>
-  //       </TouchableOpacity>
-  //     </SafeAreaView>
-  //   );
-  // }
-
- 
-
-  const [open , setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState('This Week');
+  const [showWeekSelector, setShowWeekSelector] = useState(false);
 
   const skills = [
-    { label: 'Reading', value: 82, color: '#3B82F6' },
+    { label: 'Reading', value: 82, color: '#0286FF' },
     { label: 'Listening', value: 74, color: '#8B5CF6' },
     { label: 'Speaking', value: 68, color: '#EC4899' },
     { label: 'Writing', value: 90, color: '#10B981' },
   ];
-    const strongest = skills.reduce((prev, curr) =>
-  curr.value > prev.value ? curr : prev
-);
 
-const weakest = skills.reduce((prev, curr) =>
-  curr.value < prev.value ? curr : prev
-);
-const weeks = [
-  'This Week',
-  'Last Week',
-  '2 Weeks Ago',
-  '3 Weeks Ago',
-  '4 Weeks Ago',
-];
-// ===== WEEK DATA =====
-const weekData = [
-  { day: 'M', minutes: 20 },
-  { day: 'T', minutes: 35 },
-  { day: 'W', minutes: 15 },
-  { day: 'T', minutes: 40 },
-  { day: 'F', minutes: 25 },
-  { day: 'S', minutes: 10 },
-  { day: 'S', minutes: 30 },
-];
+  const strongest = skills.reduce((prev, curr) => curr.value > prev.value ? curr : prev);
+  const weakest = skills.reduce((prev, curr) => curr.value < prev.value ? curr : prev);
+  
+  const weeks = ['This Week', 'Last Week', '2 Weeks Ago', '3 Weeks Ago'];
+  const weekData = [
+    { day: 'M', minutes: 20 }, { day: 'T', minutes: 35 }, { day: 'W', minutes: 15 },
+    { day: 'T', minutes: 40 }, { day: 'F', minutes: 25 }, { day: 'S', minutes: 10 }, { day: 'S', minutes: 30 },
+  ];
 
-const maxMinutes = Math.max(...weekData.map(item => item.minutes));
-const totalMinutes = weekData.reduce((sum, item) => sum + item.minutes, 0);
-
-const [selectedWeek, setSelectedWeek] = React.useState('This Week');
-const [showWeekSelector, setShowWeekSelector] = React.useState(false);
+  const maxMinutes = Math.max(...weekData.map(item => item.minutes));
+  const totalMinutes = weekData.reduce((sum, item) => sum + item.minutes, 0);
 
   return (
-   <SafeAreaView style={styles.container} edges={['top']}>
-     <View style={styles.c3}>
-            <TouchableOpacity onPress={()=>router.back()}>
-                <View style={{width:40,height:40,justifyContent:"center",alignItems:"center",backgroundColor:"white",borderRadius:50}}>
-                    <Image source={icons.backArrow} resizeMode='contain' style={{width:20,height:20}}/>
-                </View>
-            </TouchableOpacity>
-            <Text style={{fontSize:20,color:"#fff",marginLeft:50,fontFamily:"Poppins-Bold"}}>
-                Learning Progress
-            </Text>
-         
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* CONSISTENT HEADER */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>Learning Progress</Text>
+          <Text style={styles.headerSubtitle}>Tracking {child?.name || 'Child'}'s growth</Text>
         </View>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 60 }}
-  showsVerticalScrollIndicator={false}
-      >
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.childProfile}>
-          <Child2 item={child!}/>
+          <Child2 item={child!} />
         </View>
-        <View style={styles.ai}>
-          <Text style={styles.aiTitle}>Insights About The child</Text>
+        <View style={styles.credentialsCard}>
+          <Text style={styles.cardLabel}>Child Account Access</Text>
+          
+          <View style={styles.credentialRow}>
+            <View style={styles.credentialInfo}>
+              <Text style={styles.credentialLabel}>Username</Text>
+              <Text style={styles.credentialValue}>{child?.username || 'Not set'}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.copyIcon} 
+              onPress={() => copyToClipboard(child?.username || '')}
+            >
+              <Ionicons name="copy-outline" size={18} color="#0286FF" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.credentialDivider} />
+
+          <View style={styles.credentialRow}>
+            <View style={styles.credentialInfo}>
+              <Text style={styles.credentialLabel}>Password</Text>
+              <Text style={styles.credentialValue}>••••••••</Text> 
+
+            </View>
+            <TouchableOpacity style={styles.copyIcon}>
+              <Ionicons name="eye-outline" size={18} color="#9AA0C3" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* AI INSIGHTS CARD */}
+        <View style={[styles.aiCard, open && styles.aiCardExpanded]}>
           <TouchableOpacity
-          onPress={()=>{
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setOpen(!open)
-          }}
-          activeOpacity={0.8}
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setOpen(!open);
+            }}
+            activeOpacity={0.9}
+            style={styles.aiHeader}
           >
-            <View style={styles.aiHeader}>
-             
-              <View style={styles.aitoggle}>
-               <Text style={{fontSize: 15,
-    fontFamily: 'Poppins-Regular',
-    color: '#3B82F6',}}>{open===true ? 'Close' : 'Open'}</Text>
-              </View>
-             
+            <View style={styles.aiTitleRow}>
+              <Ionicons name="sparkles" size={20} color="#0286FF" />
+              <Text style={styles.aiTitle}>AI Insights</Text>
+            </View>
+            <View style={styles.aiBadge}>
+              <Text style={styles.aiBadgeText}>{open ? 'Close' : 'View'}</Text>
             </View>
           </TouchableOpacity>
+
           {open && (
             <View style={styles.aiContent}>
-              <Text style={styles.aiIntro}>
-                Quick AI summary for {child?.name || 'this child'}:
-              </Text>
-
-              
-
-              <Text style={styles.recommendation}>
-                Suggestion:{'\n'}
-                Focus more on {weakest.label.toLowerCase()} activities this week.{' '}
-                Short 10–15 minute sessions combined with {strongest.label.toLowerCase()}{' '}
-                tasks usually work best to keep {child?.name?.split(' ')[0] || 'them'} motivated.
-              </Text>
-
-             
-              
+              <Text style={styles.aiIntro}>Quick summary for {child?.name?.split(' ')[0]}:</Text>
+              <View style={styles.recommendationBox}>
+                <Text style={styles.recommendationText}>
+                  <Text style={{ fontFamily: 'Poppins-Bold', color: '#10B981' }}>Suggestion: </Text>
+                  Focus more on {weakest.label.toLowerCase()} activities. Short 10–15 min sessions with {strongest.label.toLowerCase()} tasks work best.
+                </Text>
+              </View>
             </View>
           )}
         </View>
-        <View style={styles.statsContainer}>
+
+        {/* STATS GRID */}
+        <View style={styles.statsGrid}>
           {[
-            { label: 'Accuracy', value: '87%' },
-            { label: 'Words Learned', value: '124' },
-            { label: 'Sessions', value: '18' },
-            { label: 'Completed Lessons', value: '9' },
+            { label: 'Accuracy', value: '87%', icon: 'checkmark-done' },
+            { label: 'Words', value: '124', icon: 'book' },
+            { label: 'Sessions', value: '18', icon: 'play' },
+            { label: 'Lessons', value: '9', icon: 'trophy' },
           ].map((item, index) => (
             <View key={index} style={styles.statBox}>
+              <Ionicons name={item.icon as any} size={16} color="#9AA0C3" style={{ marginBottom: 4 }} />
               <Text style={styles.statValue}>{item.value}</Text>
               <Text style={styles.statLabel}>{item.label}</Text>
             </View>
           ))}
         </View>
-        <View style={styles.streak}>
 
-          <Text style={{fontSize:13,fontFamily:"Poppins-SemiBold",color:"#D1D5DB"}}>💠 Days Streak</Text>
-          <Text style={{fontSize:25,fontFamily:"Poppins-Bold",color:"white"}}>12</Text>
-          <Text style={{fontSize:13,fontFamily:"Poppins-SemiBold",color:"#D1D5DB"}}>Personal Best: 20</Text>
+     
+        <View style={styles.streakCard}>
+          <View>
+            <Text style={styles.streakLabel}>💠 Day Streak</Text>
+            <Text style={styles.streakValue}>12</Text>
+          </View>
+          <View style={styles.streakBadge}>
+            <Text style={styles.streakBest}>Best: 20</Text>
+          </View>
         </View>
-        <View style={styles.weekContainer}>
-  <View style={styles.weekHeader}>
-    <Text style={styles.sectionTitle}>Time Spent</Text>
 
-    <TouchableOpacity
-      style={styles.dropdown}
-      onPress={() => setShowWeekSelector(!showWeekSelector)}
-    >
-      <Text style={styles.dropdownText}>{selectedWeek}</Text>
-    </TouchableOpacity>
-  </View>
+       
+        <View style={styles.chartCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Time Spent</Text>
+            <TouchableOpacity 
+              style={styles.weekPicker} 
+              onPress={() => setShowWeekSelector(!showWeekSelector)}
+            >
+              <Text style={styles.weekPickerText}>{selectedWeek}</Text>
+              <Ionicons name="chevron-down" size={14} color="#fff" />
+            </TouchableOpacity>
+          </View>
 
-  {showWeekSelector && (
-    <View style={styles.weekList}>
-      {weeks.map((week, index) => (
-        <TouchableOpacity
-          key={index}
-          style={styles.weekItem}
-          onPress={() => {
-            setSelectedWeek(week);
-            setShowWeekSelector(false);
-          }}
-        >
-          <Text style={styles.weekItemText}>{week}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  )}
+          {showWeekSelector && (
+            <View style={styles.dropdownMenu}>
+              {weeks.map((w, i) => (
+                <TouchableOpacity key={i} style={styles.dropdownItem} onPress={() => {
+                  setSelectedWeek(w);
+                  setShowWeekSelector(false);
+                }}>
+                  <Text style={styles.dropdownItemText}>{w}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
- 
-  <Text style={styles.totalTime}>
-    Total: {totalMinutes} minutes
-  </Text>
+          <Text style={styles.totalText}>Total: {totalMinutes} minutes</Text>
 
- 
-  <View style={styles.chartContainer}>
-    {weekData.map((item, index) => {
-      const heightPercentage = (item.minutes / maxMinutes) * 120;
-
-      return (
-        <View key={index} style={styles.barWrapper}>
-          <Text style={styles.barValue}>
-            {item.minutes}m
-          </Text>
-
-          <View
-            style={[
-              styles.bar,
-              { height: heightPercentage },
-            ]}
-          />
-
-          <Text style={styles.barLabel}>{item.day}</Text>
+          <View style={styles.barChart}>
+            {weekData.map((item, index) => {
+              const barHeight = (item.minutes / maxMinutes) * 100;
+              return (
+                <View key={index} style={styles.barColumn}>
+                  <Text style={styles.barValue}>{item.minutes}m</Text>
+                  <View style={[styles.barBase, { height: barHeight + 20, backgroundColor: index === 3 ? '#0286FF' : '#3E3E66' }]} />
+                  <Text style={styles.barLabel}>{item.day}</Text>
+                </View>
+              );
+            })}
+          </View>
         </View>
-      );
-    })}
-  </View>
-</View>
 
-        <View style={styles.performanceContainer}>
-  <Text style={styles.sectionTitle}>Performance by Category</Text>
-
-  {skills.map((skill, index) => (
-    <View key={index} style={{ marginTop: 14 }}>
-      <View style={styles.skillHeader}>
-        <Text style={styles.skillLabel}>{skill.label}</Text>
-        <Text style={styles.skillPercent}>{skill.value}%</Text>
-      </View>
-
-      <View style={styles.progressBackground}>
-        <View
-          style={[
-            styles.progressFill,
-            {
-              width: `${skill.value}%`,
-              backgroundColor: skill.color,
-            },
-          ]}
-        />
-      </View>
-    </View>
-  ))}
-</View>
+        {/* PERFORMANCE CATEGORIES */}
+        <View style={styles.performanceCard}>
+          <Text style={styles.sectionTitle}>Skills Breakdown</Text>
+          {skills.map((skill, index) => (
+            <View key={index} style={styles.skillRow}>
+              <View style={styles.skillInfo}>
+                <Text style={styles.skillName}>{skill.label}</Text>
+                <Text style={styles.skillValue}>{skill.value}%</Text>
+              </View>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${skill.value}%`, backgroundColor: skill.color }]} />
+              </View>
+            </View>
+          ))}
+        </View>
       </ScrollView>
-   </SafeAreaView>
+    </SafeAreaView>
   );
 };
 
 export default ChildDetail;
 
 const styles = StyleSheet.create({
-  weekList: {
-  backgroundColor: '#1E1E38',
-  borderRadius: 12,
-  paddingVertical: 6,
-  marginBottom: 12,
-  marginTop: 6,
+  container: { flex: 1, backgroundColor: '#1F1F39' },
+  header: { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 15 },
+  backButton: {
+    width: 44, height: 44, borderRadius: 14, backgroundColor: '#26264A',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 15,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+  },
+  headerTextContainer: { marginBottom: 5 },
+  headerTitle: { fontSize: 26, fontFamily: 'Poppins-Bold', color: '#fff' },
+  headerSubtitle: { fontSize: 14, fontFamily: 'Poppins-Regular', color: '#9AA0C3' },
+  scrollContent: { paddingHorizontal: 24, paddingBottom: 100 },
+  childProfile: { alignItems: 'center', marginVertical: 10,width:"100%" },
+  
+ 
+  aiCard: {
+    backgroundColor: '#26264A', borderRadius: 22, marginBottom: 20,
+    borderWidth: 1, borderColor: 'rgba(2, 134, 255, 0.3)', overflow: 'hidden',
+  },
+  aiCardExpanded: { borderColor: '#0286FF' },
+  aiHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18 },
+  aiTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  aiTitle: { fontSize: 16, fontFamily: 'Poppins-Bold', color: '#fff' },
+  aiBadge: { backgroundColor: 'rgba(2, 134, 255, 0.1)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+  aiBadgeText: { color: '#0286FF', fontSize: 12, fontFamily: 'Poppins-Bold' },
+  aiContent: { paddingHorizontal: 18, paddingBottom: 18 },
+  aiIntro: { fontSize: 13, color: '#9AA0C3', marginBottom: 10, fontFamily: 'Poppins-Regular' },
+  recommendationBox: { backgroundColor: '#1E1E38', padding: 14, borderRadius: 14, borderLeftWidth: 3, borderLeftColor: '#10B981' },
+  recommendationText: { fontSize: 13, color: '#BABBC9', lineHeight: 20, fontFamily: 'Poppins-Regular' },
+
+  
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 10 },
+  statBox: { width: '48%', backgroundColor: '#26264A', borderRadius: 18, padding: 16, marginBottom: 12 },
+  statValue: { fontSize: 20, fontFamily: 'Poppins-Bold', color: '#fff' },
+  statLabel: { fontSize: 12, fontFamily: 'Poppins-Regular', color: '#9AA0C3' },
 
  
-
-  elevation: 6,
-},
-
-weekItem: {
-  paddingVertical: 10,
-  paddingHorizontal: 14,
-  borderBottomWidth: 0.5,
-  borderBottomColor: '#2F2F42',
-},
-
-weekItemText: {
-  color: '#fff',
-  fontSize: 14,
-  fontFamily: 'Poppins-Regular',
-},
-  weekContainer: {
-  width: '95%',
-  alignSelf: 'center',
-  marginTop: 20,
-  backgroundColor: '#2F2F42',
-  borderRadius: 12,
-  padding: 16,
-},
-
-totalTime: {
-  color: '#D1D5DB',
-  fontSize: 13,
-  fontFamily: 'Poppins-Regular',
-  marginBottom: 12,
-},
-
-chartContainer: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'flex-end',
-  height: 160,
-},
-
-barWrapper: {
-  alignItems: 'center',
-  flex: 1,
-},
-
-bar: {
-  width: 16,
-  backgroundColor: '#3B82F6',
-  borderRadius: 8,
-  marginBottom: 6,
-},
-
-barLabel: {
-  fontSize: 12,
-  color: '#D1D5DB',
-  fontFamily: 'Poppins-Regular',
-},
-
-barValue: {
-  fontSize: 12,
-  color: '#fff',
-  fontFamily: 'Poppins-Regular',
-  marginBottom: 4,
-},
-  container: {
-    flex: 1,
-    backgroundColor: '#1F1F39',
+  streakCard: {
+    backgroundColor: '#26264A', borderRadius: 18, padding: 20, flexDirection: 'row',
+    justifyContent: 'space-between', alignItems: 'center', marginBottom: 20,
   },
-  childProfile:{
-    width:"100%",
-    display:"flex",
-    alignItems:"center",
-    marginTop:20
-  },
-   c3:{
-        display:"flex",
-        flexDirection:"row",
-      
-        
-        alignItems:"center",
-        justifyContent:"flex-start",
-        paddingHorizontal:16,
-        width:"100%",
-        marginTop:20
-        
-    },
-    ai:{
-    backgroundColor: '#3B82F6',
-    borderRadius: 16,
-    marginBottom: 10,
-    overflow: 'hidden',
-    marginTop:20,
-    width:"95%",
-    marginHorizontal:10,
-    opacity:0.9
-    },
-    aiHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  },
-  aiTitle: {
-    fontSize: 20,
-    fontFamily: 'Poppins-Bold',
-    color: '#fff',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  },
-  aitoggle:{
-    backgroundColor:"white",
-    height:30,
-    width:80,
-    borderRadius:50,
-    justifyContent:"center",
-    alignItems:"center"
-  },
-  aiContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  aiIntro: {
-    fontSize: 15,
-    color: '#C7C7FF',
-    marginBottom: 16,
-    lineHeight: 22,
-    fontFamily: 'Poppins-Regular',
-  },
+  streakLabel: { fontSize: 13, fontFamily: 'Poppins-SemiBold', color: '#BABBC9' },
+  streakValue: { fontSize: 32, fontFamily: 'Poppins-Bold', color: '#fff' },
+  streakBadge: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  streakBest: { color: '#9AA0C3', fontSize: 12, fontFamily: 'Poppins-Medium' },
 
-  recommendation: {
-    fontSize: 14.5,
-    color: '#D0D0FF',
-    lineHeight: 22,
-    marginTop: 8,
-    marginBottom: 20,
-    padding: 12,
-    backgroundColor: '#1E1E38',
-    borderRadius: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
-  },
+
+  chartCard: { backgroundColor: '#26264A', borderRadius: 22, padding: 20, marginBottom: 20 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  sectionTitle: { fontSize: 18, fontFamily: 'Poppins-Bold', color: '#fff' },
+  weekPicker: { backgroundColor: '#0286FF', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  weekPickerText: { color: '#fff', fontSize: 12, fontFamily: 'Poppins-Bold' },
+  totalText: { color: '#9AA0C3', fontSize: 13, marginBottom: 20 },
+  barChart: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 140 },
+  barColumn: { alignItems: 'center', flex: 1 },
+  barValue: { fontSize: 10, color: '#9AA0C3', marginBottom: 4 },
+  barBase: { width: 14, borderRadius: 7, marginBottom: 6 },
+  barLabel: { fontSize: 11, color: '#9AA0C3', fontFamily: 'Poppins-Medium' },
+  dropdownMenu: { backgroundColor: '#1E1E38', borderRadius: 12, marginBottom: 15, padding: 4 },
+  dropdownItem: { padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
+  dropdownItemText: { color: '#fff', fontSize: 13 },
+
   
-  streak:{
-    backgroundColor:"#2F2F42",
-    width:"95%",
-    marginHorizontal:10,
-    height:100,
-    borderRadius:10,
-    marginTop:20,
-    display:"flex",
-    alignItems:"flex-start",
-    paddingLeft:20,
-    justifyContent:"center",
-    paddingBottom:20,
-    paddingTop:20
+  performanceCard: { backgroundColor: '#26264A', borderRadius: 22, padding: 20 },
+  skillRow: { marginTop: 16 },
+  skillInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  skillName: { fontSize: 14, fontFamily: 'Poppins-SemiBold', color: '#fff' },
+  skillValue: { fontSize: 14, fontFamily: 'Poppins-Bold', color: '#0286FF' },
+  progressBarBg: { height: 8, backgroundColor: '#1E1E38', borderRadius: 4, overflow: 'hidden' },
+  progressBarFill: { height: '100%', borderRadius: 4 },
+
+  credentialsCard: {
+    backgroundColor: '#26264A',
+    borderRadius: 22,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.03)',
   },
-  statsContainer: {
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-  justifyContent: 'space-between',
-  width: '95%',
-  alignSelf: 'center',
-  marginTop: 20,
-},
-statBox: {
-  width: '48%',
-  backgroundColor: '#2F2F42',
-  borderRadius: 12,
-  paddingVertical: 16,
-  paddingHorizontal: 12,
-  marginBottom: 12,
-},
-statValue: {
-  fontSize: 20,
-  fontFamily: 'Poppins-Bold',
-  color: '#fff',
-},
-statLabel: {
-  fontSize: 13,
-  fontFamily: 'Poppins-Regular',
-  color: '#D1D5DB',
-  marginTop: 4,
-},
-weekHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: 16,
-},
-sectionTitle: {
-  fontSize: 16,
-  fontFamily: 'Poppins-Bold',
-  color: '#fff',
-},
-dropdown: {
-  backgroundColor: '#3B82F6',
-  paddingHorizontal: 12,
-  paddingVertical: 6,
-  borderRadius: 20,
-},
-dropdownText: {
-  color: '#fff',
-  fontSize: 13,
-  fontFamily: 'Poppins-Regular',
-},
-performanceContainer: {
-  width: '95%',
-  alignSelf: 'center',
-  marginTop: 20,
-  marginBottom: 30,
-  backgroundColor: '#2F2F42',
-  borderRadius: 12,
-  padding: 16,
-},
-skillHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  marginBottom: 6,
-},
-skillLabel: {
-  fontSize: 14,
-  fontFamily: 'Poppins-SemiBold',
-  color: '#fff',
-},
-skillPercent: {
-  fontSize: 14,
-  fontFamily: 'Poppins-Regular',
-  color: '#D1D5DB',
-},
-progressBackground: {
-  height: 10,
-  backgroundColor: '#1E1E38',
-  borderRadius: 8,
-  overflow: 'hidden',
-},
-progressFill: {
-  height: '100%',
-  borderRadius: 8,
-},
-})
+  cardLabel: {
+    color: '#9AA0C3',
+    fontSize: 12,
+    fontFamily: 'Poppins-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 15,
+  },
+  credentialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  credentialInfo: {
+    flex: 1,
+  },
+  credentialLabel: {
+    fontSize: 11,
+    color: '#9AA0C3',
+    fontFamily: 'Poppins-Regular',
+    marginBottom: 2,
+  },
+  credentialValue: {
+    fontSize: 16,
+    color: '#fff',
+    fontFamily: 'Poppins-SemiBold',
+  },
+  copyIcon: {
+    padding: 10,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
+  },
+  credentialDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    marginVertical: 12,
+  },
+});
