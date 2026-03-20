@@ -53,9 +53,11 @@ const ForgotPassword = () => {
         strategy:'reset_password_email_code',
         code:code.trim()
       })
-      if(attempt.status==='complete'){
-        router.push(`/reset-password?email=${email}&code=${code}`)
-      }
+      setShowModal(false)
+      router.push({
+        pathname:'/(auth)/reset-password',
+        params:{email:email.trim(),code:code.trim()}
+      })
     }catch(err:any){
       setErrorMsg(err?.errors?.[0]?.longMessage || 'Failed to verify code');
     }finally{

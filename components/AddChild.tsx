@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList,  ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList,  ScrollView, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native'
 import Modal from 'react-native-modal'; 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import InputField from './InputField'
@@ -37,10 +37,10 @@ const AddChild = () => {
         const asset = Image.resolveAssetSource(form.avatar);
        
         formData.append('avatar', {
-          uri: asset.uri,
+          uri: Platform.OS === 'ios' ? asset.uri :asset.uri.replace('file://',''),
           name: 'avatar.png',
           type: 'image/png',
-        });
+        }as any);
       }
 
       console.log("Saving Child...", formData);
@@ -52,18 +52,20 @@ const AddChild = () => {
 
   return (
    <View style={styles.container}>
-    <ScrollView
-    contentContainerStyle={styles.scrollContent}
-    keyboardShouldPersistTaps="handled"
-    >
-
-   <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    
-     
+    <View style={styles.handle} />
       <View style={styles.sheetHeader}>
         <Text style={styles.headerTitle}>Add New Child</Text>
       </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    
+     <View style={{ flex: 1 }}>
+    <ScrollView
+    contentContainerStyle={styles.scrollContent}
+    keyboardShouldPersistTaps="handled"
+    bounces={false}
+    >
 
+  
       <View style={styles.sheetContent}>
        
         <TouchableOpacity 
@@ -113,11 +115,11 @@ const AddChild = () => {
         </TouchableOpacity>
       </View>
 
-
+    </ScrollView>
       
-    
+    </View>
     </TouchableWithoutFeedback>
-     </ScrollView>
+    
      <Modal 
         isVisible={isPickerVisible}
         onBackdropPress={() => setPickerVisible(false)}
@@ -153,14 +155,28 @@ const AddChild = () => {
 }
 const {height}=Dimensions.get("window")
 const styles = StyleSheet.create({
-  container: { paddingBottom: 20, height:height*0.75,backgroundColor:"#2F2F42",borderTopLeftRadius: 20,
-    borderTopRightRadius: 20 },
+  container: { 
+  paddingBottom: 20, 
+  height: height * 0.75, 
+  backgroundColor: "#2F2F42", 
+  borderTopLeftRadius: 20,
+  borderTopRightRadius: 20 
+},
+handle: {
+  width: 40,
+  height: 4,
+  backgroundColor: '#555', 
+  borderRadius: 2,
+  alignSelf: 'center',
+  marginTop: 10,
+  marginBottom: 10,
+},
   scrollContent: {
     padding: 24,
     paddingBottom: 40, 
   },
-  sheetHeader: { marginBottom: 20 },
-  headerTitle: { fontFamily: "Poppins-Bold", fontSize: 18, color: "white" },
+  sheetHeader: { marginBottom: 20 , alignSelf:'center', marginTop:10},
+  headerTitle: { fontFamily: "Poppins-Bold", fontSize: 25, color: "white" },
   sheetContent: { flex: 1 },
   avatarTrigger: { alignSelf: 'center', marginBottom: 20 },
   avatarImage: { width: 90, height: 90, borderRadius: 45, borderWidth: 1, borderColor: '#3D3D5C' },

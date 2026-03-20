@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList,Dimensions, TextInput, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList,Dimensions, TextInput, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Child from '@/components/Child';
-import InputField from '@/components/InputField';
+
 import { useChildrenStore } from '@/store/childrenStore';
 import Modal from 'react-native-modal'
 import AddChild from '@/components/AddChild';
@@ -12,16 +12,12 @@ const Children = () => {
   const [filter, setFilter] = useState("All"); 
   const [showAddChild, setShowAddChild] = useState(false);
   const [search,setSearch]=useState('')
-  const [childName, setChildName] = useState('')
-  const [childAge, setChildAge] = useState('')
-  const [subscriptionType, setSubscriptionType] = useState<string>('Basic')
-  const [isPaid, setIsPaid] = useState<boolean>(true)
 
   
   const children = useChildrenStore((state) => state.children);
   const loading = useChildrenStore((state) => state.loading);
   const loadChildren = useChildrenStore((state) => state.loadChildren);
-  const addChild = useChildrenStore((state) => state.addChild);
+
 
 useEffect(() => {
   if (!children.length && !loading) {
@@ -42,25 +38,9 @@ const filteredData = children.filter(child => {
   return matchesFilter && matchesSearch;
 });
 
-  const isFormValid = childName.trim().length > 0 && Number(childAge) > 0;
 
-  const handleSaveChild = () => {
-    if (!isFormValid) return;
 
-    addChild({
-      name: childName.trim(),
-      age: Number(childAge),
-      subscription: subscriptionType,
-      paid: isPaid,
-      image: "https://randomuser.me/api/portraits/lego/6.jpg",
-    });
-
-    setShowAddChild(false);
-    setChildName('');
-    setChildAge('');
-    setSubscriptionType('Basic');
-    setIsPaid(true);
-  };
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -120,9 +100,8 @@ const filteredData = children.filter(child => {
         propagateSwipe={true}
           style={{justifyContent: 'flex-end', margin: 0}}
         >
-        <View style={styles.modalOverlay}>
           <AddChild/>
-        </View>
+        
         </Modal>
 
       </View>

@@ -3,16 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { images } from '@/constants';
 import CustomButton from '@/components/CustomButton';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter,useSearchParams } from 'expo-router';
+import { useRouter,useLocalSearchParams } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
 
 const ResetPassword = () => {
   const router = useRouter();
-  const params = useSearchParams(); 
+  const {email,code} = useLocalSearchParams<{email:string,code:string}>(); 
   const { signIn, isLoaded } = useSignIn();
 
   const [form, setForm] = useState({
-    email: params.email || '',
+    email: email || '',
     password: '',
     confirmPassword: '',
   });
@@ -38,7 +38,7 @@ const ResetPassword = () => {
     try {
       const attempt = await signIn.attemptFirstFactor({
         strategy: 'reset_password_email_code',
-        code: params.code!,
+        code: code!,
         password: form.password,
       });
 
@@ -76,7 +76,7 @@ const ResetPassword = () => {
             <TextInput
               placeholder='Email'
               value={form.email}
-              editable={false} // read-only
+              editable={false} 
               style={[styles.input, { backgroundColor: '#3F3F5E' }]}
             />
 
@@ -104,6 +104,8 @@ const ResetPassword = () => {
               disabled={isLoading}
               style={styles.button}
               bgVariant="primary"
+              IconLeft={null}
+              IconRight={null}
             />
           </View>
         </View>
