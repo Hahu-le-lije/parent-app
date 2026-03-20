@@ -1,703 +1,265 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  FlatList,
-  ScrollView,
-  Dimensions,
+import React, { useState } from 'react';
+import { 
+  View, Text, StyleSheet, Image, TouchableOpacity, 
+  FlatList, ScrollView, Dimensions 
 } from 'react-native';
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
-import { icons } from '@/constants';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import RenderChildProgress from '@/components/RenderChildProgress';
-import RenderFeatureCard from '@/components/RenderFeatureCard';
-import RenderRecommendation from '@/components/RenderRecommendation';
-import { useChildrenStore } from '@/store/childrenStore';
-import { useLanguageStore } from '@/store/languageStore';
-import { t } from '@/lib/i18n';
+import { icons } from '@/constants';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const fallbackDashboardData = {
-  totalChildren: 5,
-  paid: 3,
-  unpaid: 2,
-  totalPayments: 2400,
-  activeSubs: 3,
-};
-
-const fallbackFeatures = [
-  {
-    id: '1',
-    title: 'Discover New Games',
-    description: 'Explore exciting educational games for kids!',
-    imageUri: 'https://cdn-icons-png.flaticon.com/512/2920/2920308.png',
-  },
-  {
-    id: '2',
-    title: 'Learn Features',
-    description: 'Master the app with interactive tutorials.',
-    imageUri: 'https://cdn-icons-png.flaticon.com/512/2920/2920308.png',
-  },
-  {
-    id: '3',
-    title: 'Fun Activities',
-    description: 'Engage in creative and learning activities.',
-    imageUri: 'https://cdn-icons-png.flaticon.com/512/2920/2920308.png',
-  },
-];
-
-const fallbackChildrenData = [
-  {
-    id: '1',
-    name: 'Child 1',
-    achievements: 10,
-    progress: {
-      writing: 80,
-      speaking: 70,
-      listening: 90,
-      reading: 85,
-    },
-    imageUri: 'https://randomuser.me/api/portraits/lego/1.jpg',
-    recommendation: 'Try the new Math Puzzle game to boost skills!',
-  },
-  {
-    id: '2',
-    name: 'Child 2',
-    achievements: 8,
-    progress: {
-      writing: 60,
-      speaking: 75,
-      listening: 65,
-      reading: 80,
-    },
-    imageUri: 'https://randomuser.me/api/portraits/lego/2.jpg',
-    recommendation: 'Explore Reading Adventures for better comprehension.',
-  },
-  {
-    id: '3',
-    name: 'Child 3',
-    achievements: 12,
-    progress: {
-      writing: 90,
-      speaking: 85,
-      listening: 95,
-      reading: 90,
-    },
-    imageUri: 'https://randomuser.me/api/portraits/lego/3.jpg',
-    recommendation: 'Challenge yourself with Science Experiments module.',
-  },
-];
+const { width } = Dimensions.get('window');
 
 const Home = () => {
   const { user } = useUser();
   const router = useRouter();
-  const featureFlatListRef = useRef<FlatList<any> | null>(null);
-  const recommendationFlatListRef = useRef<FlatList<any> | null>(null);
-  const [timeFilter, setTimeFilter] = useState('weekly');
+  
+  // Dummy State for Premium Status
+  const [isPremium, setIsPremium] = useState(false);
 
-  const language = useLanguageStore((s) => s.language);
-  const hydrateLanguage = useLanguageStore((s) => s.hydrateLanguage);
+  const childrenData = [
+    { id: '1', name: 'Leo', image: 'https://randomuser.me/api/portraits/lego/1.jpg', progress: 85, insight: "Leo is excelling in Logic puzzles!" },
+    { id: '2', name: 'Maya', image: 'https://randomuser.me/api/portraits/lego/5.jpg', progress: 62, insight: "Maya needs more practice with Phonetics." },
+    { id: '3', name: 'Kaleb', image: 'https://randomuser.me/api/portraits/lego/3.jpg', progress: 40, insight: "Kaleb is showing interest in music." },
+  ];
 
-  const { children, loading, loadChildren } = useChildrenStore();
-
-  const avatarSource = user?.imageUrl
-    ? { uri: user.imageUrl }
-    : icons.person;
-
-  useEffect(() => {
-    hydrateLanguage();
-  }, [hydrateLanguage]);
-
-  useEffect(() => {
-    if (!children.length && !loading) loadChildren();
-  }, [children.length, loading, loadChildren]);
-
-  const features = useMemo(() => {
-    if (language === 'am') {
-      return [
-        {
-          id: '1',
-          title: 'አዳዲስ ጨዋታዎችን ይቃኙ',
-          description: 'ለልጆች ተደስታ የሚማሩ ጨዋታዎችን ይፈልጉ!',
-          imageUri: fallbackFeatures[0].imageUri,
-        },
-        {
-          id: '2',
-          title: 'የመማር ክፍሎች',
-          description: 'በተግባራዊ ትምህርቶች አፕን ይማሩ።',
-          imageUri: fallbackFeatures[1].imageUri,
-        },
-        {
-          id: '3',
-          title: 'ተደስታ እንቅስቃሴዎች',
-          description: 'በፈጠራ እና ትምህርት ተግባራት ይሳተፉ።',
-          imageUri: fallbackFeatures[2].imageUri,
-        },
-      ];
-    }
-
-    return [...fallbackFeatures];
-  }, [language]);
-
-  const childProgressItems = useMemo(() => {
-    if (!children.length) return fallbackChildrenData;
-
-    const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
-
-    const toRecommendation = (childName: string, idx: number) => {
-      const nameFirst = childName?.split(' ')[0] || childName || 'your child';
-      const enTemplates = [
-        'Try the Math Puzzle game to boost {name} skills!',
-        'Explore Reading Adventures to improve {name} comprehension.',
-        'Challenge {name} with Science Experiments!',
-      ];
-      const amTemplates = [
-        '{name} ክህሎትን ለማጠናከር የሒሳብ ፓዝል ጨዋታን ይሞክሩ!',
-        'ለተሻለ መረዳት የንባብ ጀብዱዎችን ይፈልጉ ለ{name}።',
-        '{name} እንዲበረታ ከሳይንስ ሙከራዎች ጋር ይፈታተኑ!',
-      ];
-
-      const template = (language === 'am' ? amTemplates : enTemplates)[idx % 3];
-      return template.replace('{name}', nameFirst);
-    };
-
-    return children.map((child, idx) => {
-      const base = child.paid ? 70 : 48;
-      const writing = clamp(base + (child.age % 12) * 2 + (child.paid ? 8 : -4));
-      const speaking = clamp(base - 10 + (child.age % 9) * 3);
-      const listening = clamp(base + 4 + (child.age % 10) * 2);
-      const reading = clamp(base - 6 + (child.age % 11) * 3);
-      const achievements = clamp(6 + (child.age % 10) + (child.paid ? 6 : 1));
-
-      return {
-        id: child._id,
-        name: child.name,
-        achievements,
-        progress: { writing, speaking, listening, reading },
-        imageUri: child.image,
-        recommendation: toRecommendation(child.name, idx),
-      };
-    });
-  }, [children, language]);
-
-  const recommendations = useMemo(() => {
-    return childProgressItems.map((c) => ({
-      id: c.id,
-      name: c.name,
-      recommendation: c.recommendation,
-    }));
-  }, [childProgressItems]);
-
-  const dashboardData = useMemo(() => {
-    const hasChildren = children.length > 0;
-    const totalChildren = hasChildren
-      ? children.length
-      : fallbackDashboardData.totalChildren;
-    const paid = hasChildren
-      ? children.filter((c) => c.paid).length
-      : fallbackDashboardData.paid;
-    const unpaid = hasChildren
-      ? children.filter((c) => !c.paid).length
-      : fallbackDashboardData.unpaid;
-    return { totalChildren, paid, unpaid };
-  }, [children]);
-
-  useEffect(() => {
-    let currentIndex = 0;
-    const interval = setInterval(() => {
-      if (featureFlatListRef.current && features.length) {
-        currentIndex = (currentIndex + 1) % features.length;
-        featureFlatListRef.current.scrollToIndex({
-          index: currentIndex,
-          animated: true,
-        });
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [features.length]);
-
- 
+  const [selectedChild, setSelectedChild] = useState(childrenData[0]);
 
   return (
     <SafeAreaView style={styles.container}>
       
-      <View style={styles.header}>
     
-        <View style={styles.h2}>
+      <View style={styles.header}>
+        <View style={styles.headerRow}>
           <View>
-            <Text style={styles.headerTitle}>
-              Hello, {user?.firstName || 'there'} 👋
-            </Text>
-            <Text style={styles.subheader}>Manage your child&apos;s progress</Text>
+            <Text style={styles.headerTitle}>Hello, {user?.firstName || 'Parent'} 👋</Text>
+            <Text style={styles.subheader}>Manage your child's progress</Text>
           </View>
-          <TouchableOpacity onPress={() => router.replace('/profile')}>
-            <Image
-              source={avatarSource}
-              style={styles.avatar}
-              resizeMode="cover"
+          <TouchableOpacity onPress={() => router.push('/profile')}>
+            <Image 
+              source={user?.imageUrl ? { uri: user.imageUrl } : icons.person} 
+              style={styles.avatar} 
             />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-       <View style={styles.innerContent}>
-
-          {/* DASHBOARD OVERVIEW */}
-          <View style={styles.dashboardCard}>
-            <Text style={styles.dashboardTitle}>
-              {t(language, "home_dashboardOverview")}
-            </Text>
-
-            <View style={styles.statsRow}>
-              <View
-                style={[styles.statCardModern, { backgroundColor: "#5A9CFF" }]}
-              >
-                <Text style={styles.statNumber}>{dashboardData.totalChildren}</Text>
-                <Text style={styles.statLabel}>{t(language, "home_children")}</Text>
-              </View>
-
-              <View
-                style={[styles.statCardModern, { backgroundColor: "#28C76F" }]}
-              >
-                <Text style={styles.statNumber}>{dashboardData.paid}</Text>
-                <Text style={styles.statLabel}>{t(language, "home_paid")}</Text>
-              </View>
-
-              <View
-                style={[styles.statCardModern, { backgroundColor: "#EA5455" }]}
-              >
-                <Text style={styles.statNumber}>{dashboardData.unpaid}</Text>
-                <Text style={styles.statLabel}>{t(language, "home_unpaid")}</Text>
-              </View>
-            </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        
+        {/* 2. SCALABLE CHILD SWITCHER */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+             <Text style={styles.sectionLabel}>Your Children</Text>
+             <Text style={styles.childCount}>{childrenData.length} Total</Text>
           </View>
-
-          {/* PAYMENT ALERT */}
-          {dashboardData.unpaid > 0 && (
-            <View style={styles.alertModern}>
-              <View style={styles.alertLeft}>
-                <Text style={styles.alertTitle}>
-                  {t(language, "home_unpaidAlertTitle")}
-                </Text>
-                <Text style={styles.alertSub}>
-                  {t(language, "home_unpaidAlertSub", {
-                    count: dashboardData.unpaid,
-                  })}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.alertBtn}
-                onPress={() => router.push("/children")}
-              >
-                <Text style={styles.alertBtnText}>{t(language, "home_view")}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* QUICK ACTIONS */}
-          <View style={styles.quickActionsCard}>
-            <Text style={styles.quickActionsTitle}>
-              {t(language, "home_quickActionsTitle")}
-            </Text>
-
-            <View style={styles.quickActionsRow}>
-              <TouchableOpacity
-                style={styles.quickActionBtn}
-                onPress={() => router.push("/children")}
-                activeOpacity={0.9}
-              >
-                <LinearGradient
-                  colors={["#0286FF", "#005BB5"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.quickActionGradient}
+          
+          <FlatList 
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={[...childrenData, { id: 'add-btn' }]} // Append add button to the list
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              if (item.id === 'add-btn') {
+                return (
+                  <TouchableOpacity 
+                    style={styles.addChildBtn} 
+                    onPress={() => router.push('/children')} // Adjust to your path
+                  >
+                    <Text style={{ color: '#0286FF', fontSize: 28 }}>+</Text>
+                  </TouchableOpacity>
+                );
+              }
+              return (
+                <TouchableOpacity 
+                  onPress={() => setSelectedChild(item)}
+                  style={styles.childTab}
                 >
-                  <Text style={styles.quickActionText}>
-                    {t(language, "home_viewChildren")}
+                  <Image 
+                    source={{ uri: item.image }} 
+                    style={[
+                      styles.childAvatar, 
+                      selectedChild.id === item.id && styles.activeChildAvatar
+                    ]} 
+                  />
+                  <Text style={[styles.childName, selectedChild.id === item.id && styles.activeChildName]}>
+                    {item.name}
                   </Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
 
-              <TouchableOpacity
-                style={styles.quickActionBtn}
-                onPress={() => router.push("/sub")}
-                activeOpacity={0.9}
-              >
-                <View style={[styles.quickActionGradient, styles.quickActionGradientAlt]}>
-                  <Text style={styles.quickActionText}>
-                    {t(language, "home_subscriptions")}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={styles.quickActionWideBtn}
-              onPress={() => router.push("/children")}
-              activeOpacity={0.9}
-            >
-              <View style={styles.quickActionWideInner}>
-                <Text style={styles.quickActionWideText}>
-                  {t(language, "home_addChild")}
-                </Text>
+        {/* 3. PROGRESS CARD */}
+        <View style={styles.progressContainer}>
+           <LinearGradient colors={['#2F2F42', '#1F1F39']} style={styles.progressCard}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>{selectedChild.name}'s Progress</Text>
+                <Text style={styles.cardPercent}>{selectedChild.progress}%</Text>
               </View>
-            </TouchableOpacity>
-          </View>
+              
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${selectedChild.progress}%` }]} />
+              </View>
 
-          {/* LEARNING PROGRESS */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t(language, "home_learningProgressTitle")}</Text>
-            <Text style={styles.sectionSub}>
-              {t(language, "home_learningProgressSub")}
-            </Text>
-          </View>
+              <View style={styles.statsGrid}>
+                <View style={styles.smallStat}>
+                   <Text style={styles.statVal}>12</Text>
+                   <Text style={styles.statKey}>Badges</Text>
+                </View>
+                <View style={styles.smallStat}>
+                   <Text style={styles.statVal}>4h</Text>
+                   <Text style={styles.statKey}>Learning</Text>
+                </View>
+              </View>
+           </LinearGradient>
+        </View>
 
-          {loading && !children.length ? (
-            <View style={styles.loadingArea}>
-              <ActivityIndicator size="large" color="#0286FF" />
-              <Text style={styles.loadingText}>Loading children...</Text>
+        {/* 4. PREMIUM vs REGULAR SECTION */}
+        <View style={styles.section}>
+           <Text style={styles.sectionLabel}>AI Insights & Tips</Text>
+           {isPremium ? (
+             <LinearGradient 
+                colors={['#0286FF', '#003366']} 
+                style={styles.insightCard}
+              >
+                <Text style={styles.insightText}>"{selectedChild.insight}"</Text>
+                <TouchableOpacity style={styles.insightBtn}>
+                   <Text style={styles.insightBtnText}>Detailed Report</Text>
+                </TouchableOpacity>
+             </LinearGradient>
+           ) : (
+             <View style={styles.lockedCard}>
+                <View style={styles.lockedContent}>
+                   <Text style={styles.lockedTitle}>Unlock AI Recommendations</Text>
+                   <Text style={styles.lockedSub}>Get personalized daily tips and deep progress analysis for {selectedChild.name}.</Text>
+                   <TouchableOpacity 
+                    style={styles.upgradeBtn}
+                    onPress={() => router.push('/(root)/(tabs)/sub')}
+                   >
+                      <Text style={styles.upgradeBtnText}>Upgrade to Premium</Text>
+                   </TouchableOpacity>
+                </View>
+             </View>
+           )}
+        </View>
+
+      
+        <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Daily Parenting Tip</Text>
+            <View style={styles.tipCard}>
+                <Text style={styles.tipText}>Consistency is key! Try to set a specific "Learning Hour" for your kids today.</Text>
             </View>
-          ) : (
-            <View>
-              {childProgressItems.slice(0, 2).map((item) => (
-                <RenderChildProgress
-                  key={item.id}
-                  item={item}
-                  timeFilter={timeFilter}
-                  setTimeFilter={setTimeFilter}
-                />
-              ))}
-            </View>
-          )}
-
-          {/* FEATURES */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t(language, "home_exploreTitle")}</Text>
-            <Text style={styles.sectionSub}>{t(language, "home_exploreSub")}</Text>
-          </View>
-
-          <FlatList
-            ref={featureFlatListRef}
-            data={features}
-            renderItem={({ item }) => <RenderFeatureCard item={item} />}
-            keyExtractor={(item) => item.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.carousel}
-            getItemLayout={(data, index) => ({
-              length: SCREEN_WIDTH - 40,
-              offset: (SCREEN_WIDTH - 40) * index,
-              index,
-            })}
-            snapToAlignment="center"
-            decelerationRate="fast"
-          />
-
-          {/* RECOMMENDATIONS */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t(language, "home_aiTitle")}</Text>
-            <Text style={styles.sectionSub}>{t(language, "home_aiSub")}</Text>
-          </View>
-
-          <FlatList
-            ref={recommendationFlatListRef}
-            data={recommendations}
-            renderItem={({ item }) => <RenderRecommendation item={item} />}
-            keyExtractor={(item) => item.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.carousel}
-            getItemLayout={(data, index) => ({
-              length: 240 + 16,
-              offset: (240 + 16) * index,
-              index,
-            })}
-            snapToAlignment="start"
-            decelerationRate="fast"
-            contentContainerStyle={{ paddingHorizontal: 4 }}
-          />
-
-          <View style={{ height: 100 }} />
-</View>
+        </View>
 
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default Home;
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1F1F39',
+  container: { flex: 1, backgroundColor: '#1F1F39' },
+  
+ 
+  header: { 
+    height: 140, 
+    paddingHorizontal: 24, 
+    paddingBottom: 20, 
+    justifyContent: 'flex-end' 
   },
-  header: {
-    height: 160,
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-    justifyContent: 'flex-end',
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontFamily: 'Poppins-Bold',
-    color: '#fff',
-    letterSpacing: -0.5,
-  },
-  subheader: {
-    fontSize: 16,
-    fontFamily: 'Poppins-Regular',
-    color: '#fff',
-    opacity: 0.9,
-    letterSpacing: -0.3,
-  },
-  h2: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 3,
-    borderColor: '#fff',
-    backgroundColor: '#e0e0e0',
-  },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  headerTitle: { fontSize: 26, fontFamily: 'Poppins-Bold', color: '#fff', letterSpacing: -0.5 },
+  subheader: { fontSize: 15, color: '#9AA0C3', marginTop: 2 },
+  avatar: { width: 55, height: 55, borderRadius: 27.5, borderWidth: 2, borderColor: '#0286FF' },
+  
+  section: { marginTop: 25, paddingHorizontal: 24 },
+  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  sectionLabel: { color: '#fff', fontSize: 18, fontFamily: 'Poppins-Bold' },
+  childCount: { color: '#9AA0C3', fontSize: 12 },
+  
+  childTab: { alignItems: 'center', marginRight: 18 },
+  childAvatar: { width: 68, height: 68, borderRadius: 34, opacity: 0.4, borderWidth: 3, borderColor: 'transparent' },
+  activeChildAvatar: { opacity: 1, borderColor: '#0286FF' },
+  childName: { color: '#9AA0C3', marginTop: 8, fontSize: 13, fontFamily: 'Poppins-Medium' },
+  activeChildName: { color: '#fff' },
+  
+  addChildBtn: { width: 68, height: 68, borderRadius: 34, backgroundColor: '#26264A', justifyContent: 'center', alignItems: 'center', borderStyle: 'dashed', borderWidth: 2, borderColor: '#0286FF' },
+  
+  progressContainer: { padding: 24 },
+  progressCard: { padding: 22, borderRadius: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  cardTitle: { color: '#fff', fontSize: 18, fontFamily: 'Poppins-Bold' },
+  cardPercent: { color: '#0286FF', fontSize: 20, fontFamily: 'Poppins-Bold' },
+  
+  progressBarBg: { height: 10, backgroundColor: '#1F1F39', borderRadius: 5, overflow: 'hidden' },
+  progressBarFill: { height: '100%', backgroundColor: '#0286FF', borderRadius: 5 },
+  
+  statsGrid: { flexDirection: 'row', marginTop: 22, gap: 15 },
+  smallStat: { flex: 1, backgroundColor: '#26264A', padding: 14, borderRadius: 18, alignItems: 'center' },
+  statVal: { color: '#fff', fontSize: 18, fontFamily: 'Poppins-Bold' },
+  statKey: { color: '#9AA0C3', fontSize: 11, textTransform: 'uppercase' },
 
-  scrollContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  innerContent: {
-    padding: 20,
-    paddingTop: 10,
-  },
+ 
+  insightCard: { padding: 22, borderRadius: 24 },
+  insightText: { color: '#fff', fontSize: 15, lineHeight: 24, fontFamily: 'Poppins-Medium' },
+  insightBtn: { backgroundColor: '#fff', alignSelf: 'flex-start', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, marginTop: 15 },
+  insightBtnText: { color: '#0286FF', fontFamily: 'Poppins-Bold', fontSize: 13 },
 
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#0286FF',
-    marginHorizontal: 6,
-    borderRadius: 18,
-    padding: 18,
-    alignItems: 'center',
-  },
-  statNumber: {
-    color: '#fff',
-    fontSize: 24,
-    fontFamily: 'Poppins-Bold',
-  },
-  statLabel: {
-    color: '#fff',
-    fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-    opacity: 0.9,
-  },
-
-
-  alertCard: {
-    backgroundColor: '#2A2A4A',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  alertTitle: {
-    color: '#fff',
-    fontFamily: 'Poppins-Bold',
-    fontSize: 16,
-  },
-  alertSub: {
-    color: '#bbb',
-    fontSize: 13,
-    fontFamily: 'Poppins-Regular',
-  },
-  payNow: {
-    color: '#0286FF',
-    fontFamily: 'Poppins-Bold',
-    fontSize: 15,
-  },
-
-  sectionTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontFamily: 'Poppins-Bold',
-    marginBottom: 16,
-  },
-  carousel: {
-    marginBottom: 32,
-  },
-  dashboardCard: {
-  backgroundColor: '#26264A',
-  borderRadius: 22,
-  padding: 18,
-  marginBottom: 22,
-},
-
-dashboardTitle: {
-  color: '#fff',
-  fontSize: 18,
-  fontFamily: 'Poppins-Bold',
-  marginBottom: 14,
-},
-
-statCardModern: {
-  flex: 1,
-  marginHorizontal: 6,
-  borderRadius: 16,
-  paddingVertical: 18,
-  alignItems: 'center',
+  lockedCard: { 
+  backgroundColor: '#26264A', 
+  borderRadius: 24, 
+  padding: 22, 
+  borderStyle: 'dashed', 
+  borderWidth: 1, 
+  borderColor: '#3D3D5C',
 
   shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
   shadowOpacity: 0.2,
-  shadowRadius: 8,
-  elevation: 5,
+  shadowRadius: 5,
+  elevation: 3,
 },
 
-alertModern: {
-  backgroundColor: '#2A2A4A',
-  borderRadius: 18,
-  padding: 18,
-  marginBottom: 26,
-  flexDirection: 'row',
-  justifyContent: 'space-between',
+lockedContent: {
+  alignItems: 'flex-start', 
+},
+
+lockedTitle: { 
+  color: '#fff', 
+  fontSize: 16, 
+  fontFamily: 'Poppins-Bold' 
+},
+
+lockedSub: { 
+  color: '#9AA0C3', 
+  fontSize: 13, 
+  marginTop: 5, 
+  lineHeight: 18,
+  fontFamily: 'Poppins-Regular'
+},
+
+upgradeBtn: { 
+  backgroundColor: 'rgba(2, 134, 255, 0.1)', 
+  borderWidth: 1, 
+  borderColor: '#0286FF', 
+  paddingVertical: 12, 
+  paddingHorizontal: 20,
+  borderRadius: 14, 
+  marginTop: 15, 
   alignItems: 'center',
+  justifyContent: 'center'
 },
 
-alertLeft: {
-  flex: 1,
-},
-
-alertBtn: {
-  backgroundColor: '#0286FF',
-  paddingHorizontal: 18,
-  paddingVertical: 10,
-  borderRadius: 12,
-},
-
-alertBtnText: {
-  color: '#fff',
+upgradeBtnText: { 
+  color: '#0286FF', 
   fontFamily: 'Poppins-Bold',
+  fontSize: 14
 },
+ 
 
-sectionHeader: {
-  marginBottom: 12,
-  marginTop: 8,
-},
-
-sectionSub: {
-  color: '#9AA0C3',
-  fontSize: 13,
-  fontFamily: 'Poppins-Regular',
-  marginTop: -4,
-  marginBottom: 8,
-},
-
-  quickActionsCard: {
-    backgroundColor: '#26264A',
-    borderRadius: 22,
-    padding: 18,
-    marginBottom: 22,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-
-  quickActionsTitle: {
-    color: '#fff',
-    fontFamily: 'Poppins-Bold',
-    fontSize: 16,
-  },
-
-  quickActionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 12,
-    marginBottom: 12,
-  },
-
-  quickActionBtn: {
-    flex: 1,
-  },
-
-  quickActionGradient: {
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  quickActionGradientAlt: {
-    backgroundColor: '#3A5F6B',
-  },
-
-  quickActionText: {
-    color: '#fff',
-    fontFamily: 'Poppins-Bold',
-    fontSize: 13,
-  },
-
-  quickActionWideBtn: {
-    width: '100%',
-  },
-
-  quickActionWideInner: {
-    borderRadius: 16,
-    backgroundColor: '#1E1E38',
-    borderWidth: 1,
-    borderColor: 'rgba(2,134,255,0.6)',
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  quickActionWideText: {
-    color: '#0286FF',
-    fontFamily: 'Poppins-Bold',
-    fontSize: 13,
-  },
-
-  loadingArea: {
-    backgroundColor: '#26264A',
-    borderRadius: 18,
-    padding: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 22,
-  },
-
-  loadingText: {
-    marginTop: 10,
-    color: '#9AA0C3',
-    fontFamily: 'Poppins-Regular',
-    fontSize: 13,
-  },
-
+  tipCard: { backgroundColor: '#2F2F42', padding: 20, borderRadius: 20 },
+  tipText: { color: '#BBB', fontSize: 14, lineHeight: 22 }
 });
+
+export default Home;
