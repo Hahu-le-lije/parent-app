@@ -1,4 +1,4 @@
-import  { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,32 +9,57 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useLanguageStore } from '@/store/languageStore';
+import { t } from '@/lib/i18n';
 
 const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
   const router = useRouter();
+  const language = useLanguageStore((s) => s.language);
 
+  type SkillKey = "writing" | "speaking" | "listening" | "reading";
+  type FilterKey = "daily" | "weekly" | "monthly" | "yearly";
+  const FILTERS: readonly FilterKey[] = ["daily", "weekly", "monthly", "yearly"];
 
   const animValues = {
     writing: useRef(new Animated.Value(0)).current,
     speaking: useRef(new Animated.Value(0)).current,
     listening: useRef(new Animated.Value(0)).current,
     reading: useRef(new Animated.Value(0)).current,
-  };
+  } as Record<SkillKey, Animated.Value>;
 
   
   useEffect(() => {
     Object.keys(item.progress).forEach((skill) => {
-      animValues[skill].setValue(0);
+      const skillKey = skill as SkillKey;
+      animValues[skillKey].setValue(0);
 
-      Animated.timing(animValues[skill], {
-        toValue: item.progress[skill],
+      Animated.timing(animValues[skillKey], {
+        toValue: item.progress[skillKey],
         duration: 900,
         useNativeDriver: false,
       }).start();
     });
   }, [timeFilter]);
 
-  const colorMap = {
+  const filterLabels = useMemo(() => {
+    return {
+      daily: t(language, 'filter_daily'),
+      weekly: t(language, 'filter_weekly'),
+      monthly: t(language, 'filter_monthly'),
+      yearly: t(language, 'filter_yearly'),
+    } as Record<FilterKey, string>;
+  }, [language]);
+
+  const skillLabels = useMemo(() => {
+    return {
+      writing: t(language, 'skill_writing'),
+      speaking: t(language, 'skill_speaking'),
+      listening: t(language, 'skill_listening'),
+      reading: t(language, 'skill_reading'),
+    } as Record<SkillKey, string>;
+  }, [language]);
+
+  const colorMap: Record<SkillKey, string> = {
     writing: '#FF6B6B',
     speaking: '#4ECDC4',
     listening: '#5A9CFF',
@@ -45,7 +70,7 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.92}
-      onPress={() => Alert.alert("coming soon wait")}
+      onPress={() => Alert.alert(t(language, 'common_comingSoon'), t(language, 'common_comingSoonWait'))}
     >
       
       <Image source={{ uri: item.imageUri }} style={styles.avatar} />
@@ -58,7 +83,7 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
         </View>
 
         <View style={styles.filterRow}>
-          {['daily', 'weekly', 'monthly', 'yearly'].map((filter) => (
+          {FILTERS.map((filter) => (
             <TouchableOpacity
               key={filter}
               onPress={() => setTimeFilter(filter)}
@@ -73,7 +98,7 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
                   timeFilter === filter && styles.filterTextActive,
                 ]}
               >
-                {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                {filterLabels[filter]}
               </Text>
             </TouchableOpacity>
           ))}
@@ -81,7 +106,8 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
 
         <View style={styles.grid}>
           {Object.entries(item.progress).map(([skill, value]) => {
-            const animatedWidth = animValues[skill].interpolate({
+            const skillKey = skill as SkillKey;
+            const animatedWidth = animValues[skillKey].interpolate({
               inputRange: [0, 100],
               outputRange: ['0%', '100%'],
             });
@@ -89,7 +115,7 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
             return (
               <View key={skill} style={styles.skillCard}>
                 <Text style={styles.skillTitle}>
-                  {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                  {skillLabels[skillKey]}
                 </Text>
 
                 <View style={styles.barBg}>
@@ -98,14 +124,14 @@ const RenderChildProgress = ({ item, timeFilter, setTimeFilter }) => {
                       styles.barFill,
                       {
                         width: animatedWidth,
-                        backgroundColor: colorMap[skill],
+                        backgroundColor: colorMap[skillKey],
                       },
                     ]}
                   />
                 </View>
 
                 <Animated.Text style={styles.percent}>
-                  {animValues[skill].interpolate({
+                  {animValues[skillKey].interpolate({
                     inputRange: [0, value],
                     outputRange: ['0%', `${value}%`],
                   })}

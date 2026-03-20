@@ -1,12 +1,18 @@
 import { View, Text,TouchableOpacity,StyleSheet ,Image,Alert} from 'react-native'
+import { useLanguageStore } from '@/store/languageStore';
+import { t } from '@/lib/i18n';
 
 
  const RenderRecommendation = ({ item }) =>{ 
+    const language = useLanguageStore((s) => s.language);
     return (
     <TouchableOpacity
       style={styles.recommendationCard}
       onPress={() =>
-        Alert.alert('Coming Soon', `Navigating to child ${item.id} details will be available soon.`)
+        Alert.alert(
+          t(language, 'common_comingSoon'),
+          `${t(language, 'common_comingSoonWait')}\nNavigating to child ${item.id} details will be available soon.`
+        )
       }
     >
       <View style={styles.recommendationHeader}>
