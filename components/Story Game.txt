@@ -1,0 +1,184 @@
+Story Game
+track
+StorySession {
+  story_id
+  pages_read: number
+  total_pages: number
+
+  keywords_clicked: number
+  unique_keywords_clicked: string[]
+
+  time_spent: number
+
+  questions: [
+    {
+      question_id,
+      is_correct,
+      attempts
+    }
+  ]
+
+  
+}
+Scoring Logic
+reading_score = pages_read / total_pages * 30
+quiz_score = correct_answers / total_questions * 50
+engagement_score = min(keywords_clicked / total_keywords, 1) * 20
+
+final_score = reading_score + quiz_score + engagement_score
+
+Skill Breakdown
+{
+  reading_completion: 0–1,
+  comprehension: 0–1,
+  vocabulary_interest: 0–1
+}
+Insights
+Child skips pages → low attention
+High keyword clicks → curious learner
+Low quiz + high reading → decoding but not understandingPicture → Word Game
+
+
+Track
+{
+  total_questions
+  correct_answers
+  wrong_attempts
+  time_per_question: []
+}
+Score
+accuracy = correct / total
+speed = avg_time_score
+
+final_score = accuracy * 70 + speed * 30
+Skills
+{
+  visual_recognition,
+  word_association,
+  decision_speed
+}
+Insights
+Fast wrong → guessing
+Slow correct → learning phase
+
+
+Fidel Tracing Game 
+
+
+Track
+{
+  letter,
+  stroke_accuracy,   // % inside outline
+  stroke_order_correct: boolean
+  time_taken,
+  retries,
+  eraser_used_count
+}
+Score
+accuracy_score = stroke_accuracy * 60
+neatness_score = (1 - eraser_usage_ratio) * 20
+speed_score = normalized_time * 20
+
+final_score = accuracy_score + neatness_score + speed_score
+Skills
+{
+  motor_skills,
+  letter_form_accuracy,
+  writing_confidence
+}
+Insights
+High eraser use → poor control
+Good shape but slow → developing skill
+Bad shape + fast → careless
+
+
+Word Builder
+Track
+{
+  words_found: []
+  total_possible_words
+  wrong_attempts
+  hints_used
+  time_taken
+}
+Score
+completion = words_found / total_words * 50
+efficiency = (1 - wrong_attempts_ratio) * 20
+independence = (1 - hints_used_ratio) * 20
+speed = time_score * 10
+
+final_score = completion + efficiency + independence + speed
+Skills
+{
+  spelling,
+  pattern_recognition,
+  vocabulary,
+  problem_solving
+}
+Insights
+Uses many hints → needs support
+Finds rare words → advanced learner
+Fill in the Blank
+Track
+{
+  blanks_total
+  correct_fills
+  wrong_attempts
+  drag_attempts
+  time_taken
+}
+Score
+accuracy = correct / total * 60
+efficiency = (1 - wrong_attempts_ratio) * 20
+speed = time_score * 20
+Skills
+{
+  grammar,
+  sentence_understanding,
+  listening_comprehension
+}
+Insights
+Good listening but bad grammar → gap
+Many drag attempts → confusion
+6️⃣Pronunciation Game 
+Track
+{
+  word,
+  pronunciation_score, // from game engine
+  attempts,
+  duration,
+  clarity_score,
+}
+Score
+final_score = pronunciation_score * 80 + (1 / attempts) * 20
+Skills
+{
+  pronunciation,
+  phonetic_accuracy,
+  speaking_confidence
+}
+Insights
+Improves over attempts → learning curve
+Always low → speech difficulty 
+
+
+Voice → Word Matching
+Track
+{
+  total_questions
+  correct_answers
+  wrong_attempts
+  replay_count   
+}
+Score
+accuracy * 70 + listening_efficiency * 30
+
+Where:
+
+listening_efficiency = 1 - (replay_count / max_replays)
+Skills
+{
+  listening_skills,
+  phoneme_recognition,
+  word_mapping
+}
