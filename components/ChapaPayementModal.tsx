@@ -12,7 +12,10 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 
-
+interface Response{
+  status:string;
+  checkout_url:string;
+}
 const ChapaPaymentModal = ({ visible, onClose, data }) => {
   const { user } = useUser();
   const { getToken } = useAuth(); 
@@ -37,19 +40,12 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
       setErrorMsg(null);
 
       const token = await getToken();
- 
-      const cleanAmount = typeof data.amount === "string" 
-        ? data.amount.replace(/,/g, "") 
-        : data.amount.toString();
 
+        {/* plan_type(string)  max_slots(int)*/}
       const payload = {
-        amount: cleanAmount,
-        children: data.children,
-        duration: data.duration,
-        planName: data.planName,
-        email: user.primaryEmailAddress?.emailAddress,
-        first_name: user.firstName,
-        last_name: user.lastName,
+        max_slots: data.children,
+        plan_type: data.planName,
+        duration: data.duration
       };
 
       const response = await fetch("https://your-backend.com/api/payments/chapa/initialize", {
@@ -67,7 +63,7 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
         throw new Error(result.message || "Backend initialization failed");
       }
 
-      if (result.success && result.checkout_url) {
+      if (result.status==="success" && result.checkout_url) {
         setCheckoutUrl(result.checkout_url);
       } else {
         throw new Error("Could not retrieve checkout URL");
