@@ -126,7 +126,7 @@ const filteredData = children.filter(child => {
         propagateSwipe={true}
         style={{ justifyContent: 'flex-end', margin: 0 }}
       >
-        <AddChild />
+        <AddChild onClose={()=>setShowAddChild(false)} />
       </Modal>
     </SafeAreaView>
   );

@@ -9,7 +9,12 @@ import {useChildrenStore} from '@/store/childrenStore';
 import { NewChild } from '@/types/type';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Asset } from 'expo-asset';
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 
+type AddChildProps={
+  onClose?:()=>void
+}
 const { height } = Dimensions.get("window");
 
 const LOCAL_AVATARS = [
@@ -18,8 +23,10 @@ const LOCAL_AVATARS = [
   { id: '3', source: require('../assets/images/on3.png') },
 ];
 
-const AddChild = () => {
-  const {addChild}=useChildrenStore()
+const AddChild = ({onClose}:AddChildProps) => {
+  const {addChild,loadChildren}=useChildrenStore()
+
+  
   const [form, setForm] = useState<NewChild>({
     avatar: null as any,
     firstName: '',
@@ -75,6 +82,21 @@ const AddChild = () => {
 
     console.log("Saving child with base64 avatar...");
     await addChild(payload);   
+    Alert.alert("Success", "Child added successfully!", [
+        { 
+          text: "OK", 
+          onPress: () => {
+            setForm({
+              avatar: null as any,
+              firstName: '',
+              lastName: '',
+              dob: new Date()
+            });
+            
+             onClose?.();        
+          }
+        }
+      ]);
 
   } catch (error) {
     console.error("Save Error:", error);
