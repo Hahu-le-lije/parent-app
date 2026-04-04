@@ -129,8 +129,7 @@ interface Popup {
 
 let mockChildren: Child[] = [
    {
-    _id: "1",
-    id: 1,
+    id: "1",
     firstname: "John",
     lastname: "Doe",
     dob: new Date("2015-01-01"),
@@ -141,8 +140,8 @@ let mockChildren: Child[] = [
     password: "pass123",
   },
   {
-    _id: "2",
-    id: 2,
+    id: "2",
+    
     firstname: "Sophia",
     lastname: "Smith",
     dob: new Date("2017-03-15"),
@@ -153,8 +152,7 @@ let mockChildren: Child[] = [
     password: "pass123",
   },
   {
-    _id: "3",
-    id: 3,
+    id: "3",
     firstname: "Liam",
     lastname: "Johnson",
     dob: new Date("2013-07-20"),
@@ -165,8 +163,7 @@ let mockChildren: Child[] = [
     password: "pass123",
   },
   {
-    _id: "4",
-    id: 4,
+    id: "4",
     firstname: "Emma",
     lastname: "Williams",
     dob: new Date("2016-11-10"),
@@ -177,8 +174,7 @@ let mockChildren: Child[] = [
     password: "pass123",
   },
   {
-    _id: "5",
-    id: 5,
+    id: "5",
     firstname: "Noah",
     lastname: "Brown",
     dob: new Date("2014-05-05"),
