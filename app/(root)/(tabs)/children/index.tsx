@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList,Dimensions, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,7 +31,7 @@ const filteredData = children.filter(child => {
     (filter === "Paid" && child.paid) ||
     (filter === "Unpaid" && !child.paid);
 
-  const matchesSearch = child.name
+  const matchesSearch = (child.firstname+ ' '+child.lastname)
     .toLowerCase()
     .includes(search.toLowerCase());
 
@@ -110,7 +110,7 @@ const filteredData = children.filter(child => {
         <FlatList
           data={filteredData}
           renderItem={({ item }) => <Child item={item} />}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 40, width:"100%",alignItems:"center" }}
           showsVerticalScrollIndicator={false}
@@ -132,7 +132,6 @@ const filteredData = children.filter(child => {
   );
 }
 export default Children;
-const {height}=Dimensions.get("window")
 
 const styles = StyleSheet.create({
   container: {

@@ -42,7 +42,8 @@
       ],
       "expo-font",
       "expo-build-properties",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

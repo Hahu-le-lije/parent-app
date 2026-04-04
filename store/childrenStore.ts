@@ -14,7 +14,7 @@ type ChildrenState = {
   error: string | null;
 
   loadChildren: () => Promise<void>;
-  addChild: (payload: Omit<NewChild, "id">) => Promise<void>;
+  addChild: (payload: NewChild) => Promise<void>;
   updateChild: (id: string, patch: Partial<Child>) => Promise<void>;
   deleteChild: (id: string) => Promise<void>;
 };

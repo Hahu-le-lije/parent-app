@@ -1,15 +1,17 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
-import { useRouter } from 'expo-router'
+import { View, Text, StyleSheet, Image} from 'react-native'
+
 
 type ChildProps = {
   item: {
-    _id: string;
-    id: number;
-    name: string;
-    age: number;
-    subscription: string;
-    paid: boolean;
-    image: string;
+  id: string;
+  dob: Date;
+  subscription: string;
+  paid: boolean;
+  avatar: string;
+  username: string;
+  password:string
+  firstname:string
+  lastname:string
   }
 }
 
@@ -23,14 +25,14 @@ const Child2 = ({ item }: ChildProps) => {
      
       <Image
     
-        source={{ uri: item.image }}
+        source={{ uri: item.avatar }}
         style={styles.imageH}
       />
 
     
       <View style={styles.main}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.age}>Age: {item.age}</Text>
+        <Text style={styles.name}>{item.firstname} {item.lastname}</Text>
+        <Text style={styles.age}>Age: {}</Text>
 
         <View style={styles.badges}>
           <View style={styles.badge}>

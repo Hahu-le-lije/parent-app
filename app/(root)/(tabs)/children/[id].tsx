@@ -25,7 +25,7 @@ const ChildDetail = () => {
   const children = useChildrenStore((state) => state.children);
   
   const child = useMemo(
-    () => children.find((c) => c._id === String(id)),
+    () => children.find((c) => c.id === String(id)),
     [children, id],
   );
 
@@ -54,14 +54,14 @@ const ChildDetail = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* CONSISTENT HEADER */}
+      
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Learning Progress</Text>
-          <Text style={styles.headerSubtitle}>Tracking {child?.name || 'Child'}'s growth</Text>
+          <Text style={styles.headerSubtitle}>Tracking {child?.firstname + ' ' + child?.lastname || 'Child'}'s growth</Text>
         </View>
       </View>
 
@@ -90,7 +90,7 @@ const ChildDetail = () => {
           <View style={styles.credentialRow}>
             <View style={styles.credentialInfo}>
               <Text style={styles.credentialLabel}>Password</Text>
-              <Text style={styles.credentialValue}>••••••••</Text> 
+              <Text style={styles.credentialValue}>{child?.password || 'Not set'}</Text> 
 
             </View>
             <TouchableOpacity style={styles.copyIcon}>
@@ -99,7 +99,7 @@ const ChildDetail = () => {
           </View>
         </View>
 
-        {/* AI INSIGHTS CARD */}
+        
         <View style={[styles.aiCard, open && styles.aiCardExpanded]}>
           <TouchableOpacity
             onPress={() => {
@@ -120,7 +120,7 @@ const ChildDetail = () => {
 
           {open && (
             <View style={styles.aiContent}>
-              <Text style={styles.aiIntro}>Quick summary for {child?.name?.split(' ')[0]}:</Text>
+              <Text style={styles.aiIntro}>Quick summary for {child?.firstname}</Text>
               <View style={styles.recommendationBox}>
                 <Text style={styles.recommendationText}>
                   <Text style={{ fontFamily: 'Poppins-Bold', color: '#10B981' }}>Suggestion: </Text>
@@ -131,7 +131,7 @@ const ChildDetail = () => {
           )}
         </View>
 
-        {/* STATS GRID */}
+        
         <View style={styles.statsGrid}>
           {[
             { label: 'Accuracy', value: '87%', icon: 'checkmark-done' },
@@ -200,7 +200,7 @@ const ChildDetail = () => {
           </View>
         </View>
 
-        {/* PERFORMANCE CATEGORIES */}
+        
         <View style={styles.performanceCard}>
           <Text style={styles.sectionTitle}>Skills Breakdown</Text>
           {skills.map((skill, index) => (

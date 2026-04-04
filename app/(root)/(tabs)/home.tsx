@@ -15,7 +15,7 @@ const Home = () => {
   const { user } = useUser();
   const router = useRouter();
   
-  // Dummy State for Premium Status
+  
   const [isPremium, setIsPremium] = useState(false);
 
   const childrenData = [
@@ -47,7 +47,7 @@ const Home = () => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         
-        {/* 2. SCALABLE CHILD SWITCHER */}
+
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
              <Text style={styles.sectionLabel}>Your Children</Text>
@@ -57,14 +57,14 @@ const Home = () => {
           <FlatList 
             horizontal
             showsHorizontalScrollIndicator={false}
-            data={[...childrenData, { id: 'add-btn' }]} // Append add button to the list
+            data={[...childrenData, { id: 'add-btn' }]} 
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => {
               if (item.id === 'add-btn') {
                 return (
                   <TouchableOpacity 
                     style={styles.addChildBtn} 
-                    onPress={() => router.push('/children')} // Adjust to your path
+                    onPress={() => router.push('/children')} 
                   >
                     <Text style={{ color: '#0286FF', fontSize: 28 }}>+</Text>
                   </TouchableOpacity>

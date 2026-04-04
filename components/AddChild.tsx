@@ -1,10 +1,14 @@
 import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, ScrollView, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, ScrollView, TouchableWithoutFeedback, Keyboard, Platform, Alert } from 'react-native'
 import Modal from 'react-native-modal';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import InputField from './InputField'; 
 import CustomButton from './CustomButton'; 
 import { icons } from '@/constants';
+import {useChildrenStore} from '@/store/childrenStore';
+import { NewChild } from '@/types/type';
+import * as FileSystem from 'expo-file-system/legacy';
+import { Asset } from 'expo-asset';
 
 const { height } = Dimensions.get("window");
 
@@ -15,11 +19,12 @@ const LOCAL_AVATARS = [
 ];
 
 const AddChild = () => {
-  const [form, setForm] = useState({
+  const {addChild}=useChildrenStore()
+  const [form, setForm] = useState<NewChild>({
     avatar: null as any,
     firstName: '',
     lastName: '',
-    dOB: new Date()
+    dob: new Date()
   })
 
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -30,40 +35,52 @@ const AddChild = () => {
     if (Platform.OS === 'android') setShowDatePicker(false);
     
     if (selectedDate) {
-      setForm({ ...form, dOB: selectedDate });
+      setForm({ ...form, dob: selectedDate });
     }
   }
-
   const handleSave = async () => {
-    if (!form.firstName.trim() || !form.lastName.trim()) {
-     
-      console.log("Validation failed");
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append('firstName', form.firstName);
-      formData.append('lastName', form.lastName);
-      formData.append('dob', form.dOB.toISOString());
-
-      if (form.avatar) {
-       
-        const asset = Image.resolveAssetSource(form.avatar);
-        formData.append('avatar', {
-          uri: asset.uri,
-          name: 'avatar.png',
-          type: 'image/png',
-        } as any);
-      }
-
-      console.log("Saving Child...", formData);
-      // Add 
-    } catch (error) {
-      console.error("Save Error:", error);
-    }
+  if (!form.firstName.trim() || !form.lastName.trim()) {
+    console.log("Validation failed: First and Last name are required");
+    Alert.alert("Error", "First and Last name are required");
+    return;
   }
 
+  try {
+    let avatarString: string | undefined = undefined;
+
+
+    if (form.avatar) {
+      console.log("Converting avatar to base64...");
+      const asset = Asset.fromModule(form.avatar as any);
+      await asset.downloadAsync();              
+
+      const localUri = asset.localUri || asset.uri;
+
+      if (localUri) {
+        const base64Data = await FileSystem.readAsStringAsync(localUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        avatarString = `data:image/png;base64,${base64Data}`;   
+      }
+    }
+
+    
+    const payload: NewChild = {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      dob: form.dob,
+      avatar: avatarString|| undefined,    
+    };
+
+    console.log("Saving child with base64 avatar...");
+    await addChild(payload);   
+
+  } catch (error) {
+    console.error("Save Error:", error);
+   Alert.alert("Error", "Failed to save child. Please try again.");
+  }
+};
   return (
     <View style={styles.container}>
     
@@ -126,12 +143,12 @@ const AddChild = () => {
               onPress={() => setShowDatePicker(true)}
             >
               <Image source={icons.checkmark} style={styles.calendarIcon} />
-              <Text style={styles.dateValue}>{form.dOB.toDateString()}</Text>
+              <Text style={styles.dateValue}>{form.dob.toDateString()}</Text>
             </TouchableOpacity>
 
             {showDatePicker && (
               <DateTimePicker
-                value={form.dOB}
+                value={form.dob}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 onChange={onDateChange}
