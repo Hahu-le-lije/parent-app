@@ -25,6 +25,17 @@ const Child = ({ item }: ChildProps) => {
       params: { id: item.id },
     })
   }
+   const calculateAge = (dob: Date) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
 
   return (
     <TouchableOpacity style={styles.container} onPress={goToDetails}>
@@ -38,7 +49,7 @@ const Child = ({ item }: ChildProps) => {
     
       <View style={styles.main}>
         <Text style={styles.name}>{item.firstname} {item.lastname}</Text>
-        <Text style={styles.age}>Age: {}</Text>
+        <Text style={styles.age}>Age: {calculateAge(item.dob)}</Text>
 
         <View style={styles.badges}>
           <View style={styles.badge}>

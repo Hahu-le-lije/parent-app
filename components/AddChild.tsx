@@ -4,27 +4,22 @@ import Modal from 'react-native-modal';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import InputField from './InputField'; 
 import CustomButton from './CustomButton'; 
-import { icons } from '@/constants';
+import { icons,LOCAL_AVATARS } from '@/constants';
 import {useChildrenStore} from '@/store/childrenStore';
 import { NewChild } from '@/types/type';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Asset } from 'expo-asset';
-import { useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+
 
 type AddChildProps={
   onClose?:()=>void
 }
 const { height } = Dimensions.get("window");
 
-const LOCAL_AVATARS = [
-  { id: '1', source: require('../assets/images/hahu_logo.png') },
-  { id: '2', source: require('../assets/images/on2.png') },
-  { id: '3', source: require('../assets/images/on3.png') },
-];
+
 
 const AddChild = ({onClose}:AddChildProps) => {
-  const {addChild,loadChildren}=useChildrenStore()
+  const {addChild}=useChildrenStore()
 
   
   const [form, setForm] = useState<NewChild>({
@@ -316,7 +311,7 @@ const styles = StyleSheet.create({
   calendarIcon: {
     width: 20,
     height: 20,
-    tintColor: '#3D5CFF',
+    tintColor: '#2F2F42',
     marginRight: 12,
   },
   dateValue: {

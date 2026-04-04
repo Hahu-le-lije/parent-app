@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Hahu-parent",
-    "slug": "Hahu-parent",
+    "name": "Hahu Parent",
+    "slug": "Hahu Parent",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/hahu_logo.png",
@@ -34,9 +34,9 @@
           "image": "./assets/images/hahu_logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#2F2F42",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#2F2F42"
           }
         }
       ],

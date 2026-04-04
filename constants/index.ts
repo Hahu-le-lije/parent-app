@@ -55,11 +55,18 @@ export const icons = {
   target,
   to,
 };
+ export const LOCAL_AVATARS = [
+    { id: '1', source: require('../assets/images/hahu_logo.png') },
+    { id: '2', source: require('../assets/images/on2.png') },
+    { id: '3', source: require('../assets/images/on3.png') },
+  ];
 export const images={
   Logo,
   On3,
   On2,
-  On4
+  On4,
+
+
 }
 export const onboardingData = [
   {
@@ -92,16 +99,7 @@ export const onboardingData = [
   },
 ];
 export const subplans = [
-    {
-      id: "1",
-      name: "Basic",
-      priceMonthly: 0,
-      priceYearly: 0,
-      desc: "Perfect to get started",
-      badge: "Free",
-      colors: ["#2C2F3A", "#242731"], 
-      popular: false,
-    },
+    
     {
       id: "2",
       name: "Premium",
@@ -123,3 +121,5 @@ export const subplans = [
       popular: false,
     },
   ];
+
+ 
