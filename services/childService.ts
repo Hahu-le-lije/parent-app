@@ -207,8 +207,8 @@ export const addChild = async (child: NewChild): Promise<Popup> => {
   await delay();
 
   const newChild: Child = {
-    _id: String(Date.now()),
-    id: mockChildren.length + 1,
+    id: String(Date.now()),
+    
     firstname: child.firstName,
     lastname: child.lastName,
     dob: child.dob,
@@ -240,7 +240,7 @@ export const updateChild = async (
   await delay();
 
   mockChildren = mockChildren.map((c) =>
-    c._id === id
+    c.id === id
       ? {
           ...c,
           firstname: child.firstName,
@@ -259,5 +259,5 @@ export const deleteChild = async (id: string): Promise<void> => {
 
   await delay();
 
-  mockChildren = mockChildren.filter((c) => c._id !== id);
+  mockChildren = mockChildren.filter((c) => c.id !== id);
 };
