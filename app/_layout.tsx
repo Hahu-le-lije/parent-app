@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import {ClerkProvider} from '@clerk/clerk-expo'
 import {tokenCache} from '@clerk/clerk-expo/token-cache';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
@@ -25,6 +26,7 @@ if(!loaded){
 }
 
   return (
+    <GestureHandlerRootView style={{flex:1}}>
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <Stack screenOptions={{headerShown:false}}>
         <Stack.Screen name="index"/>
@@ -34,5 +36,6 @@ if(!loaded){
       </Stack>
       <StatusBar translucent={true} />
     </ClerkProvider>
+    </GestureHandlerRootView>
   );
 }

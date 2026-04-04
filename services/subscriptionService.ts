@@ -1,0 +1,6 @@
+{/*
+    getsubscription
+    buysubscription
+    assignsubscription
+    renewsubscription
+    */}
