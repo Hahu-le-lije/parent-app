@@ -4,10 +4,15 @@ export type Child = {
   _id: string;
   id: number;
   name: string;
-  age: number;
+  //dob: Date;
   subscription: string;
   paid: boolean;
   image: string;
+  //username:string,
+  age:number;
+  //password:string
+  //firstname:string
+  //lastname:string
 };
 
 type PurchasedPlan = {
@@ -75,7 +80,7 @@ const placeholderChildren: Child[] = [
     image: 'https://randomuser.me/api/portraits/lego/5.jpg',
   },
 ];
-
+// const {loadchildren}=useChildStore()
 export const useChildrenStore = create<ChildrenState>((set) => ({
   children: [],
   loading: false,
@@ -85,7 +90,7 @@ export const useChildrenStore = create<ChildrenState>((set) => ({
   loadChildren: async () => {
     set({ loading: true, error: null });
     try {
-      // Simulate backend call; later replace with real API
+    
       await new Promise((resolve) => setTimeout(resolve, 400));
       set({ children: placeholderChildren, loading: false });
     } catch (e) {

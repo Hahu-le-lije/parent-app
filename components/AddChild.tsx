@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, ScrollView, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native'
 import Modal from 'react-native-modal';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import InputField from './InputField'; // Ensure this path is correct
-import CustomButton from './CustomButton'; // Using your custom button for consistency
+import InputField from './InputField'; 
+import CustomButton from './CustomButton'; 
 import { icons } from '@/constants';
 
 const { height } = Dimensions.get("window");
@@ -26,7 +26,7 @@ const AddChild = () => {
   const [showDatePicker, setShowDatePicker] = useState(false)
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    // For Android, the picker closes immediately. For iOS, it's usually inline.
+  
     if (Platform.OS === 'android') setShowDatePicker(false);
     
     if (selectedDate) {
@@ -58,7 +58,7 @@ const AddChild = () => {
       }
 
       console.log("Saving Child...", formData);
-      // Add your API call or Store action here
+      // Add 
     } catch (error) {
       console.error("Save Error:", error);
     }

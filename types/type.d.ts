@@ -32,5 +32,20 @@ declare interface InputFieldProps extends TextInputProps {
     iconStyle?: string;
     className?: string;
     rightText?: string;
+
     onRightPress?: () => void;
 }
+export type Child = {
+  _id: string;
+  id: number;
+  name: string;
+  //dob: Date;
+  subscription: string;
+  paid: boolean;
+  image: string;
+  //username:string,
+  age:number;
+  //password:string
+  //firstname:string
+  //lastname:string
+};

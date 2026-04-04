@@ -48,7 +48,7 @@ const OAuth = () => {
             style={{ width:20, height:20, marginRight:8 }}
           />
         )}
-       
+       IconRight={null}
       />
 
     </View>
