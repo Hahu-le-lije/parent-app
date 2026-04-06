@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   View,
   Text,
@@ -17,9 +17,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useChildrenStore } from "@/store/childrenStore";
 import { subplans } from "@/constants";
 import ChapaPaymentModal from "@/components/ChapaPayementModal";
+import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 const Sub = () => {
   const { children } = useChildrenStore();
+  const {buySubscription,loadSubscriptions, subscriptions} = useSubscriptionStore();
 
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -30,9 +32,12 @@ const Sub = () => {
   const [duration, setDuration] = useState("Monthly");
   const [visible, setVisible] = useState(false);
 
+  useEffect(()=>{
+    loadSubscriptions()
+  },[loadSubscriptions])
  
 
-  
+  const unusedSubscriptions=subscriptions.filter
 
   const [inventory, setInventory] = useState([
     { id: 'inv_1', name: 'Premium', type: 'Monthly', children: 1, boughtAt: '2024-05-10', expiresAt: '2024-06-10' },

@@ -52,3 +52,12 @@ export interface NewChild {
   dob: Date;
   avatar?: string;
 }
+export interface Subscription{
+id:string;
+owner_id:string;
+plan_type:string;
+available_slots:number;
+status:string;
+ends_at:Date;
+tx_ref:string
+}
