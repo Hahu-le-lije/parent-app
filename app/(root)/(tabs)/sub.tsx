@@ -19,7 +19,7 @@ import { subplans } from "@/constants";
 import ChapaPaymentModal from "@/components/ChapaPayementModal";
 
 const Sub = () => {
-  const { children, lastPurchasedPlan, assignLastPurchasedToChild, setLastPurchasedPlan } = useChildrenStore();
+  const { children } = useChildrenStore();
 
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -81,11 +81,11 @@ const Sub = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Child Subscriptions</Text>
           {children.map((child) => (
-            <View key={child._id} style={styles.childCardLarge}>
+            <View key={child.id} style={styles.childCardLarge}>
               <View style={styles.childInfoRow}>
-                <Image source={{ uri: child.image }} style={styles.childAvatarLarge} />
+                <Image source={{ uri: child.avatar }} style={styles.childAvatarLarge} />
                 <View style={{ flex: 1, marginLeft: 15 }}>
-                  <Text style={styles.childNameLarge}>{child.name}</Text>
+                  <Text style={styles.childNameLarge}>{child.firstname + ' ' + child.lastname}</Text>
                   <Text style={[styles.statusTextLarge, { color: child.paid ? '#10B981' : '#FFA500' }]}>
                     {child.paid ? `${child.subscription} Active` : 'No Active Plan'}
                   </Text>
@@ -98,7 +98,7 @@ const Sub = () => {
                 ) : (
                   <TouchableOpacity 
                     style={styles.assignActionBtnLarge}
-                    onPress={() => lastPurchasedPlan ? assignLastPurchasedToChild(child._id) : Alert.alert("No Plans", "Purchase a plan first.")}
+                    onPress={() => lastPurchasedPlan ? assignLastPurchasedToChild(child.id) : Alert.alert("No Plans", "Purchase a plan first.")}
                   >
                     <Text style={styles.assignActionTextLarge}>Assign Plan</Text>
                   </TouchableOpacity>
