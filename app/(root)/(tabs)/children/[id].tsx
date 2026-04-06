@@ -13,11 +13,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useChildrenStore } from '@/store/childrenStore';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import Child2 from '@/components/Child2';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
+
 
 const ChildDetail = () => {
   const router = useRouter();
@@ -32,6 +34,7 @@ const ChildDetail = () => {
   const [open, setOpen] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState('This Week');
   const [showWeekSelector, setShowWeekSelector] = useState(false);
+  const [showpassword, setShowPassword] = useState(false);
 
   const skills = [
     { label: 'Reading', value: 82, color: '#0286FF' },
@@ -51,6 +54,12 @@ const ChildDetail = () => {
 
   const maxMinutes = Math.max(...weekData.map(item => item.minutes));
   const totalMinutes = weekData.reduce((sum, item) => sum + item.minutes, 0);
+
+  const copyToClipboard = async (text: string) => {
+  if (!text) return;
+
+  await Clipboard.setStringAsync(text);  
+};
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -90,10 +99,10 @@ const ChildDetail = () => {
           <View style={styles.credentialRow}>
             <View style={styles.credentialInfo}>
               <Text style={styles.credentialLabel}>Password</Text>
-              <Text style={styles.credentialValue}>{child?.password || 'Not set'}</Text> 
+              <Text style={styles.credentialValue}>{showpassword? (child?.password || 'Not set') : '**********'}</Text> 
 
             </View>
-            <TouchableOpacity style={styles.copyIcon}>
+            <TouchableOpacity style={styles.copyIcon} onPress={()=>setShowPassword(!showpassword)}>
               <Ionicons name="eye-outline" size={18} color="#9AA0C3" />
             </TouchableOpacity>
           </View>
