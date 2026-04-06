@@ -15,6 +15,8 @@ import { useChildrenStore } from '@/store/childrenStore';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import Child2 from '@/components/Child2';
+import SubjectToggle from '@/components/SubjectToggle';
+import { saveChoice } from '@/services/choiceSave';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -107,8 +109,9 @@ const ChildDetail = () => {
             </TouchableOpacity>
           </View>
         </View>
+      
 
-        
+        <View style={styles.credentialDivider} />
         <View style={[styles.aiCard, open && styles.aiCardExpanded]}>
           <TouchableOpacity
             onPress={() => {

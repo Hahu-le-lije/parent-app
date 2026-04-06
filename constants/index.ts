@@ -122,4 +122,12 @@ export const subplans = [
     },
   ];
 
- 
+export const SUBJECTS = [
+  { id: 'story', label: 'Story Reading', icon: 'book-outline' },
+  { id: 'picture to word', label: 'Picture to Word', icon: 'image-outline' },
+  { id: 'fidel tracing', label: 'Fidel Tracing', icon: 'pencil-outline' },
+  { id: 'word builder', label: 'Word Builder', icon: 'construct-outline' },
+  { id: 'fill in the blank', label: 'Fill in the Blank', icon: 'create-outline' },
+  { id: 'pronouncation', label: 'Pronunciation', icon: 'volume-high-outline' },
+  { id: 'voice/fidel to word game', label: 'Voice to Word', icon: 'mic-outline' },
+] 
