@@ -16,7 +16,7 @@ type SubscriptionStoretype = {
   loadSubscriptions: () => Promise<void>;
   assignSubscription: (subscription_id: string, child_id: string) => Promise<void>;
   renewSubscription: (subscription_id: string, child_id: string) => Promise<void>;
-  buySubscription: (count: number, plan: string, duration: string) => Promise<string>;
+  buySubscription: (count: number, plan: string) => Promise<string>;
 };
 
 export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => ({
@@ -42,7 +42,7 @@ export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => 
       });
     }
   },
-  buySubscription: async (count: number, plan: string, _duration: string) => {
+  buySubscription: async (count: number, plan: string) => {
     set({ loading: true, error: null });
     try {
       const checkoutUrl = await buySubscriptionService(count, plan);

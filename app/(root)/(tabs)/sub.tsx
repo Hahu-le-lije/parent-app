@@ -77,7 +77,7 @@ const Sub = () => {
     try {
       setCheckoutLoading(true);
       setCheckoutError(null);
-      const url = await buySubscription(slots, getPlanType(), duration);
+      const url = await buySubscription(slots, getPlanType());
       setCheckoutUrl(url);
       setShowPurchaseModal(false);
       setVisible(true);
