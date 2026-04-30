@@ -1,24 +1,32 @@
 import React, { useState } from 'react';
 import { 
   View, Text, StyleSheet, Image, TouchableOpacity, 
-  FlatList, ScrollView, Dimensions 
+  FlatList, ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { icons } from '@/constants';
+import InlineSkeleton from '@/components/InlineSkeleton';
 
-const { width } = Dimensions.get('window');
+type ChildCard = {
+  id: string;
+  name: string;
+  image: string;
+  progress: number;
+  insight: string;
+};
 
 const Home = () => {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
+  const showInlineLoader = !isLoaded;
   
   
-  const [isPremium, setIsPremium] = useState(false);
+  const [isPremium] = useState(false);
 
-  const childrenData = [
+  const childrenData: ChildCard[] = [
     { id: '1', name: 'Leo', image: 'https://randomuser.me/api/portraits/lego/1.jpg', progress: 85, insight: "Leo is excelling in Logic puzzles!" },
     { id: '2', name: 'Maya', image: 'https://randomuser.me/api/portraits/lego/5.jpg', progress: 62, insight: "Maya needs more practice with Phonetics." },
     { id: '3', name: 'Kaleb', image: 'https://randomuser.me/api/portraits/lego/3.jpg', progress: 40, insight: "Kaleb is showing interest in music." },
@@ -33,14 +41,27 @@ const Home = () => {
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.headerTitle}>Hello, {user?.firstName || 'Parent'} 👋</Text>
-            <Text style={styles.subheader}>Manage your child's progress</Text>
+            {showInlineLoader ? (
+              <>
+                <InlineSkeleton width={180} height={24} />
+                <InlineSkeleton width={170} height={14} style={{ marginTop: 10 }} />
+              </>
+            ) : (
+              <>
+                <Text style={styles.headerTitle}>Hello, {user?.firstName || 'Parent'} 👋</Text>
+                <Text style={styles.subheader}>Manage your child{"'"}s progress</Text>
+              </>
+            )}
           </View>
           <TouchableOpacity onPress={() => router.push('/profile')}>
-            <Image 
-              source={user?.imageUrl ? { uri: user.imageUrl } : icons.person} 
-              style={styles.avatar} 
-            />
+            {showInlineLoader ? (
+              <InlineSkeleton width={55} height={55} borderRadius={27.5} />
+            ) : (
+              <Image 
+                source={user?.imageUrl ? { uri: user.imageUrl } : icons.person} 
+                style={styles.avatar} 
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -53,49 +74,71 @@ const Home = () => {
              <Text style={styles.sectionLabel}>Your Children</Text>
              <Text style={styles.childCount}>{childrenData.length} Total</Text>
           </View>
-          
-          <FlatList 
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={[...childrenData, { id: 'add-btn' }]} 
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              if (item.id === 'add-btn') {
+
+          {showInlineLoader ? (
+            <View style={{ flexDirection: 'row' }}>
+              {[1, 2, 3].map((item) => (
+                <View key={item} style={styles.childTab}>
+                  <InlineSkeleton width={68} height={68} borderRadius={34} />
+                  <InlineSkeleton width={54} height={12} style={{ marginTop: 8 }} />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <FlatList 
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={[...childrenData, { id: 'add-btn' as const }]} 
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                if (item.id === 'add-btn') {
+                  return (
+                    <TouchableOpacity 
+                      style={styles.addChildBtn} 
+                      onPress={() => router.push('/children')} 
+                    >
+                      <Text style={{ color: '#0286FF', fontSize: 28 }}>+</Text>
+                    </TouchableOpacity>
+                  );
+                }
                 return (
                   <TouchableOpacity 
-                    style={styles.addChildBtn} 
-                    onPress={() => router.push('/children')} 
+                    onPress={() => setSelectedChild(item as ChildCard)}
+                    style={styles.childTab}
                   >
-                    <Text style={{ color: '#0286FF', fontSize: 28 }}>+</Text>
+                    <Image 
+                      source={{ uri: (item as ChildCard).image }} 
+                      style={[
+                        styles.childAvatar, 
+                        selectedChild.id === item.id && styles.activeChildAvatar
+                      ]} 
+                    />
+                    <Text style={[styles.childName, selectedChild.id === item.id && styles.activeChildName]}>
+                      {(item as ChildCard).name}
+                    </Text>
                   </TouchableOpacity>
                 );
-              }
-              return (
-                <TouchableOpacity 
-                  onPress={() => setSelectedChild(item)}
-                  style={styles.childTab}
-                >
-                  <Image 
-                    source={{ uri: item.image }} 
-                    style={[
-                      styles.childAvatar, 
-                      selectedChild.id === item.id && styles.activeChildAvatar
-                    ]} 
-                  />
-                  <Text style={[styles.childName, selectedChild.id === item.id && styles.activeChildName]}>
-                    {item.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
+              }}
+            />
+          )}
         </View>
 
         {/* 3. PROGRESS CARD */}
         <View style={styles.progressContainer}>
            <LinearGradient colors={['#2F2F42', '#1F1F39']} style={styles.progressCard}>
+              {showInlineLoader ? (
+                <>
+                  <InlineSkeleton width={170} height={18} style={{ marginBottom: 16 }} />
+                  <InlineSkeleton width="100%" height={10} borderRadius={5} />
+                  <View style={styles.statsGrid}>
+                    <View style={styles.smallStat}><InlineSkeleton width={40} height={18} /><InlineSkeleton width={55} height={10} style={{ marginTop: 8 }} /></View>
+                    <View style={styles.smallStat}><InlineSkeleton width={40} height={18} /><InlineSkeleton width={55} height={10} style={{ marginTop: 8 }} /></View>
+                  </View>
+                </>
+              ) : (
+                <>
               <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>{selectedChild.name}'s Progress</Text>
+                <Text style={styles.cardTitle}>{selectedChild.name}{"'"}s Progress</Text>
                 <Text style={styles.cardPercent}>{selectedChild.progress}%</Text>
               </View>
               
@@ -113,18 +156,27 @@ const Home = () => {
                    <Text style={styles.statKey}>Learning</Text>
                 </View>
               </View>
+                </>
+              )}
            </LinearGradient>
         </View>
 
         {/* 4. PREMIUM vs REGULAR SECTION */}
         <View style={styles.section}>
            <Text style={styles.sectionLabel}>AI Insights & Tips</Text>
-           {isPremium ? (
+           {showInlineLoader ? (
+             <View style={styles.lockedCard}>
+               <InlineSkeleton width="70%" height={16} style={{ marginBottom: 12 }} />
+               <InlineSkeleton width="100%" height={12} style={{ marginBottom: 8 }} />
+               <InlineSkeleton width="88%" height={12} style={{ marginBottom: 16 }} />
+               <InlineSkeleton width={140} height={40} borderRadius={14} />
+             </View>
+           ) : isPremium ? (
              <LinearGradient 
                 colors={['#0286FF', '#003366']} 
                 style={styles.insightCard}
               >
-                <Text style={styles.insightText}>"{selectedChild.insight}"</Text>
+                <Text style={styles.insightText}>{"\""}{selectedChild.insight}{"\""}</Text>
                 <TouchableOpacity style={styles.insightBtn}>
                    <Text style={styles.insightBtnText}>Detailed Report</Text>
                 </TouchableOpacity>
@@ -148,9 +200,16 @@ const Home = () => {
       
         <View style={styles.section}>
             <Text style={styles.sectionLabel}>Daily Parenting Tip</Text>
-            <View style={styles.tipCard}>
-                <Text style={styles.tipText}>Consistency is key! Try to set a specific "Learning Hour" for your kids today.</Text>
-            </View>
+            {showInlineLoader ? (
+              <View style={styles.tipCard}>
+                <InlineSkeleton width="100%" height={12} style={{ marginBottom: 8 }} />
+                <InlineSkeleton width="85%" height={12} />
+              </View>
+            ) : (
+              <View style={styles.tipCard}>
+                  <Text style={styles.tipText}>Consistency is key! Try to set a specific {"\""}Learning Hour{"\""} for your kids today.</Text>
+              </View>
+            )}
         </View>
 
       </ScrollView>

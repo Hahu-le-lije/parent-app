@@ -8,12 +8,12 @@ import { icons } from '@/constants';
 import { useClerk, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import InlineSkeleton from '@/components/InlineSkeleton';
 
 const Profile = () => {
   const router = useRouter();
   const { signOut } = useClerk();
-  const { user } = useUser();
-
+  const { user, isLoaded } = useUser();
   const [uploading, setUploading] = useState(false);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
 
@@ -62,6 +62,7 @@ const Profile = () => {
   };
 
   const displayImage = previewUri || user?.imageUrl || icons.person;
+  const showInlineLoader = !isLoaded;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -76,41 +77,66 @@ const Profile = () => {
         </View>
 
         <View style={styles.profileSection}>
-          <TouchableOpacity onPress={pickImage} disabled={uploading} activeOpacity={0.8}>
-            <View style={styles.imageWrapper}>
-              <Image
-                source={typeof displayImage === 'string' ? { uri: displayImage } : displayImage}
-                style={styles.profileImage}
-              />
-              {uploading && (
-                <View style={styles.uploadingOverlay}>
-                  <ActivityIndicator color="#fff" size="small" />
+          {showInlineLoader ? (
+            <>
+              <InlineSkeleton width={100} height={100} borderRadius={50} />
+              <InlineSkeleton width={160} height={20} style={{ marginTop: 15 }} />
+              <InlineSkeleton width={220} height={14} style={{ marginTop: 10 }} />
+            </>
+          ) : (
+            <>
+              <TouchableOpacity onPress={pickImage} disabled={uploading} activeOpacity={0.8}>
+                <View style={styles.imageWrapper}>
+                  <Image
+                    source={typeof displayImage === 'string' ? { uri: displayImage } : displayImage}
+                    style={styles.profileImage}
+                  />
+                  {uploading && (
+                    <View style={styles.uploadingOverlay}>
+                      <ActivityIndicator color="#fff" size="small" />
+                    </View>
+                  )}
+                  <View style={styles.cameraBadge}>
+                     <Text style={{fontSize: 14}}>📷</Text>
+                  </View>
                 </View>
-              )}
-              <View style={styles.cameraBadge}>
-                 <Text style={{fontSize: 14}}>📷</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+              </TouchableOpacity>
 
-          <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
-          <Text style={styles.email}>{user?.primaryEmailAddress?.emailAddress}</Text>
+              <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
+              <Text style={styles.email}>{user?.primaryEmailAddress?.emailAddress}</Text>
+            </>
+          )}
         </View>
 
         <View style={styles.menuCard}>
-          <MenuItem title="Edit Account" onPress={() => {router.push('/(root)/(tabs)/profile/edit-account')}} />
-          <MenuItem title="Settings" onPress={() => router.push('/(root)/(tabs)/profile/settings')} />
-          <MenuItem title="Help Center" onPress={() => {router.push('/(root)/(tabs)/profile/help-center')}} />
-          <MenuItem title="Privacy Policy" onPress={() => {router.push('/(root)/(tabs)/profile/about')}} isLast />
+          {showInlineLoader ? (
+            <>
+              <InlineSkeleton width="100%" height={18} style={{ marginTop: 18, marginBottom: 16 }} />
+              <InlineSkeleton width="100%" height={18} style={{ marginBottom: 16 }} />
+              <InlineSkeleton width="100%" height={18} style={{ marginBottom: 16 }} />
+              <InlineSkeleton width="100%" height={18} style={{ marginBottom: 18 }} />
+            </>
+          ) : (
+            <>
+              <MenuItem title="Edit Account" onPress={() => {router.push('/(root)/(tabs)/profile/edit-account')}} />
+              <MenuItem title="Settings" onPress={() => router.push('/(root)/(tabs)/profile/settings')} />
+              <MenuItem title="Help Center" onPress={() => {router.push('/(root)/(tabs)/profile/help-center')}} />
+              <MenuItem title="Privacy Policy" onPress={() => {router.push('/(root)/(tabs)/profile/about')}} isLast />
+            </>
+          )}
         </View>
 
-        <TouchableOpacity
-          style={[styles.logoutBtn, uploading && styles.logoutBtnDisabled]}
-          onPress={handleLogout}
-          disabled={uploading}
-        >
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
+        {showInlineLoader ? (
+          <InlineSkeleton width="86%" height={56} borderRadius={16} style={{ marginHorizontal: 24, marginTop: 30 }} />
+        ) : (
+          <TouchableOpacity
+            style={[styles.logoutBtn, uploading && styles.logoutBtnDisabled]}
+            onPress={handleLogout}
+            disabled={uploading}
+          >
+            <Text style={styles.logoutText}>Log Out</Text>
+          </TouchableOpacity>
+        )}
         
         
         <View style={{ height: 40 }} />

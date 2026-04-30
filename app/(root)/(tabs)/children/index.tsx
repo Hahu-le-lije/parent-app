@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Child from '@/components/Child';
+import AppStateScreen from '@/components/AppStateScreen';
+import InlineSkeleton from '@/components/InlineSkeleton';
 
 import { useChildrenStore } from '@/store/childrenStore';
 import Modal from 'react-native-modal'
@@ -38,6 +40,7 @@ const filteredData = children.filter(child => {
   return matchesFilter && matchesSearch;
 });
 
+const showInlineLoader = loading && children.length > 0;
 
 
 
@@ -103,18 +106,25 @@ const filteredData = children.filter(child => {
 
       
       {loading && !children.length ? (
-        <View style={styles.center}>
-          <Text style={styles.loadingText}>Loading children...</Text>
-        </View>
+        <AppStateScreen title="Loading children" subtitle="Fetching child profiles..." />
       ) : (
-        <FlatList
-          data={filteredData}
-          renderItem={({ item }) => <Child item={item} />}
-          keyExtractor={(item) => item.id}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: 40, width:"100%",alignItems:"center" }}
-          showsVerticalScrollIndicator={false}
-        />
+        <>
+          {showInlineLoader && (
+            <View style={styles.inlineLoaderWrap}>
+              <InlineSkeleton width={180} height={14} style={{ marginBottom: 14 }} />
+              <InlineSkeleton width="100%" height={90} borderRadius={16} style={{ marginBottom: 12 }} />
+              <InlineSkeleton width="100%" height={90} borderRadius={16} />
+            </View>
+          )}
+          <FlatList
+            data={filteredData}
+            renderItem={({ item }) => <Child item={item} />}
+            keyExtractor={(item) => item.id}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: 40, width:"100%",alignItems:"center" }}
+            showsVerticalScrollIndicator={false}
+          />
+        </>
       )}
 
       <Modal
@@ -227,5 +237,10 @@ const styles = StyleSheet.create({
   loadingText: {
     color: '#9AA0C3',
     fontFamily: 'Poppins-Regular'
-  }
+  },
+  inlineLoaderWrap: {
+    width: "100%",
+    paddingHorizontal: 24,
+    marginBottom: 12,
+  },
 });

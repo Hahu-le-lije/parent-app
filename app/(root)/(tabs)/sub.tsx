@@ -18,10 +18,12 @@ import { useChildrenStore } from "@/store/childrenStore";
 import { subplans } from "@/constants";
 import ChapaPaymentModal from "@/components/ChapaPayementModal";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
+import AppStateScreen from "@/components/AppStateScreen";
+import InlineSkeleton from "@/components/InlineSkeleton";
 
 const Sub = () => {
   const { children } = useChildrenStore();
-  const { buySubscription, loadSubscriptions, subscriptions, assignSubscription } =
+  const { buySubscription, loadSubscriptions, subscriptions, assignSubscription, loading } =
     useSubscriptionStore();
 
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -57,6 +59,7 @@ const Sub = () => {
     if (!selectedPlan) return "premium_monthly";
     return `${String(selectedPlan.name).toLowerCase()}_${duration.toLowerCase()}`;
   };
+  const showInlineLoader = loading && subscriptions.length > 0;
 
   const calculatePrice = () => {
     if (!selectedPlan) return 0;
@@ -102,6 +105,17 @@ const Sub = () => {
     }
   };
 
+  if (loading && !subscriptions.length) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <AppStateScreen
+          title="Loading subscriptions"
+          subtitle="Getting your latest plans..."
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
@@ -114,66 +128,101 @@ const Sub = () => {
       
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Purchased Plans (Unused)</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {inventory.map((item) => (
-              <TouchableOpacity 
-                key={item.id} 
-                style={styles.inventoryCard}
-                onPress={() => {
-                  setSelectedInventoryItem(item);
-                  setShowInventoryModal(true);
-                }}
-              >
-                <Text style={styles.invName}>{item.name}</Text>
-                <Text style={styles.invType}>{item.type}</Text>
-                <View style={styles.invBadge}><Text style={styles.invBadgeText}>Ready</Text></View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {showInlineLoader ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {[1, 2, 3].map((item) => (
+                <View key={item} style={styles.inventoryCard}>
+                  <InlineSkeleton width={80} height={16} style={{ marginBottom: 8 }} />
+                  <InlineSkeleton width={60} height={12} style={{ marginBottom: 12 }} />
+                  <InlineSkeleton width={48} height={18} borderRadius={6} />
+                </View>
+              ))}
+            </ScrollView>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {inventory.map((item) => (
+                <TouchableOpacity 
+                  key={item.id} 
+                  style={styles.inventoryCard}
+                  onPress={() => {
+                    setSelectedInventoryItem(item);
+                    setShowInventoryModal(true);
+                  }}
+                >
+                  <Text style={styles.invName}>{item.name}</Text>
+                  <Text style={styles.invType}>{item.type}</Text>
+                  <View style={styles.invBadge}><Text style={styles.invBadgeText}>Ready</Text></View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
         
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Child Subscriptions</Text>
-          {children.map((child) => (
-            <View key={child.id} style={styles.childCardLarge}>
-              <View style={styles.childInfoRow}>
-                <Image source={{ uri: child.avatar }} style={styles.childAvatarLarge} />
-                <View style={{ flex: 1, marginLeft: 15 }}>
-                  <Text style={styles.childNameLarge}>{child.firstname + ' ' + child.lastname}</Text>
-                  <Text style={[styles.statusTextLarge, { color: child.paid ? '#10B981' : '#FFA500' }]}>
-                    {child.paid ? `${child.subscription} Active` : 'No Active Plan'}
-                  </Text>
-                </View>
-
-                {child.paid ? (
-                  <TouchableOpacity style={styles.renewBtn}>
-                    <Text style={styles.renewBtnText}>Renew</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity 
-                    style={styles.assignActionBtnLarge}
-                    onPress={() => assignLastPurchasedToChild(child.id)}
-                  >
-                    <Text style={styles.assignActionTextLarge}>Assign Plan</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {child.paid && (
-                <View style={styles.expiryRowLarge}>
-                  <View style={styles.detailBox}>
-                    <Text style={styles.detailLabel}>Expires In</Text>
-                    <Text style={styles.detailValue}>22 Days</Text>
+          {showInlineLoader
+            ? [1, 2].map((skeleton) => (
+                <View key={skeleton} style={styles.childCardLarge}>
+                  <View style={styles.childInfoRow}>
+                    <InlineSkeleton width={55} height={55} borderRadius={28} />
+                    <View style={{ flex: 1, marginLeft: 15 }}>
+                      <InlineSkeleton width={130} height={16} style={{ marginBottom: 8 }} />
+                      <InlineSkeleton width={100} height={12} />
+                    </View>
+                    <InlineSkeleton width={88} height={32} borderRadius={10} />
                   </View>
-                  <View style={styles.detailBox}>
-                    <Text style={styles.detailLabel}>Plan Type</Text>
-                    <Text style={styles.detailValue}>{child.subscription}</Text>
+                  <View style={styles.expiryRowLarge}>
+                    <View style={styles.detailBox}>
+                      <InlineSkeleton width={70} height={12} style={{ marginBottom: 8 }} />
+                      <InlineSkeleton width={60} height={14} />
+                    </View>
+                    <View style={styles.detailBox}>
+                      <InlineSkeleton width={70} height={12} style={{ marginBottom: 8 }} />
+                      <InlineSkeleton width={90} height={14} />
+                    </View>
                   </View>
                 </View>
-              )}
-            </View>
-          ))}
+              ))
+            : children.map((child) => (
+                <View key={child.id} style={styles.childCardLarge}>
+                  <View style={styles.childInfoRow}>
+                    <Image source={{ uri: child.avatar }} style={styles.childAvatarLarge} />
+                    <View style={{ flex: 1, marginLeft: 15 }}>
+                      <Text style={styles.childNameLarge}>{child.firstname + ' ' + child.lastname}</Text>
+                      <Text style={[styles.statusTextLarge, { color: child.paid ? '#10B981' : '#FFA500' }]}>
+                        {child.paid ? `${child.subscription} Active` : 'No Active Plan'}
+                      </Text>
+                    </View>
+
+                    {child.paid ? (
+                      <TouchableOpacity style={styles.renewBtn}>
+                        <Text style={styles.renewBtnText}>Renew</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity 
+                        style={styles.assignActionBtnLarge}
+                        onPress={() => assignLastPurchasedToChild(child.id)}
+                      >
+                        <Text style={styles.assignActionTextLarge}>Assign Plan</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {child.paid && (
+                    <View style={styles.expiryRowLarge}>
+                      <View style={styles.detailBox}>
+                        <Text style={styles.detailLabel}>Expires In</Text>
+                        <Text style={styles.detailValue}>22 Days</Text>
+                      </View>
+                      <View style={styles.detailBox}>
+                        <Text style={styles.detailLabel}>Plan Type</Text>
+                        <Text style={styles.detailValue}>{child.subscription}</Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              ))}
         </View>
 
 
