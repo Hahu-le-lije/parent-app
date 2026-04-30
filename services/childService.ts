@@ -1,7 +1,8 @@
-// import { Child } from "@/types/type";
+import { Child } from "@/types/type";
 // import { getToken } from "@clerk/clerk-expo";
 
-// const API = "http://localhost:8000/children";
+
+// const API = process.env.API_URL;
 
 // interface NewChild {
 //   firstName: string;
@@ -18,7 +19,7 @@
 //   try {
 //     const token = await getToken();
 
-//     const res = await fetch(API, {
+//     const res = await fetch(`${API}/children`, {
 //       method: "GET",
 //       headers: {
 //         "Content-Type": "application/json",
@@ -36,12 +37,31 @@
 //     throw e;
 //   }
 // };
+// export const getChildInfo=async(childId:string):Promise<Child>=>{
+//   try{
+//  const token=await getToken();
+//  const res=await fetch(`${API}/children/${childId}`,{
+//     method:"GET",
+//     headers:{
+//         "Content-type":"application/json",
+//         Authorization:`Bearer ${token}`
+//     },
 
+//  })
+//  if(!res.ok){
+//     throw new Error("Failed to fetch child info")
+//  }
+//  return await res.json()
+//   }catch(error){
+//  console.error("Error fetching child info:", error);
+//  throw error
+//   }
+// }
 // export const addChild = async (child: NewChild): Promise<Popup> => {
 //   try {
 //     const token = await getToken();
 
-//     const res = await fetch(API, {
+//     const res = await fetch(`${API}/children`, {
 //       method: "POST",
 //       headers: {
 //         "Content-Type": "application/json",
@@ -66,7 +86,7 @@
 // export const updateChild=async(id:string,child:NewChild):Promise<void>=>{
 //     try{
 //         const token=await getToken();
-//         const res=await fetch(`${API}/${id}`,{
+//         const res=await fetch(`${API}/children/${id}`,{
 //             method:"PUT",
 //             headers:{
 //                 "Content-type":"application/json",
@@ -89,7 +109,7 @@
 // export const deleteChild=async(id:string):Promise<void>=>{
 //     try{
 //         const token=await getToken();
-//         const res=await fetch(`${API}/${id}`,{
+//         const res=await fetch(`${API}/children/${id}`,{
 //             method:"DELETE",
 //             headers:{
 //                 "Content-type":"application/json",
@@ -110,7 +130,7 @@
 
 // mock one will delete this gonna use the top one only 
 
-import { Child } from "@/types/type";
+
 
 
 const USE_MOCK = true;

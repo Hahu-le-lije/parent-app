@@ -1,4 +1,3 @@
-import { useAuth, useUser } from "@clerk/clerk-expo";
 import React, { useState, useEffect } from "react";
 import {
   Modal,
@@ -12,88 +11,51 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 
-interface Response{
-  status:string;
-  checkout_url:string;
-}
-const ChapaPaymentModal = ({ visible, onClose, data }) => {
-  const { user } = useUser();
-  const { getToken } = useAuth(); 
-  
-  const [loading, setLoading] = useState(true);
-  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+type ChapaPaymentModalProps = {
+  visible: boolean;
+  onClose: () => void;
+  checkoutUrl: string | null;
+  onSuccess?: () => void;
+  onRetry?: () => void;
+  loading?: boolean;
+  errorMsg?: string | null;
+};
+
+const ChapaPaymentModal = ({
+  visible,
+  onClose,
+  checkoutUrl,
+  onSuccess,
+  onRetry,
+  loading = false,
+  errorMsg = null,
+}: ChapaPaymentModalProps) => {
   const [isProcessed, setIsProcessed] = useState(false);
-
-
-  const RETURN_URL = "https://your-domain.com/payment/success"; 
-
-  const initializeFromBackend = async () => {
-    if (!user) {
-      Alert.alert("Error", "Please sign in to continue");
-      onClose();
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setErrorMsg(null);
-
-      const token = await getToken();
-
-        {/* plan_type(string)  max_slots(int)*/}
-      const payload = {
-        max_slots: data.children,
-        plan_type: data.planName,
-        duration: data.duration
-      };
-
-      const response = await fetch("https://your-backend.com/api/payments/chapa/initialize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Backend initialization failed");
-      }
-
-      if (result.status==="success" && result.checkout_url) {
-        setCheckoutUrl(result.checkout_url);
-      } else {
-        throw new Error("Could not retrieve checkout URL");
-      }
-    } catch (err: any) {
-      console.error("Payment init error:", err);
-      setErrorMsg(err.message || "Could not start payment. Try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const RETURN_URL = "payment/success";
+  const FAILED_URL = "payment/failed";
+  const isLoading = loading || (!checkoutUrl && !errorMsg);
 
   useEffect(() => {
     if (visible) {
       setIsProcessed(false);
-      setCheckoutUrl(null);
-      initializeFromBackend();
     }
   }, [visible]);
 
   const handleNavigationStateChange = (navState) => {
     const { url } = navState;
 
-    if (url.startsWith(RETURN_URL) && !isProcessed) {
+    if (url.includes(RETURN_URL) && !isProcessed) {
       setIsProcessed(true);
-     
-      setTimeout(() => {
-        Alert.alert("Success", "Payment confirmed! Your plan is now active.");
-        onClose();
-      }, 1000);
+      Alert.alert("Success", "Payment confirmed! Your plan is now active.");
+      onSuccess?.();
+      onClose();
+      return;
+    }
+
+    if (url.includes(FAILED_URL) && !isProcessed) {
+      setIsProcessed(true);
+      Alert.alert("Payment Failed", "Payment was not completed.");
+      onClose();
     }
   };
 
@@ -112,7 +74,7 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
           </TouchableOpacity>
         </View>
 
-        {loading ? (
+        {isLoading ? (
           <View style={styles.loaderContainer}>
             <ActivityIndicator size="large" color="#3D5CFF" />
             <Text style={styles.loaderText}>Connecting to Chapa...</Text>
@@ -120,7 +82,7 @@ const ChapaPaymentModal = ({ visible, onClose, data }) => {
         ) : errorMsg ? (
           <View style={styles.loaderContainer}>
             <Text style={styles.errorText}>{errorMsg}</Text>
-            <TouchableOpacity style={styles.retryBtn} onPress={initializeFromBackend}>
+            <TouchableOpacity style={styles.retryBtn} onPress={onRetry}>
               <Text style={styles.retryText}>Try Again</Text>
             </TouchableOpacity>
           </View>

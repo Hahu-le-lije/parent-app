@@ -21,35 +21,85 @@ import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 const Sub = () => {
   const { children } = useChildrenStore();
-  const {buySubscription,loadSubscriptions, subscriptions} = useSubscriptionStore();
+  const { buySubscription, loadSubscriptions, subscriptions, assignSubscription } =
+    useSubscriptionStore();
 
-  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showInventoryModal, setShowInventoryModal] = useState(false);
-  const [selectedInventoryItem, setSelectedInventoryItem] = useState(null);
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<any>(null);
 
   const [childrenCount, setChildrenCount] = useState("1");
   const [duration, setDuration] = useState("Monthly");
   const [visible, setVisible] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
-  useEffect(()=>{
-    loadSubscriptions()
-  },[loadSubscriptions])
- 
+  useEffect(() => {
+    loadSubscriptions();
+  }, [loadSubscriptions]);
 
-  const unusedSubscriptions=subscriptions.filter
+  const unusedSubscriptions = subscriptions.filter(
+    (item) => item.status === "active" && item.available_slots > 0
+  );
 
-  const [inventory, setInventory] = useState([
-    { id: 'inv_1', name: 'Premium', type: 'Monthly', children: 1, boughtAt: '2024-05-10', expiresAt: '2024-06-10' },
-    { id: 'inv_2', name: 'Basic', type: 'Yearly', children: 2, boughtAt: '2024-05-12', expiresAt: '2025-05-12' },
-  ]);
+  const inventory = unusedSubscriptions.map((sub) => ({
+    id: String(sub.id),
+    name: sub.plan_type,
+    type: sub.plan_type.includes("yearly") ? "Yearly" : "Monthly",
+    children: sub.available_slots,
+    boughtAt: sub.tx_ref,
+    expiresAt: new Date(sub.ends_at).toLocaleDateString(),
+  }));
 
-    
+  const getPlanType = () => {
+    if (!selectedPlan) return "premium_monthly";
+    return `${String(selectedPlan.name).toLowerCase()}_${duration.toLowerCase()}`;
+  };
 
   const calculatePrice = () => {
     if (!selectedPlan) return 0;
     const base = duration === "Monthly" ? selectedPlan.priceMonthly : selectedPlan.priceYearly;
     return (base * Number(childrenCount || 0)).toLocaleString();
+  };
+
+  const startCheckout = async () => {
+    const slots = Number(childrenCount);
+    if (!selectedPlan || Number.isNaN(slots) || slots < 1) {
+      Alert.alert("Invalid Input", "Select a plan and enter a valid child count.");
+      return;
+    }
+
+    try {
+      setCheckoutLoading(true);
+      setCheckoutError(null);
+      const url = await buySubscription(slots, getPlanType(), duration);
+      setCheckoutUrl(url);
+      setShowPurchaseModal(false);
+      setVisible(true);
+    } catch (e: any) {
+      setCheckoutError(e?.message || "Failed to initialize payment");
+      setVisible(true);
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const assignLastPurchasedToChild = async (childId: string) => {
+    const latestSubscription = unusedSubscriptions[0];
+    if (!latestSubscription) {
+      Alert.alert("No Plans", "Purchase a plan first.");
+      return;
+    }
+
+    try {
+      await assignSubscription(String(latestSubscription.id), childId);
+      Alert.alert("Success", "Child added to subscription successfully");
+      loadSubscriptions();
+    } catch (e: any) {
+      Alert.alert("Failed", e?.message || "Could not assign subscription");
+    }
   };
 
   return (
@@ -103,7 +153,7 @@ const Sub = () => {
                 ) : (
                   <TouchableOpacity 
                     style={styles.assignActionBtnLarge}
-                    onPress={() => lastPurchasedPlan ? assignLastPurchasedToChild(child.id) : Alert.alert("No Plans", "Purchase a plan first.")}
+                    onPress={() => assignLastPurchasedToChild(child.id)}
                   >
                     <Text style={styles.assignActionTextLarge}>Assign Plan</Text>
                   </TouchableOpacity>
@@ -177,7 +227,7 @@ const Sub = () => {
              <Text style={styles.inputLabel}>Number of Children</Text>
              <TextInput style={styles.modalInput} value={childrenCount} onChangeText={setChildrenCount} keyboardType="numeric" />
 
-             <TouchableOpacity style={styles.payBtn} onPress={() => setVisible(true)}>
+             <TouchableOpacity style={styles.payBtn} onPress={startCheckout}>
                 <Text style={styles.payBtnText}>Pay ETB {calculatePrice()}</Text>
              </TouchableOpacity>
           </View>
@@ -204,13 +254,12 @@ const Sub = () => {
     
       <ChapaPaymentModal 
        visible={visible}
-       onClose={()=>setVisible(false)}
-       data={{
-            amount: calculatePrice(),         
-            children: childrenCount,            
-            duration: duration,                 
-            planName: selectedPlan?.name || "Unknown Plan"
-       }}
+       onClose={() => setVisible(false)}
+       checkoutUrl={checkoutUrl}
+       loading={checkoutLoading}
+       errorMsg={checkoutError}
+       onRetry={startCheckout}
+       onSuccess={loadSubscriptions}
       />
 
     </SafeAreaView>

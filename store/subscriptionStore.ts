@@ -16,8 +16,7 @@ type SubscriptionStoretype = {
   loadSubscriptions: () => Promise<void>;
   assignSubscription: (subscription_id: string, child_id: string) => Promise<void>;
   renewSubscription: (subscription_id: string, child_id: string) => Promise<void>;
-  buySubscription: (count: number, plan: string, duration: string) => Promise<void>;
-  
+  buySubscription: (count: number, plan: string, duration: string) => Promise<string>;
 };
 
 export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => ({
@@ -43,15 +42,12 @@ export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => 
       });
     }
   },
-  buySubscription: async (count: number, plan: string, duration: string) => {
+  buySubscription: async (count: number, plan: string, _duration: string) => {
     set({ loading: true, error: null });
     try {
-      const result=await buySubscriptionService(count, plan, duration);
-
-      await get().loadSubscriptions();
-    
+      const checkoutUrl = await buySubscriptionService(count, plan);
       set({ loading: false });
-      return result
+      return checkoutUrl;
     } catch (e: any) {
       set({
         error: e.message || "Failed to buy subscription",
@@ -74,6 +70,7 @@ export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => 
         error: e.message || "Failed to assign subscription",
         loading: false,
       });
+      throw e;
     }
   },
 
@@ -89,6 +86,7 @@ export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => 
         error: e.message || "Failed to renew subscription",
         loading: false,
       });
+      throw e;
     }
   },
 }));
