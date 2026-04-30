@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   View, Text, StyleSheet, Image, TouchableOpacity, 
   FlatList, ScrollView
@@ -9,6 +9,8 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { icons } from '@/constants';
 import InlineSkeleton from '@/components/InlineSkeleton';
+import { useLanguageStore } from '@/store/languageStore';
+import { t } from '@/lib/i18n';
 
 type ChildCard = {
   id: string;
@@ -21,6 +23,7 @@ type ChildCard = {
 const Home = () => {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const language = useLanguageStore((s) => s.language);
   const showInlineLoader = !isLoaded;
   
   
@@ -33,6 +36,29 @@ const Home = () => {
   ];
 
   const [selectedChild, setSelectedChild] = useState(childrenData[0]);
+  const strings = useMemo(() => {
+    const name = user?.firstName || 'Parent';
+    return {
+      hello: t(language, 'home_hello', { name }),
+      manageProgress: t(language, 'home_manage_progress'),
+
+      yourChildren: t(language, 'home_your_children'),
+      total: t(language, 'home_total', { count: childrenData.length }),
+
+      progressTitle: t(language, 'home_progress_title', { name: selectedChild.name }),
+      badges: t(language, 'home_badges'),
+      learning: t(language, 'home_learning'),
+
+      aiInsights: t(language, 'home_ai_insights'),
+      detailedReport: t(language, 'home_detailed_report'),
+      unlockAiTitle: t(language, 'home_unlock_ai_title'),
+      unlockAiSub: t(language, 'home_unlock_ai_sub', { name: selectedChild.name }),
+      upgradePremium: t(language, 'home_upgrade_premium'),
+
+      dailyTipTitle: t(language, 'home_daily_tip_title'),
+      dailyTipText: t(language, 'home_daily_tip_text'),
+    };
+  }, [childrenData.length, language, selectedChild.name, user?.firstName]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -48,8 +74,8 @@ const Home = () => {
               </>
             ) : (
               <>
-                <Text style={styles.headerTitle}>Hello, {user?.firstName || 'Parent'} 👋</Text>
-                <Text style={styles.subheader}>Manage your child{"'"}s progress</Text>
+                <Text style={styles.headerTitle}>{strings.hello}</Text>
+                <Text style={styles.subheader}>{strings.manageProgress}</Text>
               </>
             )}
           </View>
@@ -71,8 +97,8 @@ const Home = () => {
 
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-             <Text style={styles.sectionLabel}>Your Children</Text>
-             <Text style={styles.childCount}>{childrenData.length} Total</Text>
+             <Text style={styles.sectionLabel}>{strings.yourChildren}</Text>
+             <Text style={styles.childCount}>{strings.total}</Text>
           </View>
 
           {showInlineLoader ? (
@@ -138,7 +164,7 @@ const Home = () => {
               ) : (
                 <>
               <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>{selectedChild.name}{"'"}s Progress</Text>
+                <Text style={styles.cardTitle}>{strings.progressTitle}</Text>
                 <Text style={styles.cardPercent}>{selectedChild.progress}%</Text>
               </View>
               
@@ -149,11 +175,11 @@ const Home = () => {
               <View style={styles.statsGrid}>
                 <View style={styles.smallStat}>
                    <Text style={styles.statVal}>12</Text>
-                   <Text style={styles.statKey}>Badges</Text>
+                   <Text style={styles.statKey}>{strings.badges}</Text>
                 </View>
                 <View style={styles.smallStat}>
                    <Text style={styles.statVal}>4h</Text>
-                   <Text style={styles.statKey}>Learning</Text>
+                   <Text style={styles.statKey}>{strings.learning}</Text>
                 </View>
               </View>
                 </>
@@ -163,7 +189,7 @@ const Home = () => {
 
         {/* 4. PREMIUM vs REGULAR SECTION */}
         <View style={styles.section}>
-           <Text style={styles.sectionLabel}>AI Insights & Tips</Text>
+           <Text style={styles.sectionLabel}>{strings.aiInsights}</Text>
            {showInlineLoader ? (
              <View style={styles.lockedCard}>
                <InlineSkeleton width="70%" height={16} style={{ marginBottom: 12 }} />
@@ -178,19 +204,19 @@ const Home = () => {
               >
                 <Text style={styles.insightText}>{"\""}{selectedChild.insight}{"\""}</Text>
                 <TouchableOpacity style={styles.insightBtn}>
-                   <Text style={styles.insightBtnText}>Detailed Report</Text>
+                   <Text style={styles.insightBtnText}>{strings.detailedReport}</Text>
                 </TouchableOpacity>
              </LinearGradient>
            ) : (
              <View style={styles.lockedCard}>
                 <View style={styles.lockedContent}>
-                   <Text style={styles.lockedTitle}>Unlock AI Recommendations</Text>
-                   <Text style={styles.lockedSub}>Get personalized daily tips and deep progress analysis for {selectedChild.name}.</Text>
+                   <Text style={styles.lockedTitle}>{strings.unlockAiTitle}</Text>
+                   <Text style={styles.lockedSub}>{strings.unlockAiSub}</Text>
                    <TouchableOpacity 
                     style={styles.upgradeBtn}
                     onPress={() => router.push('/(root)/(tabs)/sub')}
                    >
-                      <Text style={styles.upgradeBtnText}>Upgrade to Premium</Text>
+                      <Text style={styles.upgradeBtnText}>{strings.upgradePremium}</Text>
                    </TouchableOpacity>
                 </View>
              </View>
@@ -199,7 +225,7 @@ const Home = () => {
 
       
         <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Daily Parenting Tip</Text>
+            <Text style={styles.sectionLabel}>{strings.dailyTipTitle}</Text>
             {showInlineLoader ? (
               <View style={styles.tipCard}>
                 <InlineSkeleton width="100%" height={12} style={{ marginBottom: 8 }} />
@@ -207,7 +233,7 @@ const Home = () => {
               </View>
             ) : (
               <View style={styles.tipCard}>
-                  <Text style={styles.tipText}>Consistency is key! Try to set a specific {"\""}Learning Hour{"\""} for your kids today.</Text>
+                  <Text style={styles.tipText}>{strings.dailyTipText}</Text>
               </View>
             )}
         </View>

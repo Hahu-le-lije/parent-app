@@ -64,4 +64,6 @@ export const subscriptions_am = {
   // LOADING
   loading_subs: "አባልነቶች በመጫን ላይ",
   loading_subs_sub: "የቅርብ ፕላኖች በመውሰድ ላይ...",
+
+  child_ren: "ልጅ(ልጆች)",
 };

@@ -62,4 +62,6 @@ export const subscriptions_en = {
 
   loading_subs: "Loading subscriptions",
   loading_subs_sub: "Getting your latest plans...",
+
+  child_ren: "Child(ren)",
 };

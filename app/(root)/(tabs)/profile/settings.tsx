@@ -51,6 +51,9 @@ const Settings = () => {
       languageSub: t(language, "settings_languageSub"),
       english: t(language, "settings_english"),
       amharic: t(language, "settings_amharic"),
+      headerTitle: t(language, "settings_headerTitle"),
+      headerSubtitle: t(language, "settings_headerSubtitle"),
+      footerHint: t(language, "settings_footerHint"),
     };
   }, [language]);
 
@@ -66,9 +69,9 @@ const Settings = () => {
         </TouchableOpacity>
         
         <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>Settings</Text>
+          <Text style={styles.headerTitle}>{strings.headerTitle}</Text>
           <Text style={styles.headerSubtitle}>
-            Manage your app preferences and language
+            {strings.headerSubtitle}
           </Text>
         </View>
       </View>
@@ -103,9 +106,7 @@ const Settings = () => {
         <View style={styles.footerHint}>
           <Ionicons name="information-circle-outline" size={16} color="#9AA0C3" />
           <Text style={styles.footerHintText}>
-            {language === "am"
-              ? "ቋንቋው ተቀይሯል፤ የHome ጽሑፍ ይለወጣል።"
-              : "Language updated. Content will change automatically."}
+            {strings.footerHint}
           </Text>
         </View>
       </ScrollView>

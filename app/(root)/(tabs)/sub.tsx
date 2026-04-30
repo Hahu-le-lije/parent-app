@@ -97,6 +97,9 @@ const Sub = () => {
     // loading
     loading_subs: t(language, "loading_subs"),
     loading_subs_sub: t(language, "loading_subs_sub"),
+
+    // misc
+    child_ren: t(language, "child_ren"),
   };
 }, [language]);
 
@@ -128,7 +131,7 @@ const Sub = () => {
   const startCheckout = async () => {
     const slots = Number(childrenCount);
     if (!selectedPlan || Number.isNaN(slots) || slots < 1) {
-      Alert.alert("Invalid Input", "Select a plan and enter a valid child count.");
+      Alert.alert(strings.invalid_input_title, strings.invalid_input_msg);
       return;
     }
 
@@ -150,16 +153,16 @@ const Sub = () => {
   const assignLastPurchasedToChild = async (childId: string) => {
     const latestSubscription = unusedSubscriptions[0];
     if (!latestSubscription) {
-      Alert.alert("No Plans", "Purchase a plan first.");
+      Alert.alert(strings.no_plans_title, strings.no_plans_msg);
       return;
     }
 
     try {
       await assignSubscription(String(latestSubscription.id), childId);
-      Alert.alert("Success", "Child added to subscription successfully");
+      Alert.alert(strings.success, strings.success_msg);
       loadSubscriptions();
     } catch (e: any) {
-      Alert.alert("Failed", e?.message || "Could not assign subscription");
+      Alert.alert(strings.failed, e?.message || strings.failed_msg);
     }
   };
 
@@ -167,8 +170,8 @@ const Sub = () => {
     return (
       <SafeAreaView style={styles.container}>
         <AppStateScreen
-          title="Loading subscriptions"
-          subtitle="Getting your latest plans..."
+          title={strings.loading_subs}
+          subtitle={strings.loading_subs_sub}
         />
       </SafeAreaView>
     );
@@ -208,7 +211,9 @@ const Sub = () => {
                   }}
                 >
                   <Text style={styles.invName}>{item.name}</Text>
-                  <Text style={styles.invType}>{item.type}</Text>
+                  <Text style={styles.invType}>
+                    {item.type === "Yearly" ? strings.yearly : strings.monthly}
+                  </Text>
                   <View style={styles.invBadge}><Text style={styles.invBadgeText}>{strings.ready}</Text></View>
                 </TouchableOpacity>
               ))}
@@ -309,7 +314,9 @@ const Sub = () => {
 
         {selectedPlan && (
           <TouchableOpacity style={styles.mainBuyBtn} onPress={() => setShowPurchaseModal(true)}>
-            <Text style={styles.mainBuyBtnText}>{t(language,`continue`)} {t(language,`${selectedPlan.name}`)}</Text>
+            <Text style={styles.mainBuyBtnText}>
+              {t(language, "continue")} {t(language, String(selectedPlan.name).toLowerCase())}
+            </Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -326,7 +333,9 @@ const Sub = () => {
              <View style={styles.durationToggle}>
                 {["Monthly", "Yearly"].map((d) => (
                   <TouchableOpacity key={d} onPress={() => setDuration(d)} style={[styles.durationBtn, duration === d && styles.durationBtnActive]}>
-                    <Text style={[styles.durationText, duration === d && styles.durationTextActive]}>{d}</Text>
+                    <Text style={[styles.durationText, duration === d && styles.durationTextActive]}>
+                      {d === "Monthly" ? strings.monthly : strings.yearly}
+                    </Text>
                   </TouchableOpacity>
                 ))}
              </View>
@@ -346,8 +355,13 @@ const Sub = () => {
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>{strings.subscription_info}</Text>
             <DetailRow label={`${strings.plan_name}`} value={selectedInventoryItem?.name} />
-            <DetailRow label={`${strings.billing}`} value={selectedInventoryItem?.type} />
-            <DetailRow label={`${strings.child_slots}`} value={`${selectedInventoryItem?.children} Child(ren)`} />
+            <DetailRow
+              label={`${strings.billing}`}
+              value={
+                selectedInventoryItem?.type === "Yearly" ? strings.yearly : strings.monthly
+              }
+            />
+            <DetailRow label={`${strings.child_slots}`} value={`${selectedInventoryItem?.children} ${strings.child_ren}`} />
             <DetailRow label={`${strings.purchased}`} value={selectedInventoryItem?.boughtAt} />
             <DetailRow label={`${strings.valid_until}`} value={selectedInventoryItem?.expiresAt} />
             

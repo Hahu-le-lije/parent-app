@@ -26,7 +26,7 @@ if(!loaded){
 }
 
   return (
-    <GestureHandlerRootView style={{flex:1}}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#1F1F39" }}>
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <Stack screenOptions={{headerShown:false}}>
         <Stack.Screen name="index"/>
