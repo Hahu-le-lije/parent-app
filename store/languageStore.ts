@@ -24,7 +24,7 @@ export const useLanguageStore = create<LanguageState>((set, get) => ({
         set({ language: stored });
       }
     } catch {
-      // If persistence fails, we safely fall back to English.
+     console.log("Error hydrating language");
     } finally {
       set({ hydrated: true });
     }
@@ -35,7 +35,7 @@ export const useLanguageStore = create<LanguageState>((set, get) => ({
     try {
       await SecureStore.setItemAsync(STORAGE_KEY, lang);
     } catch {
-      // Ignore persistence errors; UI state is still updated.
+      console.log("Error setting language");
     }
   },
 }));

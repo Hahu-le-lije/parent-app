@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState,useEffect,useMemo } from "react";
 import {
   View,
   Text,
@@ -20,9 +20,12 @@ import ChapaPaymentModal from "@/components/ChapaPayementModal";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 import AppStateScreen from "@/components/AppStateScreen";
 import InlineSkeleton from "@/components/InlineSkeleton";
+import { t } from "@/lib/i18n";
+import { useLanguageStore } from "@/store/languageStore";
 
 const Sub = () => {
   const { children } = useChildrenStore();
+  const language = useLanguageStore((s) => s.language);
   const { buySubscription, loadSubscriptions, subscriptions, assignSubscription, loading } =
     useSubscriptionStore();
 
@@ -41,6 +44,61 @@ const Sub = () => {
   useEffect(() => {
     loadSubscriptions();
   }, [loadSubscriptions]);
+ const strings = useMemo(() => {
+  return {
+    // page
+    pagetitle: t(language, "pagename_sub"),
+    subtitle: t(language, "subtitle_sub"),
+
+    // sections
+    purchased_plan: t(language, "purchased_plans"),
+    child_subs: t(language, "child_subs"),
+    buy: t(language, "buy"),
+    upgrade_new: t(language, "upgrade_new"),
+
+    // inventory
+    ready: t(language, "ready"),
+
+    // child section
+    active: t(language, "active"),
+    no_active_plan: t(language, "no_active_plan"),
+    renew: t(language, "renew"),
+    assign_plan: t(language, "assign_plan"),
+    expires_in: t(language, "expires_in"),
+    plan_type: t(language, "plan_type"),
+
+    // modal / checkout
+    checkout: t(language, "checkout"),
+    close: t(language, "close"),
+    monthly: t(language, "monthly"),
+    yearly: t(language, "yearly"),
+    number_of_children: t(language, "number_of_children"),
+    pay: t(language, "pay"),
+    got_it: t(language, "got_it"),
+
+    // info modal
+    subscription_info: t(language, "subscription_info"),
+    plan_name: t(language, "plan_name"),
+    billing: t(language, "billing"),
+    child_slots: t(language, "child_slots"),
+    purchased: t(language, "purchased"),
+    valid_until: t(language, "valid_until"),
+
+    // alerts
+    invalid_input_title: t(language, "invalid_input_title"),
+    invalid_input_msg: t(language, "invalid_input_msg"),
+    no_plans_title: t(language, "no_plans_title"),
+    no_plans_msg: t(language, "no_plans_msg"),
+    success: t(language, "success"),
+    success_msg: t(language, "success_msg"),
+    failed: t(language, "failed"),
+    failed_msg: t(language, "failed_msg"),
+
+    // loading
+    loading_subs: t(language, "loading_subs"),
+    loading_subs_sub: t(language, "loading_subs_sub"),
+  };
+}, [language]);
 
   const unusedSubscriptions = subscriptions.filter(
     (item) => item.status === "active" && item.available_slots > 0
@@ -121,13 +179,13 @@ const Sub = () => {
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Subscription Hub</Text>
-          <Text style={styles.subheader}>Manage access for your children</Text>
+          <Text style={styles.headerTitle}>{strings.pagetitle}</Text>
+          <Text style={styles.subheader}>{strings.subtitle}</Text>
         </View>
 
       
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Purchased Plans (Unused)</Text>
+          <Text style={styles.sectionTitle}>{strings.purchased_plan}</Text>
           {showInlineLoader ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {[1, 2, 3].map((item) => (
@@ -151,7 +209,7 @@ const Sub = () => {
                 >
                   <Text style={styles.invName}>{item.name}</Text>
                   <Text style={styles.invType}>{item.type}</Text>
-                  <View style={styles.invBadge}><Text style={styles.invBadgeText}>Ready</Text></View>
+                  <View style={styles.invBadge}><Text style={styles.invBadgeText}>{strings.ready}</Text></View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -160,7 +218,7 @@ const Sub = () => {
 
         
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Child Subscriptions</Text>
+          <Text style={styles.sectionTitle}>{strings.child_subs}</Text>
           {showInlineLoader
             ? [1, 2].map((skeleton) => (
                 <View key={skeleton} style={styles.childCardLarge}>
@@ -191,20 +249,20 @@ const Sub = () => {
                     <View style={{ flex: 1, marginLeft: 15 }}>
                       <Text style={styles.childNameLarge}>{child.firstname + ' ' + child.lastname}</Text>
                       <Text style={[styles.statusTextLarge, { color: child.paid ? '#10B981' : '#FFA500' }]}>
-                        {child.paid ? `${child.subscription} Active` : 'No Active Plan'}
+                        {child.paid ? `${child.subscription} ${strings.active}` : `${strings.no_active_plan}`}
                       </Text>
                     </View>
 
                     {child.paid ? (
                       <TouchableOpacity style={styles.renewBtn}>
-                        <Text style={styles.renewBtnText}>Renew</Text>
+                        <Text style={styles.renewBtnText}>{strings.renew}</Text>
                       </TouchableOpacity>
                     ) : (
                       <TouchableOpacity 
                         style={styles.assignActionBtnLarge}
                         onPress={() => assignLastPurchasedToChild(child.id)}
                       >
-                        <Text style={styles.assignActionTextLarge}>Assign Plan</Text>
+                        <Text style={styles.assignActionTextLarge}>{strings.assign_plan}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -212,11 +270,11 @@ const Sub = () => {
                   {child.paid && (
                     <View style={styles.expiryRowLarge}>
                       <View style={styles.detailBox}>
-                        <Text style={styles.detailLabel}>Expires In</Text>
-                        <Text style={styles.detailValue}>22 Days</Text>
+                        <Text style={styles.detailLabel}>{strings.expires_in}</Text>
+                        <Text style={styles.detailValue}>22 days</Text>
                       </View>
                       <View style={styles.detailBox}>
-                        <Text style={styles.detailLabel}>Plan Type</Text>
+                        <Text style={styles.detailLabel}>{strings.plan_type}</Text>
                         <Text style={styles.detailValue}>{child.subscription}</Text>
                       </View>
                     </View>
@@ -227,7 +285,7 @@ const Sub = () => {
 
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Upgrade or Buy New</Text>
+          <Text style={styles.sectionTitle}>{strings.buy}</Text>
           {subplans.map((plan) => (
             <TouchableOpacity
               key={plan.id}
@@ -241,7 +299,7 @@ const Sub = () => {
                 </View>
                 <View style={{alignItems: 'flex-end'}}>
                   <Text style={styles.planPriceLarge}>ETB {plan.priceMonthly}</Text>
-                  <Text style={styles.planUnitLarge}>/month</Text>
+                  <Text style={styles.planUnitLarge}>/{strings.monthly}</Text>
                 </View>
               </LinearGradient>
               {selectedPlan?.id === plan.id && <View style={styles.selectionBorder} />}
@@ -251,7 +309,7 @@ const Sub = () => {
 
         {selectedPlan && (
           <TouchableOpacity style={styles.mainBuyBtn} onPress={() => setShowPurchaseModal(true)}>
-            <Text style={styles.mainBuyBtnText}>Continue with {selectedPlan.name}</Text>
+            <Text style={styles.mainBuyBtnText}>{t(language,`continue`)} {t(language,`${selectedPlan.name}`)}</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -261,8 +319,8 @@ const Sub = () => {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : "height"} style={styles.modalOverlay}>
           <View style={styles.modalContent}>
              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Checkout</Text>
-                <TouchableOpacity onPress={() => setShowPurchaseModal(false)}><Text style={styles.closeText}>Close</Text></TouchableOpacity>
+                <Text style={styles.modalTitle}>{strings.checkout}</Text>
+                <TouchableOpacity onPress={() => setShowPurchaseModal(false)}><Text style={styles.closeText}>{strings.close}</Text></TouchableOpacity>
              </View>
 
              <View style={styles.durationToggle}>
@@ -273,11 +331,11 @@ const Sub = () => {
                 ))}
              </View>
 
-             <Text style={styles.inputLabel}>Number of Children</Text>
+             <Text style={styles.inputLabel}>{strings.number_of_children}</Text>
              <TextInput style={styles.modalInput} value={childrenCount} onChangeText={setChildrenCount} keyboardType="numeric" />
 
              <TouchableOpacity style={styles.payBtn} onPress={startCheckout}>
-                <Text style={styles.payBtnText}>Pay ETB {calculatePrice()}</Text>
+                <Text style={styles.payBtnText}>{strings.pay} ETB {calculatePrice()}</Text>
              </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -286,15 +344,15 @@ const Sub = () => {
       <Modal visible={showInventoryModal} transparent animationType="fade">
         <View style={styles.infoOverlay}>
           <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>Subscription Info</Text>
-            <DetailRow label="Plan Name" value={selectedInventoryItem?.name} />
-            <DetailRow label="Billing" value={selectedInventoryItem?.type} />
-            <DetailRow label="Child Slots" value={`${selectedInventoryItem?.children} Child(ren)`} />
-            <DetailRow label="Purchased" value={selectedInventoryItem?.boughtAt} />
-            <DetailRow label="Valid Until" value={selectedInventoryItem?.expiresAt} />
+            <Text style={styles.infoTitle}>{strings.subscription_info}</Text>
+            <DetailRow label={`${strings.plan_name}`} value={selectedInventoryItem?.name} />
+            <DetailRow label={`${strings.billing}`} value={selectedInventoryItem?.type} />
+            <DetailRow label={`${strings.child_slots}`} value={`${selectedInventoryItem?.children} Child(ren)`} />
+            <DetailRow label={`${strings.purchased}`} value={selectedInventoryItem?.boughtAt} />
+            <DetailRow label={`${strings.valid_until}`} value={selectedInventoryItem?.expiresAt} />
             
             <TouchableOpacity style={styles.closeInfoBtn} onPress={() => setShowInventoryModal(false)}>
-                <Text style={styles.closeInfoBtnText}>Got it</Text>
+                <Text style={styles.closeInfoBtnText}>{strings.got_it}</Text>
             </TouchableOpacity>
           </View>
         </View>

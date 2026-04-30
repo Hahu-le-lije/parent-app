@@ -24,7 +24,7 @@ const AppStateScreen = ({
       <Text style={styles.subtitle}>
         {subtitle ??
           (isSplash
-            ? "Preparing your learning space..."
+            ? "Preparing your Control space..."
             : "Please wait a moment...")}
       </Text>
       <ActivityIndicator size="large" color="#0286FF" style={styles.loader} />
