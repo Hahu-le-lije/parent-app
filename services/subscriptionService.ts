@@ -1,5 +1,5 @@
 import { Subscription } from "@/types/type";
-import { getToken } from "@clerk/clerk-expo";
+import { Clerk } from "@clerk/clerk-expo";
 
 const BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 
@@ -23,11 +23,15 @@ type CreateSubscriptionData = { subscription: Subscription };
 const buildUrl = (path: string) => `${BASE_URL}${path}`;
 
 const authHeaders = async () => {
-  const token = await getToken();
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const token = await Clerk.session?.getToken();
+  //console.log(token);
+
+  if (!token) {
+
+    throw new Error("Not authenticated (missing session token)");
+  }
+
+  return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 };
 
 const parseResponse = async <T>(res: Response): Promise<ApiResponse<T>> => {

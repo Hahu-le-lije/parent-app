@@ -41,7 +41,7 @@ const ChapaPaymentModal = ({
     }
   }, [visible]);
 
-  const handleNavigationStateChange = (navState) => {
+  const handleNavigationStateChange = (navState:any) => {
     const { url } = navState;
 
     if (url.includes(RETURN_URL) && !isProcessed) {
