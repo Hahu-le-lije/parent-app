@@ -76,7 +76,7 @@ const ChildDetail = () => {
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Learning Progress</Text>
           <Text style={styles.headerSubtitle}>
-            Tracking {child?.firstname + " " + child?.lastname || "Child"}'s
+            Tracking {child?.firstname + " " + child?.lastname || "Child"}{"'s"}
             growth
           </Text>
         </View>
