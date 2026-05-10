@@ -1,16 +1,17 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState,useEffect } from 'react';
 import { 
   View, Text, StyleSheet, Image, TouchableOpacity, 
   FlatList, ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useUser } from '@clerk/clerk-expo';
+import { useUser ,useAuth} from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { icons } from '@/constants';
 import InlineSkeleton from '@/components/InlineSkeleton';
 import { useLanguageStore } from '@/store/languageStore';
 import { t } from '@/lib/i18n';
+
 
 type ChildCard = {
   id: string;
@@ -21,6 +22,23 @@ type ChildCard = {
 };
 
 const Home = () => {
+  const { getToken } = useAuth();
+  
+  
+
+ useEffect(() => {
+  const getter = async () => {
+    try {
+      const token = await getToken({ template: 'testing' });
+
+      console.log("token:", token);
+    } catch (error) {
+      console.log("Error getting token:", error);
+    }
+  };
+
+  getter();
+}, []);
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const language = useLanguageStore((s) => s.language);

@@ -61,3 +61,67 @@ status:string;
 ends_at:Date;
 tx_ref:string
 }
+export interface DailyProgress {
+    data:{
+        child_id:string;
+        summary_date:Date;
+        total_sessions:number;
+        total_questions:number;
+        correct_answers:number;
+        accuracy:number;
+        time_spent:number;
+        consistency:number;
+        skill_diversity:number;
+        mastery_score:number;
+        generated_explanation:string;
+        algorithm_version:1
+    }
+}
+export interface WeeklyProgress {
+    data:{
+        child_id:string;
+        week_start_date:Date;
+        week_end_date:Date;
+        total_sessions:number;
+        total_questions:number;
+        correct_answers:number;
+        accuracy:number;
+        time_spent:number;
+        consistency:number;
+        skill_diversity:number;
+        mastery_score:number;
+        generated_explanation:string;
+        algorithm_version:1
+    }
+}
+export interface Analytics{
+    daily_summary:{
+        child_id:string;
+        summary_date:Date;
+        total_sessions:number;
+        total_questions:number;
+        correct_answers:number;
+        accuracy:number;
+        time_spent:number;
+        consistency:number;
+        skill_diversity:number;
+        mastery_score:number;
+        generated_explanation:string;
+        algorithm_version:1
+    },
+    weekly_summary:{
+        child_id:string;
+        week_start_date:Date;
+        week_end_date:Date;
+        total_sessions:number;
+        total_questions:number;
+        correct_answers:number;
+        accuracy:number;
+        time_spent:number;
+        consistency:number;
+        skill_diversity:number;
+        mastery_score:number;
+        generated_explanation:string;
+        algorithm_version:1
+    }
+}
