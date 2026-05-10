@@ -26,8 +26,8 @@ export const useProgressStore = create<ProgressState>((set) => ({
   loadDailyProgress: async (childId, token) => {
     set({ loading: true });
     try {
-      const data = await getDailyProgress(childId, token);
-      set({ dailyProgress: data, error: null });
+      const res = await getDailyProgress(childId, token);
+      set({ dailyProgress: res, error: null });
     } catch (error) {
       set({
         error:
