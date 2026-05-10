@@ -27,7 +27,7 @@ const Home = () => {
   const router = useRouter();
   const language = useLanguageStore((s) => s.language);
 
-  // Real Data Stores
+
   const children = useChildrenStore((state) => state.children);
   const {
     analytics,
@@ -37,11 +37,11 @@ const Home = () => {
 
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string>("");
-  const [isPremium] = useState(false); // Toggle based on your logic
+  const [isPremium] = useState(false); 
 
   const showInlineLoader = !isLoaded;
 
-  // 1. Initialize Auth and first child
+  
   useEffect(() => {
     const init = async () => {
       const token = await getToken();
