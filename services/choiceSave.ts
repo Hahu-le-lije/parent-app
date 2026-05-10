@@ -1,6 +1,5 @@
-import { useChildrenStore } from "@/store/childrenStore"
 
-export const saveChoice= async (selectedSubjects:String[],childId:string)=>{
+export const saveChoice= async (selectedSubjects:string[],childId:string)=>{
     console.log("selectedSubjects: ",selectedSubjects)
 try{
     const res=await fetch('',{
@@ -9,7 +8,7 @@ try{
             "Content-Type":"application/json"
         },
         body:JSON.stringify({
-            allowedSubjects:selectedSubjects    
+            allowedSubjects:selectedSubjects 
         })
     })
 if(!res.ok){
