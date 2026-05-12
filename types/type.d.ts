@@ -125,3 +125,12 @@ export interface Analytics{
         algorithm_version:1
     }
 }
+
+export interface Subject{
+    game_type_id:number,
+    game_type_name:string,
+    status:boolean
+}
+export interface Subjects{
+    subjects:Subject[]
+}
