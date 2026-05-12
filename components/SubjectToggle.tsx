@@ -1,129 +1,129 @@
-import { useState,useEffect } from "react";
-import{
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    ScrollView
-} from 'react-native'
-import { Ionicons } from '@expo/vector-icons';
-import { SUBJECTS } from "@/constants";
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
+import { useSubjectStore } from "@/store/subjectStore";
+import { Subject } from "@/types/type";
 
-
-type SubjectId=typeof SUBJECTS[number]['id']
-
-interface SubjextToggle{
-    childId:string;
-    subjects:SubjectId[];
-    onSave:(selectedSubjescts:SubjectId[])=>Promise<void>;
+interface SubjectToggleProps {
+  childId: string;
 }
 
-const SubjectToggle:React.FC<SubjextToggle>=({
-    childId,
-    subjects=[],
-    onSave,
-})=>{
-    const [selected,setSelected]=useState<SubjectId[]>(subjects);
-    const [isSaving,setIsSaving]=useState(false);
-    const [saved,setSaved]=useState(false)
+const SubjectToggle: React.FC<SubjectToggleProps> = ({ childId: childId }: SubjectToggleProps) => {
+  const { subjects, loading, loadSubjects, updateSubjects } = useSubjectStore();
+  
+  const [localSubjects, setLocalSubjects] = useState<Subject[]>([]);
+  const [isSavedSuccessfully, setIsSavedSuccessfully] = useState(false);
 
-    useEffect(()=>{
-        setSelected(subjects)
-    },[subjects])
-    
-    const toggleSubject=(subjectId:SubjectId)=>{
-        if(selected.includes(subjectId)){
-            setSelected(selected.filter(id=>id!==subjectId))
-        }
-        else{
-            setSelected([...selected,subjectId])
-        }
+  useEffect(() => {
+    loadSubjects(childId);
+  }, [childId]);
+
+  useEffect(() => {
+    if (subjects) {
+      setLocalSubjects(subjects);
     }
-    const handleSave=async()=>{
-        setIsSaving(true)
-        setSaved(false)
-        try{
-            await onSave(selected)
-            setSaved(true)
-            setTimeout(()=>setSaved(false),2000);
-        }catch (error) {
-      console.error('Failed to save subjects:', error);
-      alert('Failed to save changes. Please try again.');
-    } finally {
-      setIsSaving(false);
+  }, [subjects]);
+
+  const hasChanges = useMemo(() => {
+    return JSON.stringify(localSubjects) !== JSON.stringify(subjects);
+  }, [localSubjects, subjects]);
+
+  const toggleSubject = (id: number) => {
+    setLocalSubjects(prev =>
+      prev.map(sub => 
+        sub.game_type_id === id ? { ...sub, status: !sub.status } : sub
+      )
+    );
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateSubjects(childId, { subjects: localSubjects });
+      setIsSavedSuccessfully(true);
+      setTimeout(() => setIsSavedSuccessfully(false), 3000);
+    } catch (error) {
+      console.error("Update failed", error);
     }
-    }
-return(
+  };
+
+  if (loading && !subjects) {
+    return <ActivityIndicator size="large" color="#0286FF" style={{ marginTop: 20 }} />;
+  }
+
+  return (
     <View style={styles.container}>
-        <Text style={styles.title}>Allowed Games</Text>
-        <Text style={styles.subtitle}>Choose what {childId? "this child": "the child"} can play</Text>
+      <Text style={styles.title}>Allowed Games</Text>
+      <Text style={styles.subtitle}>
+        Enable or disable subjects for this profile
+      </Text>
 
-        <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {SUBJECTS.map((subject)=>{
-            const isSelected=selected.includes(subject.id);
-            return(
-                <TouchableOpacity
-                key={subject.id}
-                style={[
-                    styles.subjectRow,
-                    isSelected && styles.subjectRowSelected
-                ]}
-                onPress={()=>toggleSubject(subject.id)}
-                activeOpacity={0.8}
-                >
-                    <View style={styles.iconContainer}>
-                    <Ionicons
-                    name={subject.icon}
-                    size={24}
-                    color={isSelected? '#0286FF':'#9AA0C3'}
-                    />
-                    </View>
-                    <View style={styles.labelContainer}>
-                        <Text style={[styles.label,isSelected && styles.labelSelected]}>
-                            {subject.label}
-                        </Text>
-                    </View>
-                    <View style={styles.checkbox}>
-                        <Ionicons
-                        name={isSelected ? 'checkmark-circle': 'ellipse-outline'}
-                        color={isSelected ? '#0286FF' : '#555'}
-                        />
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {localSubjects.map((subject) => {
+          const isSelected = subject.status;
+          return (
+            <TouchableOpacity
+              key={subject.game_type_id}
+              style={[
+                styles.subjectRow,
+                isSelected && styles.subjectRowSelected
+              ]}
+              onPress={() => toggleSubject(subject.game_type_id)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.labelContainer}>
+                <Text style={[styles.label, isSelected && styles.labelSelected]}>
+                  {subject.game_type_name}
+                </Text>
+              </View>
 
-                    </View>
-                </TouchableOpacity>
-            )
+              {/* Custom Styled Checkbox (No Icons) */}
+              <View style={[styles.checkboxBase, isSelected && styles.checkboxChecked]}>
+                {isSelected && <View style={styles.checkboxInner} />}
+              </View>
+            </TouchableOpacity>
+          );
         })}
-        </ScrollView>
+      </ScrollView>
+
+      {(hasChanges || isSavedSuccessfully) && (
         <TouchableOpacity
-        style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-        onPress={handleSave}
-        disabled={isSaving}
-      >
-        <Text style={styles.saveButtonText}>
-          {isSaving ? 'Saving...' : saved ? '✓ Changes Saved' : 'Save Changes'}
-        </Text>
-      </TouchableOpacity>
+          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={loading}
+        >
+          <Text style={styles.saveButtonText}>
+            {loading ? 'Saving...' : isSavedSuccessfully ? 'Changes Applied' : 'Save Changes'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
-)
-}
-export default SubjectToggle
+  );
+};
+
+export default SubjectToggle;
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#26264A',
     borderRadius: 22,
     padding: 20,
-    marginBottom: 20,
+    marginTop:50,
   },
   title: {
     fontSize: 18,
-    fontFamily: 'Poppins-Bold',
+    fontWeight: 'bold',
     color: '#fff',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 13,
     color: '#9AA0C3',
-    fontFamily: 'Poppins-Regular',
     marginBottom: 20,
   },
   scrollContainer: {
@@ -133,18 +133,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1F1F39',
-    padding: 16,
+    padding: 18,
     borderRadius: 16,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   subjectRowSelected: {
-    backgroundColor: 'rgba(2, 134, 255, 0.15)',
-    borderWidth: 1,
+    backgroundColor: 'rgba(2, 134, 255, 0.12)',
     borderColor: '#0286FF',
-  },
-  iconContainer: {
-    width: 40,
-    alignItems: 'center',
   },
   labelContainer: {
     flex: 1,
@@ -152,13 +149,30 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     color: '#BABBC9',
-    fontFamily: 'Poppins-Medium',
   },
   labelSelected: {
     color: '#fff',
+    fontWeight: '600',
   },
-  checkbox: {
-    padding: 4,
+  // Custom Checkbox Styles
+  checkboxBase: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#555',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    borderColor: '#0286FF',
+    backgroundColor: '#0286FF',
+  },
+  checkboxInner: {
+    width: 10,
+    height: 10,
+    backgroundColor: '#fff',
+    borderRadius: 2,
   },
   saveButton: {
     backgroundColor: '#0286FF',
@@ -168,11 +182,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   saveButtonDisabled: {
-    backgroundColor: '#555',
+    backgroundColor: '#444',
   },
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontFamily: 'Poppins-Bold',
+    fontWeight: 'bold',
   },
 });

@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import SubjectToggle from "@/components/SubjectToggle";
 
 if (
   Platform.OS === "android" &&
@@ -74,7 +75,7 @@ const ChildDetail = () => {
       >
         <ChildProfile {...child!} />
         <ChildProgress childId={child!.id} token={tok} />
-       
+       <SubjectToggle childId={child!.id} />
       </ScrollView>
     </SafeAreaView>
   );
