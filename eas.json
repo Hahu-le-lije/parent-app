@@ -12,7 +12,11 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env":{
+        "EXPO_PUBLIC_API":"",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY":"pk_test_ZW5oYW5jZWQtZmxhbWluZ28tMTAuY2xlcmsuYWNjb3VudHMuZGV2JA"
+      }
     }
   },
   "submit": {

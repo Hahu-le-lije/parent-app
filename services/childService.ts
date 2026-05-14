@@ -2,7 +2,7 @@ import { Child } from "@/types/type";
 // import { getToken } from "@clerk/clerk-expo";
 
 
-// const API = process.env.API_URL;
+// const API = process.env.EXPO_PUBLIC_API;
 
 // interface NewChild {
 //   firstName: string;

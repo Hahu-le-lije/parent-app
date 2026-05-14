@@ -1,7 +1,8 @@
 // import { Subject,Subjects } from "@/types/type";
+// const API = process.env.EXPO_PUBLIC_API;
 // export const getSubjects=async(child_id:string):Promise<Subject[]>=>{
 //     try{
-//         const res=await fetch('',{
+//         const res=await fetch(`${API},{
 //             method:"GET",
 //             headers:{
 //                 "Content-Type":"application/json"
@@ -20,7 +21,7 @@
 // }
 // export const updateSubjects=async(child_id:string,subjects:Subjects):Promise<void>=>{
 //     try{
-//         await fetch('',{
+//         await fetch(`${API}`,{
 //             method:"PUT",
 //             headers:{
 //                 "Content-Type":"application/json"
