@@ -122,6 +122,16 @@ const Sub = () => {
   };
   const showInlineLoader = loading && subscriptions.length > 0;
 
+  const translatePlanName = (name?: string) => {
+    if (!name) return "";
+    return t(language, String(name).toLowerCase());
+  };
+
+  const translatePlanDesc = (name?: string, fallback?: string) => {
+    if (!name) return fallback ?? "";
+    return t(language, `${String(name).toLowerCase()}_desc`) || fallback || "";
+  };
+
   const calculatePrice = () => {
     if (!selectedPlan) return 0;
     const base = duration === "Monthly" ? selectedPlan.priceMonthly : selectedPlan.priceYearly;
@@ -210,7 +220,7 @@ const Sub = () => {
                     setShowInventoryModal(true);
                   }}
                 >
-                  <Text style={styles.invName}>{item.name}</Text>
+                  <Text style={styles.invName}>{translatePlanName(item.name)}</Text>
                   <Text style={styles.invType}>
                     {item.type === "Yearly" ? strings.yearly : strings.monthly}
                   </Text>
@@ -299,8 +309,8 @@ const Sub = () => {
             >
               <LinearGradient colors={plan.colors} style={styles.planGradientLarge} start={{x:0, y:0}} end={{x:1, y:1}}>
                 <View style={{flex: 1}}>
-                  <Text style={styles.planNameLarge}>{plan.name}</Text>
-                  <Text style={styles.planDescLarge}>{plan.desc}</Text>
+                  <Text style={styles.planNameLarge}>{translatePlanName(plan.name)}</Text>
+                  <Text style={styles.planDescLarge}>{translatePlanDesc(plan.name, plan.desc)}</Text>
                 </View>
                 <View style={{alignItems: 'flex-end'}}>
                   <Text style={styles.planPriceLarge}>ETB {plan.priceMonthly}</Text>
@@ -354,7 +364,7 @@ const Sub = () => {
         <View style={styles.infoOverlay}>
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>{strings.subscription_info}</Text>
-            <DetailRow label={`${strings.plan_name}`} value={selectedInventoryItem?.name} />
+            <DetailRow label={`${strings.plan_name}`} value={translatePlanName(selectedInventoryItem?.name)} />
             <DetailRow
               label={`${strings.billing}`}
               value={

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useLanguageStore } from '@/store/languageStore';
+import { t } from '@/lib/i18n';
 import {
   View,
   Text,
@@ -24,32 +26,34 @@ type FaqItem = {
   answer: string;
 };
 
-const FAQS: FaqItem[] = [
+const defaultFaqs = (language: string): FaqItem[] => [
   {
     id: '1',
-    question: 'How do I add a child?',
-    answer: 'Go to the Children tab and tap on "Add a Child". Fill in the basic information such as name and age, then save the profile.',
+    question: t(language, 'help_faq_1_q'),
+    answer: t(language, 'help_faq_1_a'),
   },
   {
     id: '2',
-    question: 'How does progress tracking work?',
-    answer: 'We track progress across key skills like reading, listening, speaking and writing. Every activity contributes to their growth.',
+    question: t(language, 'help_faq_2_q'),
+    answer: t(language, 'help_faq_2_a'),
   },
   {
     id: '3',
-    question: 'How do subscriptions work?',
-    answer: 'Subscriptions unlock premium content. You can manage billing and see subscription status directly from your dashboard.',
+    question: t(language, 'help_faq_3_q'),
+    answer: t(language, 'help_faq_3_a'),
   },
   {
     id: '4',
-    question: 'I found a bug or error.',
-    answer: 'Please send a description and screenshots to support@hahu.app so our team can investigate immediately.',
+    question: t(language, 'help_faq_4_q'),
+    answer: t(language, 'help_faq_4_a'),
   },
 ];
 
 const Help = () => {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
+  const language = useLanguageStore((s) => s.language);
+  const FAQS = defaultFaqs(language);
 
   const toggleItem = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -96,9 +100,9 @@ const Help = () => {
         </TouchableOpacity>
         
         <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>Help Center</Text>
+          <Text style={styles.headerTitle}>{t(language, 'help_title')}</Text>
           <Text style={styles.headerSubtitle}>
-            Find quick answers or reach out for support
+            {t(language, 'help_subtitle')}
           </Text>
         </View>
       </View>
@@ -112,26 +116,26 @@ const Help = () => {
         ListHeaderComponent={
           <>
             <View style={styles.infoCard}>
-              <Text style={styles.infoTitle}>Getting Started</Text>
+              <Text style={styles.infoTitle}>{t(language, 'help_getting_started')}</Text>
               <Text style={styles.infoBody}>
-                • Create your account and sign in.{'\n'}
-                • Add children from the Children tab.{'\n'}
-                • Explore progress on your dashboard.{'\n'}
-                • Upgrade to premium for full access.
+                • {t(language, 'help_faq_1_q')}{'\n'}
+                • {t(language, 'help_faq_2_q')}{'\n'}
+                • {t(language, 'help_faq_3_q')}{'\n'}
+                • {t(language, 'help_faq_4_q')}
               </Text>
             </View>
-            <Text style={styles.sectionHeader}>Frequently Asked Questions</Text>
+            <Text style={styles.sectionHeader}>{t(language, 'section_faqs') || 'Frequently Asked Questions'}</Text>
           </>
         }
         ListFooterComponent={
           <View style={styles.contactCard}>
-            <Text style={styles.contactTitle}>Still need help?</Text>
+            <Text style={styles.contactTitle}>{t(language, 'help_still_need_help') || 'Still need help?'}</Text>
             <Text style={styles.contactBody}>
-              Email our support team and we'll get back to you as soon as possible.
+              {t(language, 'help_contact_body') || "Email our support team and we'll get back to you as soon as possible."}
             </Text>
             <TouchableOpacity style={styles.emailRow}>
                <Text style={styles.contactBody}>
-                 Email: <Text style={styles.contactHighlight}>support@hahu.app</Text>
+                 {t(language, 'help_contact_label') || 'Email:'} <Text style={styles.contactHighlight}>{t(language, 'about_support_email')}</Text>
                </Text>
             </TouchableOpacity>
           </View>

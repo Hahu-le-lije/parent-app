@@ -1,9 +1,12 @@
 import { Stack, useRouter } from 'expo-router';
 import { TouchableOpacity, View, Image, StyleSheet } from 'react-native';
 import { icons } from '@/constants';
+import { useLanguageStore } from '@/store/languageStore';
+import { t } from '@/lib/i18n';
 
 export default function ProfileLayout() {
   const router = useRouter();
+  const language = useLanguageStore((s) => s.language);
 
   const BackButton = () => (
     <TouchableOpacity
@@ -35,10 +38,9 @@ export default function ProfileLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
         name="edit-account"
-        options={{ title: 'Edit Account' ,headerShown:false}}
-        
+        options={{ title: t(language, 'profile_edit_account'), headerShown:false }}
       />
-      <Stack.Screen name="settings" options={{ title: 'Settings',headerShown:false }} />
+      <Stack.Screen name="settings" options={{ title: t(language, 'profile_settings'), headerShown:false }} />
       <Stack.Screen
         name="help-center"
         options={{ headerShown: false }}

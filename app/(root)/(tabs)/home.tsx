@@ -70,6 +70,13 @@ const Home = () => {
       hello: t(language, "home_hello", { name }),
       manageProgress: t(language, "home_manage_progress"),
       yourChildren: t(language, "home_your_children"),
+      manage: t(language, "home_manage"),
+      currentStatus: t(language, "home_current_status"),
+      overallMastery: t(language, "home_overall_mastery"),
+      playTime: t(language, "home_play_time"),
+      correct: t(language, "home_correct"),
+      aiRecommendation: t(language, "home_ai_recommendation"),
+      notEnoughData: t(language, "home_not_enough_data"),
       progressTitle: t(language, "home_progress_title", {
         name: selectedChild?.firstname || "",
       }),
@@ -121,9 +128,9 @@ const Home = () => {
       >
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionLabel}>Your Explorers</Text>
+            <Text style={styles.sectionLabel}>{strings.yourChildren}</Text>
             <TouchableOpacity onPress={() => router.push("/children")}>
-              <Text style={styles.seeAllText}>Manage</Text>
+              <Text style={styles.seeAllText}>{strings.manage}</Text>
             </TouchableOpacity>
           </View>
 
@@ -167,7 +174,7 @@ const Home = () => {
             style={styles.heroCard}
           >
             <View style={styles.cardInfo}>
-              <Text style={styles.cardTag}>CURRENT STATUS</Text>
+              <Text style={styles.cardTag}>{strings.currentStatus}</Text>
               <Text style={styles.cardTitle}>
                 {selectedChild?.firstname}&apos;s Mastery
               </Text>
@@ -181,7 +188,7 @@ const Home = () => {
                       {analytics?.weekly_summary?.mastery_score ?? 0}%
                     </Text>
                   )}
-                  <Text style={styles.progressSub}>Overall Mastery</Text>
+                  <Text style={styles.progressSub}>{strings.overallMastery}</Text>
                 </View>
                 <Ionicons
                   name="sparkles"
@@ -212,14 +219,14 @@ const Home = () => {
               <Text style={styles.statValText}>
                 {toHours(analytics?.weekly_summary?.time_spent)}h
               </Text>
-              <Text style={styles.statLabelText}>Play Time</Text>
+              <Text style={styles.statLabelText}>{strings.playTime}</Text>
             </View>
             <View style={styles.statTile}>
               <Ionicons name="trophy-outline" size={20} color="#F59E0B" />
               <Text style={styles.statValText}>
                 {analytics?.weekly_summary?.correct_answers ?? 0}
               </Text>
-              <Text style={styles.statLabelText}>Correct</Text>
+              <Text style={styles.statLabelText}>{strings.correct}</Text>
             </View>
           </View>
         </View>
@@ -228,13 +235,13 @@ const Home = () => {
           <View style={styles.aiInsightContainer}>
             <View style={styles.aiInsightHeader}>
               <Ionicons name="bulb" size={18} color="#10B981" />
-              <Text style={styles.aiInsightTitle}>AI Recommendation</Text>
+              <Text style={styles.aiInsightTitle}>{strings.aiRecommendation}</Text>
             </View>
 
             {isPremium ? (
               <Text style={styles.insightText}>
                 {analytics?.daily_summary?.generated_explanation ||
-                  "Not enough data yet. Keep playing!"}
+                  strings.notEnoughData}
               </Text>
             ) : (
               <TouchableOpacity

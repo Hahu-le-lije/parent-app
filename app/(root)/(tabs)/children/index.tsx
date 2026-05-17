@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Child from '@/components/Child';
@@ -9,11 +9,14 @@ import InlineSkeleton from '@/components/InlineSkeleton';
 import { useChildrenStore } from '@/store/childrenStore';
 import Modal from 'react-native-modal'
 import AddChild from '@/components/AddChild';
+import { useLanguageStore } from '@/store/languageStore';
+import { t } from '@/lib/i18n';
 
 const Children = () => {
   const [filter, setFilter] = useState("All"); 
   const [showAddChild, setShowAddChild] = useState(false);
   const [search,setSearch]=useState('')
+  const language = useLanguageStore((state) => state.language);
 
   
   const children = useChildrenStore((state) => state.children);
@@ -42,20 +45,33 @@ const filteredData = children.filter(child => {
 
 const showInlineLoader = loading && children.length > 0;
 
+const strings = useMemo(() => ({
+  headerTitle: t(language, 'children_headerTitle'),
+  subheader: t(language, 'children_subheader'),
+  searchPlaceholder: t(language, 'children_search_placeholder'),
+  addTitle: t(language, 'children_add_title'),
+  addSub: t(language, 'children_add_sub'),
+  loadingTitle: t(language, 'children_loading_title'),
+  loadingSub: t(language, 'children_loading_sub'),
+  filterAll: t(language, 'children_filter_all'),
+  filterPaid: t(language, 'children_filter_paid'),
+  filterUnpaid: t(language, 'children_filter_unpaid'),
+}), [language]);
+
 
 
   return (
     <SafeAreaView style={styles.container}>
      
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Your children</Text>
-        <Text style={styles.subheader}>Manage profiles & progress</Text>
+        <Text style={styles.headerTitle}>{strings.headerTitle}</Text>
+        <Text style={styles.subheader}>{strings.subheader}</Text>
       </View>
 
     
       <View style={styles.searchContainer}>
         <TextInput
-          placeholder='Search Child'
+          placeholder={strings.searchPlaceholder}
           placeholderTextColor='#999'
           value={search}
           onChangeText={setSearch}
@@ -77,9 +93,9 @@ const showInlineLoader = loading && children.length > 0;
             style={styles.addChildGradient}
           >
             <View style={{ flex: 1 }}>
-              <Text style={styles.addChildTitle}>Add a Child</Text>
+              <Text style={styles.addChildTitle}>{strings.addTitle}</Text>
               <Text style={styles.addChildSub} numberOfLines={1}>
-                Create profile & track progress
+                {strings.addSub}
               </Text>
             </View>
             <Image
@@ -91,14 +107,18 @@ const showInlineLoader = loading && children.length > 0;
       </View>
 
       <View style={styles.filterRow}>
-        {["All", "Paid", "Unpaid"].map((item) => (
+        {[
+          { value: 'All', label: strings.filterAll },
+          { value: 'Paid', label: strings.filterPaid },
+          { value: 'Unpaid', label: strings.filterUnpaid },
+        ].map((item) => (
           <TouchableOpacity
-            key={item}
-            style={[styles.filterButton, filter === item && styles.filterButtonSelected]}
-            onPress={() => setFilter(item)}
+            key={item.value}
+            style={[styles.filterButton, filter === item.value && styles.filterButtonSelected]}
+            onPress={() => setFilter(item.value)}
           >
-            <Text style={[styles.filterText, filter === item && styles.filterTextSelected]}>
-              {item}
+            <Text style={[styles.filterText, filter === item.value && styles.filterTextSelected]}>
+              {item.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -106,7 +126,7 @@ const showInlineLoader = loading && children.length > 0;
 
       
       {loading && !children.length ? (
-        <AppStateScreen title="Loading children" subtitle="Fetching child profiles..." />
+        <AppStateScreen title={strings.loadingTitle} subtitle={strings.loadingSub} />
       ) : (
         <>
           {showInlineLoader && (

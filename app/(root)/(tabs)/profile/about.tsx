@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
+import { useLanguageStore } from '@/store/languageStore';
+import { t } from '@/lib/i18n';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
@@ -8,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const About = () => {
   const router = useRouter();
+  const language = useLanguageStore((s) => s.language);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -22,9 +25,9 @@ const About = () => {
         </TouchableOpacity>
         
         <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>About Hahu</Text>
+          <Text style={styles.headerTitle}>{t(language, 'about_title')}</Text>
           <Text style={styles.headerSubtitle}>
-            Learn more about the app and our mission
+            {t(language, 'about_subtitle')}
           </Text>
         </View>
       </View>
@@ -38,26 +41,22 @@ const About = () => {
         <View style={styles.sectionCard}>
           <View style={styles.iconHeadingRow}>
              <Ionicons name="rocket-outline" size={20} color="#0286FF" />
-             <Text style={styles.sectionTitle}>Our Mission</Text>
+             <Text style={styles.sectionTitle}>{t(language, 'about_our_mission')}</Text>
           </View>
-          <Text style={styles.sectionBody}>
-            Hahu is built to make learning fun, engaging, and stress‑free for both children and
-            parents. We combine playful experiences with meaningful progress tracking so you can see
-            how your child is growing every day.
-          </Text>
+          <Text style={styles.sectionBody}>{t(language, 'about_our_mission_body')}</Text>
         </View>
 
         
         <View style={styles.sectionCard}>
           <View style={styles.iconHeadingRow}>
              <Ionicons name="list-outline" size={20} color="#0286FF" />
-             <Text style={styles.sectionTitle}>What You Can Do</Text>
+             <Text style={styles.sectionTitle}>{t(language, 'about_what_you_can_do')}</Text>
           </View>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Create and manage child profiles</Text>
-            <Text style={styles.bulletItem}>• Track skills like reading and speaking</Text>
-            <Text style={styles.bulletItem}>• Unlock premium AI recommendations</Text>
-            <Text style={styles.bulletItem}>• Monitor daily learning streaks</Text>
+            <Text style={styles.bulletItem}>• {t(language, 'about_bullet_create')}</Text>
+            <Text style={styles.bulletItem}>• {t(language, 'about_bullet_track')}</Text>
+            <Text style={styles.bulletItem}>• {t(language, 'about_bullet_unlock')}</Text>
+            <Text style={styles.bulletItem}>• {t(language, 'about_bullet_monitor')}</Text>
           </View>
         </View>
 
@@ -65,35 +64,31 @@ const About = () => {
         <View style={styles.sectionCard}>
           <View style={styles.iconHeadingRow}>
              <Ionicons name="shield-checkmark-outline" size={20} color="#0286FF" />
-             <Text style={styles.sectionTitle}>Our Values</Text>
+             <Text style={styles.sectionTitle}>{t(language, 'about_our_values')}</Text>
           </View>
-          <Text style={styles.sectionBody}>
-            We care about building a safe, inclusive, and motivating learning environment. Your
-            data is handled responsibly, and every feature is designed to support positive learning
-            habits.
-          </Text>
+          <Text style={styles.sectionBody}>{t(language, 'about_values_body')}</Text>
         </View>
 
         
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Need Support?</Text>
+          <Text style={styles.infoTitle}>{t(language, 'about_need_support')}</Text>
           <Text style={styles.infoBody}>
-            If something doesn't feel right or you have ideas to make Hahu better, we'd love to hear from you.
+            {t(language, 'about_need_support_body')}
           </Text>
           <TouchableOpacity 
             style={styles.emailContainer}
             onPress={() => {/* Add Linking.openURL('mailto:support@hahu.app') */}}
           >
             <Text style={styles.infoBody}>
-              Contact us at: <Text style={styles.highlight}>support@hahu.app</Text>
+              {t(language, 'about_contact')} <Text style={styles.highlight}>{t(language, 'about_support_email')}</Text>
             </Text>
           </TouchableOpacity>
         </View>
 
       
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Hahu App · v1.0.0</Text>
-          <Text style={styles.footerTextMuted}>Made with care for curious minds.</Text>
+          <Text style={styles.footerText}>{t(language, 'about_footer_text')}</Text>
+          <Text style={styles.footerTextMuted}>{t(language, 'about_footer_muted')}</Text>
         </View>
         
         

@@ -4,6 +4,13 @@ export const home_am = {
 
   home_your_children: "ልጆችዎ",
   home_total: "{count} ጠቅላላ",
+  home_manage: "አስተዳድር",
+  home_current_status: "የአሁኑ ሁኔታ",
+  home_overall_mastery: "አጠቃላይ ብቃት",
+  home_play_time: "የመጫወቻ ሰዓት",
+  home_correct: "ትክክል",
+  home_ai_recommendation: "AI ምክር",
+  home_not_enough_data: "ገና በቂ መረጃ የለም። መጫወት ቀጥሉ!",
 
   home_progress_title: "የ{name} እድገት",
   home_badges: "ባጅዎች",

@@ -2,7 +2,9 @@ import {
   View, Text, StyleSheet, Image, TouchableOpacity, 
   Alert, ActivityIndicator, ScrollView 
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useLanguageStore } from '@/store/languageStore';
+import { t } from '@/lib/i18n';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons } from '@/constants';
 import { useClerk, useUser } from '@clerk/clerk-expo';
@@ -22,14 +24,29 @@ const Profile = () => {
       await signOut();
       router.replace('/(auth)/sign-in');
     } catch (error) {
-      Alert.alert('Error', 'Failed to log out.');
+      Alert.alert(t(language, 'profile_failed_logout') || 'Error', t(language, 'profile_failed_logout'));
     }
   };
+
+  const language = useLanguageStore((s) => s.language);
+
+  const strings = useMemo(() => ({
+    headerTitle: t(language, 'profile_title'),
+    subheader: t(language, 'profile_subtitle'),
+    editAccount: t(language, 'profile_edit_account'),
+    settings: t(language, 'profile_settings'),
+    helpCenter: t(language, 'profile_help_center'),
+    privacyPolicy: t(language, 'profile_privacy_policy'),
+    logout: t(language, 'profile_logout'),
+    uploadSuccess: t(language, 'profile_upload_success'),
+    uploadFailed: t(language, 'profile_upload_failed'),
+    permissionDenied: t(language, 'profile_permission_denied'),
+  }), [language]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Gallery access is required.');
+      Alert.alert(strings.permissionDenied || 'Permission Denied', strings.galleryPermission || 'Gallery access is required.');
       return;
     }
 
@@ -51,10 +68,10 @@ const Profile = () => {
       const base64DataUrl = `data:${asset.mimeType || 'image/jpeg'};base64,${asset.base64}`;
       await user?.setProfileImage({ file: base64DataUrl });
       await user?.reload();
-      Alert.alert('Success', 'Profile picture updated!');
+      Alert.alert(strings.uploadSuccess || 'Success', strings.uploadSuccessMessage || 'Profile picture updated!');
       setPreviewUri(null);
     } catch (err: any) {
-      Alert.alert('Upload Failed', 'Image may be too large.');
+      Alert.alert(strings.uploadFailed || 'Upload Failed', strings.uploadFailedMessage || 'Image may be too large.');
       setPreviewUri(null);
     } finally {
       setUploading(false);
@@ -72,8 +89,8 @@ const Profile = () => {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Account</Text>
-          <Text style={styles.subheader}>Manage your personal info</Text>
+          <Text style={styles.headerTitle}>{strings.headerTitle}</Text>
+          <Text style={styles.subheader}>{strings.subheader}</Text>
         </View>
 
         <View style={styles.profileSection}>
@@ -118,10 +135,10 @@ const Profile = () => {
             </>
           ) : (
             <>
-              <MenuItem title="Edit Account" onPress={() => {router.push('/(root)/(tabs)/profile/edit-account')}} />
-              <MenuItem title="Settings" onPress={() => router.push('/(root)/(tabs)/profile/settings')} />
-              <MenuItem title="Help Center" onPress={() => {router.push('/(root)/(tabs)/profile/help-center')}} />
-              <MenuItem title="Privacy Policy" onPress={() => {router.push('/(root)/(tabs)/profile/about')}} isLast />
+              <MenuItem title={strings.editAccount} onPress={() => {router.push('/(root)/(tabs)/profile/edit-account')}} />
+              <MenuItem title={strings.settings} onPress={() => router.push('/(root)/(tabs)/profile/settings')} />
+              <MenuItem title={strings.helpCenter} onPress={() => {router.push('/(root)/(tabs)/profile/help-center')}} />
+              <MenuItem title={strings.privacyPolicy} onPress={() => {router.push('/(root)/(tabs)/profile/about')}} isLast />
             </>
           )}
         </View>
@@ -134,7 +151,7 @@ const Profile = () => {
             onPress={handleLogout}
             disabled={uploading}
           >
-            <Text style={styles.logoutText}>Log Out</Text>
+              <Text style={styles.logoutText}>{strings.logout}</Text>
           </TouchableOpacity>
         )}
         

@@ -10,6 +10,8 @@ import {
   Platform,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import { useLanguageStore } from '@/store/languageStore';
+import { t } from '@/lib/i18n';
 import { useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +22,24 @@ import { LinearGradient } from 'expo-linear-gradient';
 const EditAccount = () => {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const language = useLanguageStore((s) => s.language);
+  const strings = {
+    title: t(language, 'edit_title'),
+    subtitle: t(language, 'edit_subtitle'),
+    firstNameLabel: t(language, 'label_first_name'),
+    firstNamePlaceholder: t(language, 'placeholder_first_name'),
+    lastNameLabel: t(language, 'label_last_name'),
+    lastNamePlaceholder: t(language, 'placeholder_last_name'),
+    sectionSecurity: t(language, 'section_security'),
+    currentPasswordLabel: t(language, 'label_current_password'),
+    currentPasswordPlaceholder: t(language, 'placeholder_current_password'),
+    newPasswordLabel: t(language, 'label_new_password'),
+    newPasswordPlaceholder: t(language, 'placeholder_new_password'),
+    confirmPasswordLabel: t(language, 'label_confirm_new_password'),
+    confirmPasswordPlaceholder: t(language, 'placeholder_confirm_new_password'),
+    saveChanges: t(language, 'save_changes'),
+    cancel: t(language, 'cancel'),
+  };
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -42,22 +62,22 @@ const EditAccount = () => {
 
     // Validation
     if (!firstName.trim()) {
-      setError('First name is required');
+      setError(t(language, 'validation_first_name_required'));
       return;
     }
 
     let passwordUpdate = {};
     if (newPassword || currentPassword) {
       if (!currentPassword) {
-        setError('Current password is required to set a new one');
+        setError(t(language, 'validation_current_password_required'));
         return;
       }
       if (newPassword !== confirmPassword) {
-        setError('New passwords do not match');
+        setError(t(language, 'validation_password_mismatch'));
         return;
       }
       if (newPassword.length < 8) {
-        setError('New password must be at least 8 characters');
+        setError(t(language, 'validation_password_length'));
         return;
       }
       passwordUpdate = {
@@ -75,14 +95,14 @@ const EditAccount = () => {
         ...passwordUpdate,
       });
 
-      Alert.alert('Success', 'Account updated successfully!', [
-        { text: 'OK', onPress: () => router.back() },
+      Alert.alert(t(language, 'save_success') || 'Success', t(language, 'save_success'), [
+        { text: t(language, 'save_ok') || 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
       console.error('Update error:', err);
-      let msg = 'Failed to update account. Please try again.';
+      let msg = t(language, 'save_failed') || 'Failed to update account. Please try again.';
       if (err?.errors?.[0]?.code === 'form_password_incorrect') {
-        msg = 'Current password is incorrect';
+        msg = t(language, 'current_password_incorrect') || 'Current password is incorrect';
       } else if (err?.errors?.[0]?.message) {
         msg = err.errors[0].message;
       }
@@ -116,23 +136,23 @@ const EditAccount = () => {
             >
               <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
-            <Text style={styles.title}>Edit Account</Text>
-            <Text style={styles.subtitle}>Update your personal information</Text>
+            <Text style={styles.title}>{strings.title}</Text>
+            <Text style={styles.subtitle}>{strings.subtitle}</Text>
           </View>
 
           {/* NAME SECTION */}
           <View style={styles.card}>
             <InputField
-              label="First Name"
-              placeholder="Enter first name"
+              label={strings.firstNameLabel}
+              placeholder={strings.firstNamePlaceholder}
               value={firstName}
               onChangeText={setFirstName}
               autoCapitalize="words"
             />
             <View style={{ height: 15 }} />
             <InputField
-              label="Last Name"
-              placeholder="Enter last name"
+              label={strings.lastNameLabel}
+              placeholder={strings.lastNamePlaceholder}
               value={lastName}
               onChangeText={setLastName}
               autoCapitalize="words"
@@ -140,27 +160,27 @@ const EditAccount = () => {
           </View>
 
           {/* PASSWORD SECTION */}
-          <Text style={styles.sectionTitle}>Security</Text>
+          <Text style={styles.sectionTitle}>{strings.sectionSecurity}</Text>
           <View style={styles.card}>
             <InputField
-              label="Current Password"
-              placeholder="Required to change password"
+              label={strings.currentPasswordLabel}
+              placeholder={strings.currentPasswordPlaceholder}
               value={currentPassword}
               onChangeText={setCurrentPassword}
               secureTextEntry
             />
             <View style={{ height: 15 }} />
             <InputField
-              label="New Password"
-              placeholder="Min 8 characters"
+              label={strings.newPasswordLabel}
+              placeholder={strings.newPasswordPlaceholder}
               value={newPassword}
               onChangeText={setNewPassword}
               secureTextEntry
             />
             <View style={{ height: 15 }} />
             <InputField
-              label="Confirm New Password"
-              placeholder="Repeat new password"
+              label={strings.confirmPasswordLabel}
+              placeholder={strings.confirmPasswordPlaceholder}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
@@ -183,7 +203,7 @@ const EditAccount = () => {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.saveButtonText}>Save Changes</Text>
+                <Text style={styles.saveButtonText}>{strings.saveChanges}</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>

@@ -4,6 +4,13 @@ export const home_en = {
 
   home_your_children: "Your Children",
   home_total: "{count} Total",
+  home_manage: "Manage",
+  home_current_status: "Current Status",
+  home_overall_mastery: "Overall Mastery",
+  home_play_time: "Play Time",
+  home_correct: "Correct",
+  home_ai_recommendation: "AI Recommendation",
+  home_not_enough_data: "Not enough data yet. Keep playing!",
 
   home_progress_title: "{name}'s Progress",
   home_badges: "Badges",
