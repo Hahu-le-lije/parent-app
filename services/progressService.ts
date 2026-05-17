@@ -1,6 +1,6 @@
 // import { Analytics, DailyProgress, WeeklyProgress } from "@/types/type";
 
-// const Base_URL = process.env.REACT_APP_BASE_URL;
+// const Base_URL = process.env.EXPO_PUBLIC_API;
 // export const getDailyProgress = async (
 //   token: string,
 //   childId: string,

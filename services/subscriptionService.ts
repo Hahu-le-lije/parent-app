@@ -1,7 +1,7 @@
 import { Subscription } from "@/types/type";
 import { Clerk } from "@clerk/clerk-expo";
 
-const BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+const BASE_URL = (process.env.EXPO_PUBLIC_API ?? "").replace(/\/$/, "");
 
 type ApiResponse<T> = {
   status?: "success" | "failed";
