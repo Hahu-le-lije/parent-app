@@ -55,11 +55,18 @@ export const icons = {
   target,
   to,
 };
- export const LOCAL_AVATARS = [
-    { id: '1', source: require('../assets/images/hahu_logo.png') },
-    { id: '2', source: require('../assets/images/on2.png') },
-    { id: '3', source: require('../assets/images/on3.png') },
-  ];
+export const LOCAL_AVATARS = [
+  { id: "child-avatar-1", source: require("../assets/images/avatars/child-avatar-01.png") },
+  { id: "child-avatar-2", source: require("../assets/images/avatars/child-avatar-02.png") },
+  { id: "child-avatar-3", source: require("../assets/images/avatars/child-avatar-03.png") },
+  { id: "child-avatar-4", source: require("../assets/images/avatars/child-avatar-04.png") },
+  { id: "child-avatar-5", source: require("../assets/images/avatars/child-avatar-05.png") },
+  { id: "child-avatar-6", source: require("../assets/images/avatars/child-avatar-06.png") },
+  { id: "child-avatar-7", source: require("../assets/images/avatars/child-avatar-07.png") },
+  { id: "child-avatar-8", source: require("../assets/images/avatars/child-avatar-08.png") },
+  { id: "child-avatar-9", source: require("../assets/images/avatars/child-avatar-09.png") },
+  { id: "child-avatar-10", source: require("../assets/images/avatars/child-avatar-10.png") },
+];
 export const images={
   Logo,
   On3,
