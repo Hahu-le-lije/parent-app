@@ -20,14 +20,27 @@ import ChapaPaymentModal from "@/components/ChapaPayementModal";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 import AppStateScreen from "@/components/AppStateScreen";
 import InlineSkeleton from "@/components/InlineSkeleton";
+import StateMessage from "@/components/StateMessage";
 import { t } from "@/lib/i18n";
 import { useLanguageStore } from "@/store/languageStore";
 import { useAuth } from "@clerk/clerk-expo";
 
 const Sub = () => {
-  const { children } = useChildrenStore();
+  const {
+    children,
+    loading: childrenLoading,
+    error: childrenError,
+    loadChildren,
+  } = useChildrenStore();
   const language = useLanguageStore((s) => s.language);
-  const { buySubscription, loadSubscriptions, subscriptions, assignSubscription, loading } = useSubscriptionStore();
+  const {
+    buySubscription,
+    loadSubscriptions,
+    subscriptions,
+    assignSubscription,
+    loading,
+    error: subscriptionError,
+  } = useSubscriptionStore();
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null>(null);
 
@@ -55,9 +68,12 @@ const Sub = () => {
   useEffect(() => {
     if(token){
       loadSubscriptions(token);
+      if (!children.length && !childrenLoading && !childrenError) {
+        loadChildren(token);
+      }
     }
 
-  }, [loadSubscriptions, token]);
+  }, [children.length, childrenError, childrenLoading, loadChildren, loadSubscriptions, token]);
  const strings = useMemo(() => {
   return {
     
@@ -135,6 +151,16 @@ const Sub = () => {
     return `${String(selectedPlan.name).toLowerCase()}_${duration.toLowerCase()}`;
   };
   const showInlineLoader = loading && subscriptions.length > 0;
+  const retrySubscriptions = () => {
+    if (token) {
+      void loadSubscriptions(token);
+    }
+  };
+  const retryChildren = () => {
+    if (token) {
+      void loadChildren(token);
+    }
+  };
 
   const translatePlanName = (name?: string) => {
     if (!name) return "";
@@ -227,7 +253,18 @@ const Sub = () => {
             </ScrollView>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {inventory.map((item) => (
+              {subscriptionError && !inventory.length ? (
+                <View style={styles.wideState}>
+                  <StateMessage
+                    type="error"
+                    title="Subscriptions could not load"
+                    message={subscriptionError}
+                    actionLabel="Try again"
+                    onAction={retrySubscriptions}
+                  />
+                </View>
+              ) : inventory.length ? (
+                inventory.map((item) => (
                 <TouchableOpacity 
                   key={item.id} 
                   style={styles.inventoryCard}
@@ -242,7 +279,15 @@ const Sub = () => {
                   </Text>
                   <View style={styles.invBadge}><Text style={styles.invBadgeText}>{strings.ready}</Text></View>
                 </TouchableOpacity>
-              ))}
+                ))
+              ) : (
+                <View style={styles.wideState}>
+                  <StateMessage
+                    title="No purchased plans yet"
+                    message="Plans you buy will appear here when they are ready to assign."
+                  />
+                </View>
+              )}
             </ScrollView>
           )}
         </View>
@@ -273,7 +318,24 @@ const Sub = () => {
                   </View>
                 </View>
               ))
-            : children.map((child) => (
+            : childrenError && !children.length ? (
+                <StateMessage
+                  type="error"
+                  title="Children could not load"
+                  message={childrenError}
+                  actionLabel="Try again"
+                  onAction={retryChildren}
+                />
+              )
+            : childrenLoading && !children.length ? (
+                <StateMessage
+                  type="loading"
+                  title="Loading children"
+                  message="Getting profiles ready for subscription assignment."
+                />
+              )
+            : children.length ? (
+              children.map((child) => (
                 <View key={child.id} style={styles.childCardLarge}>
                   <View style={styles.childInfoRow}>
                     <Image source={{ uri: child.avatar }} style={styles.childAvatarLarge} />
@@ -311,7 +373,13 @@ const Sub = () => {
                     </View>
                   )}
                 </View>
-              ))}
+              ))
+            ) : (
+              <StateMessage
+                title="No children to assign"
+                message="Add a child profile first, then come back to assign a plan."
+              />
+            )}
         </View>
 
 
@@ -492,4 +560,5 @@ const styles = StyleSheet.create({
   closeInfoBtnText: { color: '#fff', fontFamily: 'Poppins-Bold', fontSize: 16 },
   mainBuyBtn: { backgroundColor: "#3B82F6", margin: 25, padding: 20, borderRadius: 20, alignItems: 'center' },
   mainBuyBtnText: { color: '#fff', fontSize: 18, fontFamily: 'Poppins-Bold' },
+  wideState: { width: 300, marginRight: 15 },
 });

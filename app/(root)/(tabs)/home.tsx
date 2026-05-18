@@ -1,5 +1,6 @@
 import DailyRecommendationCard from "@/components/DailyRecommendationCard";
 import InlineSkeleton from "@/components/InlineSkeleton";
+import StateMessage from "@/components/StateMessage";
 import { icons } from "@/constants";
 import { t } from "@/lib/i18n";
 import { useChildrenStore } from "@/store/childrenStore";
@@ -32,10 +33,14 @@ const Home = () => {
 
 
   const children = useChildrenStore((state) => state.children);
+  const childrenLoading = useChildrenStore((state) => state.loading);
+  const childrenError = useChildrenStore((state) => state.error);
+  const loadChildren = useChildrenStore((state) => state.loadChildren);
   const {
     analytics,
     loadAllProgress,
     loading: loadingProgress,
+    error: progressError,
   } = useProgressStore();
 
   const {
@@ -55,12 +60,15 @@ const Home = () => {
     const init = async () => {
       const token = await getToken();
       setAuthToken(token ?? "");
+      if (token && children.length === 0 && !childrenLoading && !childrenError) {
+        void loadChildren(token);
+      }
       if (children.length > 0 && !selectedChildId) {
         setSelectedChildId(children[0].id);
       }
     };
     void init();
-  }, [children, getToken, selectedChildId]);
+  }, [children, childrenError, childrenLoading, getToken, loadChildren, selectedChildId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -96,6 +104,20 @@ const Home = () => {
   }, [language, user?.firstName]);
 
   const toHours = (seconds: number = 0) => (seconds / 3600).toFixed(1);
+  const masteryScore = Math.max(
+    0,
+    Math.min(100, analytics?.weekly_summary?.mastery_score ?? 0),
+  );
+  const retryChildren = () => {
+    if (authToken) {
+      void loadChildren(authToken);
+    }
+  };
+  const retryProgress = () => {
+    if (selectedChildId && authToken) {
+      void loadAllProgress(authToken, selectedChildId);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -148,6 +170,24 @@ const Home = () => {
             showsHorizontalScrollIndicator={false}
             data={children}
             keyExtractor={(item) => item.id}
+            ListEmptyComponent={
+              <View style={styles.horizontalState}>
+                {childrenLoading ? (
+                  <InlineSkeleton width={180} height={52} borderRadius={25} />
+                ) : (
+                  <StateMessage
+                    type={childrenError ? "error" : "empty"}
+                    title={childrenError ? "Children could not load" : "No children yet"}
+                    message={
+                      childrenError ??
+                      "Add a child profile to see progress and recommendations here."
+                    }
+                    actionLabel={childrenError ? "Try again" : undefined}
+                    onAction={childrenError ? retryChildren : undefined}
+                  />
+                )}
+              </View>
+            }
             contentContainerStyle={{
               paddingHorizontal: 24,
               paddingVertical: 10,
@@ -185,34 +225,41 @@ const Home = () => {
             <View style={styles.cardInfo}>
               <Text style={styles.cardTag}>{strings.currentStatus}</Text>
               <Text style={styles.cardTitle}>
-                {selectedChild?.firstname}&apos;s Mastery
+                {selectedChild ? `${selectedChild.firstname}'s Mastery` : "No child selected"}
               </Text>
 
-              <View style={styles.progressRow}>
-                <View style={styles.progressTextGroup}>
-                  {loadingProgress ? (
-                    <ActivityIndicator color="#0286FF" />
-                  ) : (
-                    <Text style={styles.bigPercent}>
-                      {analytics?.weekly_summary?.mastery_score ?? 0}%
-                    </Text>
-                  )}
-                  <Text style={styles.progressSub}>{strings.overallMastery}</Text>
+              {progressError && selectedChild ? (
+                <View style={styles.heroState}>
+                  <Text style={styles.heroErrorText}>{progressError}</Text>
+                  <TouchableOpacity onPress={retryProgress} style={styles.heroRetryBtn}>
+                    <Text style={styles.heroRetryText}>Try again</Text>
+                  </TouchableOpacity>
                 </View>
-                <Ionicons
-                  name="sparkles"
-                  size={32}
-                  color="#0286FF"
-                  opacity={0.6}
-                />
-              </View>
+              ) : (
+                <View style={styles.progressRow}>
+                  <View style={styles.progressTextGroup}>
+                    {loadingProgress ? (
+                      <ActivityIndicator color="#0286FF" />
+                    ) : (
+                      <Text style={styles.bigPercent}>{masteryScore}%</Text>
+                    )}
+                    <Text style={styles.progressSub}>{strings.overallMastery}</Text>
+                  </View>
+                  <Ionicons
+                    name="sparkles"
+                    size={32}
+                    color="#0286FF"
+                    opacity={0.6}
+                  />
+                </View>
+              )}
 
               <View style={styles.progressBarBg}>
                 <View
                   style={[
                     styles.progressBarFill,
                     {
-                      width: `${analytics?.weekly_summary?.mastery_score ?? 0}%`,
+                      width: `${masteryScore}%`,
                     },
                   ]}
                 />
@@ -226,14 +273,14 @@ const Home = () => {
             <View style={styles.statTile}>
               <Ionicons name="time-outline" size={20} color="#0286FF" />
               <Text style={styles.statValText}>
-                {toHours(analytics?.weekly_summary?.time_spent)}h
+                {progressError ? "--" : `${toHours(analytics?.weekly_summary?.time_spent)}h`}
               </Text>
               <Text style={styles.statLabelText}>{strings.playTime}</Text>
             </View>
             <View style={styles.statTile}>
               <Ionicons name="trophy-outline" size={20} color="#F59E0B" />
               <Text style={styles.statValText}>
-                {analytics?.weekly_summary?.correct_answers ?? 0}
+                {progressError ? "--" : (analytics?.weekly_summary?.correct_answers ?? 0)}
               </Text>
               <Text style={styles.statLabelText}>{strings.correct}</Text>
             </View>
@@ -244,7 +291,7 @@ const Home = () => {
           <DailyRecommendationCard
             language={language}
             recommendation={recommendation}
-            loading={loadingRecommendation}
+            loading={Boolean(selectedChild) && loadingRecommendation}
             error={recommendationError}
             onRetry={() => {
               if (selectedChildId && authToken) {
@@ -353,6 +400,34 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   statLabelText: { color: "#9AA0C3", fontSize: 12 },
+  horizontalState: { width: 280 },
+  heroState: {
+    marginTop: 16,
+    marginBottom: 12,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: "rgba(248, 113, 113, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(248, 113, 113, 0.25)",
+  },
+  heroErrorText: {
+    color: "#FCA5A5",
+    fontSize: 13,
+    fontFamily: "Poppins-Regular",
+  },
+  heroRetryBtn: {
+    marginTop: 10,
+    alignSelf: "flex-start",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: "rgba(248, 113, 113, 0.14)",
+  },
+  heroRetryText: {
+    color: "#FECACA",
+    fontSize: 13,
+    fontFamily: "Poppins-SemiBold",
+  },
 });
 
 export default Home;

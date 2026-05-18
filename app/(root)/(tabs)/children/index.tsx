@@ -1,6 +1,7 @@
 import AppStateScreen from "@/components/AppStateScreen";
 import Child from "@/components/Child";
 import InlineSkeleton from "@/components/InlineSkeleton";
+import StateMessage from "@/components/StateMessage";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -29,11 +30,12 @@ const Children = () => {
 
   const children = useChildrenStore((state) => state.children);
   const loading = useChildrenStore((state) => state.loading);
+  const error = useChildrenStore((state) => state.error);
   const loadChildren = useChildrenStore((state) => state.loadChildren);
 
   useEffect(() => {
     const loadChildrenWithToken = async () => {
-      if (!children.length && !loading) {
+      if (!children.length && !loading && !error) {
         const token = await getToken();
         if (token) {
           loadChildren(token);
@@ -42,7 +44,7 @@ const Children = () => {
     };
 
     loadChildrenWithToken();
-  }, [children.length, loading, loadChildren, getToken]);
+  }, [children.length, error, loading, loadChildren, getToken]);
 
   const filteredData = children.filter((child) => {
     const matchesFilter =
@@ -58,6 +60,12 @@ const Children = () => {
   });
 
   const showInlineLoader = loading && children.length > 0;
+  const retryLoadChildren = async () => {
+    const token = await getToken();
+    if (token) {
+      void loadChildren(token);
+    }
+  };
 
   const strings = useMemo(
     () => ({
@@ -153,6 +161,18 @@ const Children = () => {
         />
       ) : (
         <>
+          {error && !children.length ? (
+            <View style={styles.stateWrap}>
+              <StateMessage
+                type="error"
+                title="Children could not load"
+                message={error}
+                actionLabel="Try again"
+                onAction={retryLoadChildren}
+              />
+            </View>
+          ) : null}
+
           {showInlineLoader && (
             <View style={styles.inlineLoaderWrap}>
               <InlineSkeleton
@@ -169,18 +189,33 @@ const Children = () => {
               <InlineSkeleton width="100%" height={90} borderRadius={16} />
             </View>
           )}
-          <FlatList
-            data={filteredData}
-            renderItem={({ item }) => <Child item={item} />}
-            keyExtractor={(item) => item.id}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{
-              paddingBottom: 40,
-              width: "100%",
-              alignItems: "center",
-            }}
-            showsVerticalScrollIndicator={false}
-          />
+          {!error || children.length ? (
+            <FlatList
+              data={filteredData}
+              renderItem={({ item }) => <Child item={item} />}
+              keyExtractor={(item) => item.id}
+              keyboardShouldPersistTaps="handled"
+              ListEmptyComponent={
+                <View style={styles.stateWrap}>
+                  <StateMessage
+                    title={children.length ? "No matching children" : "No children yet"}
+                    message={
+                      children.length
+                        ? "Try a different search or filter."
+                        : "Add a child profile to start tracking learning progress."
+                    }
+                  />
+                </View>
+              }
+              contentContainerStyle={{
+                paddingBottom: 40,
+                width: "100%",
+                alignItems: "center",
+                flexGrow: 1,
+              }}
+              showsVerticalScrollIndicator={false}
+            />
+          ) : null}
         </>
       )}
 
@@ -299,5 +334,10 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 24,
     marginBottom: 12,
+  },
+  stateWrap: {
+    width: "100%",
+    paddingHorizontal: 24,
+    paddingTop: 12,
   },
 });

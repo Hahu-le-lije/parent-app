@@ -1,6 +1,7 @@
 import ChildInsightsPanel from "@/components/ChildInsightsPanel";
 import ChildProfile from "@/components/ChildProfile";
 import ChildProgress from "@/components/ChildProgress";
+import StateMessage from "@/components/StateMessage";
 import SubjectToggle from "@/components/SubjectToggle";
 import { useChildrenStore } from "@/store/childrenStore";
 import { useAuth } from "@clerk/clerk-expo";
@@ -31,6 +32,7 @@ const ChildDetail = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const children = useChildrenStore((state) => state.children);
   const childrenLoading = useChildrenStore((state) => state.loading);
+  const childrenError = useChildrenStore((state) => state.error);
   const loadChildren = useChildrenStore((state) => state.loadChildren);
   const [tok, setTok] = React.useState<string>("");
   const { getToken } = useAuth();
@@ -57,12 +59,18 @@ const ChildDetail = () => {
     if (!tok || child) {
       return;
     }
-    if (!childrenLoading && children.length === 0) {
+    if (!childrenLoading && !childrenError && children.length === 0) {
       void loadChildren(tok);
     }
-  }, [tok, child, childrenLoading, children.length, loadChildren]);
+  }, [tok, child, childrenError, childrenLoading, children.length, loadChildren]);
 
   if (!child) {
+    const retryLoad = () => {
+      if (tok) {
+        void loadChildren(tok);
+      }
+    };
+
     if (!tok || childrenLoading) {
       return (
         <SafeAreaView style={styles.container} edges={["top"]}>
@@ -83,10 +91,16 @@ const ChildDetail = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.centered}>
-          <Text style={styles.notFoundTitle}>Child not found</Text>
-          <Text style={styles.notFoundSub}>
-            This profile may have been removed or is still syncing.
-          </Text>
+          <StateMessage
+            type={childrenError ? "error" : "empty"}
+            title={childrenError ? "Child profile could not load" : "Child not found"}
+            message={
+              childrenError ??
+              "This profile may have been removed or is still syncing."
+            }
+            actionLabel={childrenError ? "Try again" : undefined}
+            onAction={childrenError ? retryLoad : undefined}
+          />
         </View>
       </SafeAreaView>
     );
@@ -128,19 +142,6 @@ export default ChildDetail;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1F1F39" },
   centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  notFoundTitle: {
-    color: "#fff",
-    fontSize: 20,
-    fontFamily: "Poppins-Bold",
-    textAlign: "center",
-  },
-  notFoundSub: {
-    color: "#9AA0C3",
-    fontSize: 14,
-    fontFamily: "Poppins-Regular",
-    textAlign: "center",
-    marginTop: 8,
-  },
   header: { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 15 },
   backButton: {
     width: 44,

@@ -3,6 +3,7 @@ import { useProgressStore } from "@/store/progressStore";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import StateMessage from "./StateMessage";
 
 type IoniconsName = keyof typeof Ionicons.glyphMap;
 
@@ -50,19 +51,27 @@ const ChildProgress = ({ childId, token }: ProgressSectionProps) => {
       />
     );
 
-  if (error) return <Text style={styles.errorText}>{error}</Text>;
+  if (error) {
+    return (
+      <StateMessage
+        type="error"
+        title="Learning progress could not load"
+        message={error}
+        actionLabel={token ? "Try again" : undefined}
+        onAction={token ? () => void loadAllProgress(token, childId) : undefined}
+      />
+    );
+  }
 
   const daily = analytics?.daily_summary ?? dailyProgress?.data;
   const weekly = analytics?.weekly_summary ?? weeklyProgress?.data;
   const toMinutes = (seconds: number = 0) => Math.floor(seconds / 60);
   if (!daily && !weekly) {
     return (
-      <View style={styles.emptyState}>
-        <Ionicons name="stats-chart-outline" size={48} color="#3E3E66" />
-        <Text style={styles.emptyText}>
-          No learning data available yet for this period.
-        </Text>
-      </View>
+      <StateMessage
+        title="No learning data yet"
+        message="Progress will appear here after this child starts playing learning games."
+      />
     );
   }
   return (
@@ -247,9 +256,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: "center",
   },
-  errorText: { color: "#EF4444", textAlign: "center", marginTop: 20 },
-  emptyState: { alignItems: "center", padding: 40 },
-  emptyText: { color: "#9AA0C3", textAlign: "center", marginTop: 10 },
   progressBarBg: {
     height: 8,
     backgroundColor: "#1E1E38",

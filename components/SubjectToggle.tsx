@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import StateMessage from "./StateMessage";
 
 interface SubjectToggleProps {
   childId: string;
@@ -17,7 +18,7 @@ interface SubjectToggleProps {
 const SubjectToggle: React.FC<SubjectToggleProps> = ({
   childId: childId,
 }: SubjectToggleProps) => {
-  const { subjects, loading, loadSubjects, updateSubjects } = useSubjectStore();
+  const { subjects, loading, error, loadSubjects, updateSubjects } = useSubjectStore();
 
   const [localSubjects, setLocalSubjects] = useState<Subject[]>([]);
   const [isSavedSuccessfully, setIsSavedSuccessfully] = useState(false);
@@ -33,6 +34,7 @@ const SubjectToggle: React.FC<SubjectToggleProps> = ({
   }, [subjects]);
 
   const hasChanges = useMemo(() => {
+    if (!subjects) return false;
     return JSON.stringify(localSubjects) !== JSON.stringify(subjects);
   }, [localSubjects, subjects]);
 
@@ -64,6 +66,20 @@ const SubjectToggle: React.FC<SubjectToggleProps> = ({
     );
   }
 
+  if (error && !subjects) {
+    return (
+      <View style={styles.container}>
+        <StateMessage
+          type="error"
+          title="Allowed games could not load"
+          message={error}
+          actionLabel="Try again"
+          onAction={() => void loadSubjects(childId)}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Allowed Games</Text>
@@ -75,7 +91,7 @@ const SubjectToggle: React.FC<SubjectToggleProps> = ({
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        {localSubjects.map((subject) => {
+        {localSubjects.length ? localSubjects.map((subject) => {
           const isSelected = subject.status;
           return (
             <TouchableOpacity
@@ -106,7 +122,12 @@ const SubjectToggle: React.FC<SubjectToggleProps> = ({
               </View>
             </TouchableOpacity>
           );
-        })}
+        }) : (
+          <StateMessage
+            title="No games available"
+            message="Allowed games will appear here when the backend sends them."
+          />
+        )}
       </ScrollView>
 
       {(hasChanges || isSavedSuccessfully) && (
