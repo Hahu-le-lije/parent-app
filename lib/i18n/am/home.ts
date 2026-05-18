@@ -25,5 +25,12 @@ export const home_am = {
   home_daily_tip_title: "የዕለቱ የወላጅነት ጥቆማ",
   home_daily_tip_text:
     "መደጋገም ቁልፍ ነው! ዛሬ ለልጆችዎ የተወሰነ \"የመማሪያ ሰዓት\" ማዘጋጀት ይሞክሩ።",
+
+  home_daily_rec_card_title: "የዛሬው የAI ምክር",
+  home_daily_rec_empty:
+    "ገና ምክር የለም። አጭር የመማሪያ ክፍለ ጊዜ ያበረቱት እና ተመልሰው ይመልከቱ።",
+  home_daily_rec_loading: "የቅርብ ግንዛቤ በመጫን ላይ…",
+  home_daily_rec_retry: "እንደገና ይሞክሩ",
+  home_daily_rec_upgrade_hint: "እቅዶችን እና ማሻሻያዎችን ይመልከቱ",
 };
 

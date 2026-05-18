@@ -137,10 +137,10 @@ export interface Subjects{
 
 export interface Recommendation{
     child_id:string;
-    tier:string;
+    tier?: string;
     generated_at:string;
     recommendation_text:string;
-    next_update_expected_at:string;
+    next_update_expected_at?: string;
 }
 export interface RecommendationHistoryItem {
     generated_at: string;

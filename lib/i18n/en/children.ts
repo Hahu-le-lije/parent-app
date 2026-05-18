@@ -9,4 +9,22 @@ export const children_en = {
   children_filter_all: "All",
   children_filter_paid: "Paid",
   children_filter_unpaid: "Unpaid",
+
+  children_insight_latest_title: "Latest recommendation",
+  children_insight_history_title: "Recommendation history",
+  children_insight_dashboard_title: "Dashboard analytics",
+  children_insight_next_update: "Next expected update",
+  children_insight_tier: "Tier",
+  children_insight_history_empty: "No past recommendations yet.",
+  children_insight_view_plans: "View plans",
+  children_insight_retry: "Try again",
+  children_insight_no_recommendation:
+    "No recommendation is available for this child yet.",
+  children_insight_dashboard_empty: "Dashboard metrics are not available yet.",
+  children_insight_history_premium:
+    "History is available on a premium plan.",
+  children_insight_dash_health: "Learning health",
+  children_insight_dash_time_today: "Time today",
+  children_insight_dash_weekly_acc: "Weekly accuracy",
+  children_insight_dash_consistency: "Consistency",
 };

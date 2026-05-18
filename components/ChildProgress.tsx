@@ -1,7 +1,11 @@
+import { formatRatioAsPercent } from "@/lib/formatLearning";
 import { useProgressStore } from "@/store/progressStore";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+
+type IoniconsName = keyof typeof Ionicons.glyphMap;
+
 interface ProgressSectionProps {
   childId: string;
   token: string;
@@ -16,12 +20,12 @@ const StatBox = ({
   label: string;
   value: string;
   subValue: string;
-  icon: string;
+  icon: IoniconsName;
   color: string;
 }) => (
   <View style={styles.statBox}>
     <View style={[styles.iconCircle, { backgroundColor: `${color}33` }]}>
-      <Ionicons name={icon as any} size={20} color={color} />
+      <Ionicons name={icon} size={20} color={color} />
     </View>
     <Text style={styles.statValue}>{value}</Text>
     <Text style={styles.statLabel}>{label}</Text>
@@ -29,13 +33,14 @@ const StatBox = ({
   </View>
 );
 const ChildProgress = ({ childId, token }: ProgressSectionProps) => {
-  const { analytics, loadAnalytics, loading, error } = useProgressStore();
+  const { analytics, dailyProgress, weeklyProgress, loadAllProgress, loading, error } =
+    useProgressStore();
 
   useEffect(() => {
     if (childId && token) {
-      loadAnalytics(childId, token);
+      void loadAllProgress(token, childId);
     }
-  }, [childId, token, loadAnalytics]);
+  }, [childId, token, loadAllProgress]);
   if (loading)
     return (
       <ActivityIndicator
@@ -47,8 +52,8 @@ const ChildProgress = ({ childId, token }: ProgressSectionProps) => {
 
   if (error) return <Text style={styles.errorText}>{error}</Text>;
 
-  const daily = analytics?.daily_summary;
-  const weekly = analytics?.weekly_summary;
+  const daily = analytics?.daily_summary ?? dailyProgress?.data;
+  const weekly = analytics?.weekly_summary ?? weeklyProgress?.data;
   const toMinutes = (seconds: number = 0) => Math.floor(seconds / 60);
   if (!daily && !weekly) {
     return (
@@ -66,7 +71,7 @@ const ChildProgress = ({ childId, token }: ProgressSectionProps) => {
         <View style={styles.aiHeader}>
           <View style={styles.aiTitleRow}>
             <Ionicons name="sparkles" size={20} color="#0286FF" />
-            <Text style={styles.aiTitle}>AI Progress Insight</Text>
+            <Text style={styles.aiTitle}>Learning narrative</Text>
           </View>
         </View>
         <View style={styles.aiContent}>
@@ -82,9 +87,9 @@ const ChildProgress = ({ childId, token }: ProgressSectionProps) => {
       <View style={styles.statsGrid}>
         <StatBox
           label="Accuracy"
-          value={`${daily?.accuracy ?? 0}%`}
+          value={formatRatioAsPercent(daily?.accuracy)}
           subValue="Today's Score"
-          icon="bullseye-arrow"
+          icon="analytics"
           color="#10B981"
         />
         <StatBox
@@ -103,9 +108,9 @@ const ChildProgress = ({ childId, token }: ProgressSectionProps) => {
         />
         <StatBox
           label="Diversity"
-          value={`${daily?.skill_diversity ?? 0}%`}
+          value={formatRatioAsPercent(daily?.skill_diversity)}
           subValue="Topic Range"
-          icon="apps"
+          icon="layers"
           color="#8B5CF6"
         />
       </View>
@@ -126,7 +131,7 @@ const ChildProgress = ({ childId, token }: ProgressSectionProps) => {
           </View>
           <View style={styles.weeklyStat}>
             <Text style={styles.weeklyLabel}>Consistency</Text>
-            <Text style={styles.weeklyValue}>{weekly?.consistency ?? 0}%</Text>
+            <Text style={styles.weeklyValue}>{formatRatioAsPercent(weekly?.consistency)}</Text>
           </View>
         </View>
 

@@ -26,5 +26,12 @@ export const home_en = {
   home_daily_tip_title: "Daily Parenting Tip",
   home_daily_tip_text:
     "Consistency is key! Try to set a specific \"Learning Hour\" for your kids today.",
+
+  home_daily_rec_card_title: "Today's AI recommendation",
+  home_daily_rec_empty:
+    "No recommendation yet. Encourage a short learning session and check back.",
+  home_daily_rec_loading: "Fetching the latest insight…",
+  home_daily_rec_retry: "Try again",
+  home_daily_rec_upgrade_hint: "View plans & upgrades",
 };
 

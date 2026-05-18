@@ -1,14 +1,17 @@
+import DailyRecommendationCard from "@/components/DailyRecommendationCard";
 import InlineSkeleton from "@/components/InlineSkeleton";
 import { icons } from "@/constants";
 import { t } from "@/lib/i18n";
 import { useChildrenStore } from "@/store/childrenStore";
 import { useLanguageStore } from "@/store/languageStore";
+import { useRecommendationStore } from "@/store/analysisStore";
 import { useProgressStore } from "@/store/progressStore";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -31,13 +34,19 @@ const Home = () => {
   const children = useChildrenStore((state) => state.children);
   const {
     analytics,
-    loadAnalytics,
+    loadAllProgress,
     loading: loadingProgress,
   } = useProgressStore();
 
+  const {
+    recommendation,
+    loadingRecommendation,
+    recommendationError,
+    fetchRecommendation,
+  } = useRecommendationStore();
+
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string>("");
-  const [isPremium] = useState(false); 
 
   const showInlineLoader = !isLoaded;
 
@@ -50,14 +59,22 @@ const Home = () => {
         setSelectedChildId(children[0].id);
       }
     };
-    init();
-  }, [children]);
+    void init();
+  }, [children, getToken, selectedChildId]);
 
-  useEffect(() => {
-    if (selectedChildId && authToken) {
-      loadAnalytics(selectedChildId, authToken);
-    }
-  }, [selectedChildId, authToken]);
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedChildId && authToken) {
+        void loadAllProgress(authToken, selectedChildId);
+        void fetchRecommendation(selectedChildId, authToken);
+      }
+    }, [
+      selectedChildId,
+      authToken,
+      loadAllProgress,
+      fetchRecommendation,
+    ]),
+  );
 
   const selectedChild = useMemo(
     () => children.find((c) => c.id === selectedChildId) || children[0],
@@ -75,16 +92,8 @@ const Home = () => {
       overallMastery: t(language, "home_overall_mastery"),
       playTime: t(language, "home_play_time"),
       correct: t(language, "home_correct"),
-      aiRecommendation: t(language, "home_ai_recommendation"),
-      notEnoughData: t(language, "home_not_enough_data"),
-      progressTitle: t(language, "home_progress_title", {
-        name: selectedChild?.firstname || "",
-      }),
-      unlockAiSub: t(language, "home_unlock_ai_sub", {
-        name: selectedChild?.firstname || "",
-      }),
     };
-  }, [language, selectedChild?.firstname, user?.firstName]);
+  }, [language, user?.firstName]);
 
   const toHours = (seconds: number = 0) => (seconds / 3600).toFixed(1);
 
@@ -232,27 +241,25 @@ const Home = () => {
         </View>
 
         <View style={styles.section}>
-          <View style={styles.aiInsightContainer}>
-            <View style={styles.aiInsightHeader}>
-              <Ionicons name="bulb" size={18} color="#10B981" />
-              <Text style={styles.aiInsightTitle}>{strings.aiRecommendation}</Text>
-            </View>
-
-            {isPremium ? (
-              <Text style={styles.insightText}>
-                {analytics?.daily_summary?.generated_explanation ||
-                  strings.notEnoughData}
-              </Text>
-            ) : (
-              <TouchableOpacity
-                style={styles.lockedAiOverlay}
-                onPress={() => router.push("/sub")}
-              >
-                <Ionicons name="lock-closed" size={20} color="#9AA0C3" />
-                <Text style={styles.lockedAiText}>{strings.unlockAiSub}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <DailyRecommendationCard
+            language={language}
+            recommendation={recommendation}
+            loading={loadingRecommendation}
+            error={recommendationError}
+            onRetry={() => {
+              if (selectedChildId && authToken) {
+                void fetchRecommendation(selectedChildId, authToken);
+              }
+            }}
+            upgradeHint={
+              !selectedChild?.paid
+                ? t(language, "home_daily_rec_upgrade_hint")
+                : null
+            }
+            onPressUpgrade={
+              !selectedChild?.paid ? () => router.push("/sub") : undefined
+            }
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -346,33 +353,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   statLabelText: { color: "#9AA0C3", fontSize: 12 },
-
-  aiInsightContainer: {
-    backgroundColor: "rgba(16, 185, 129, 0.05)",
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.2)",
-  },
-  aiInsightHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 10,
-  },
-  aiInsightTitle: {
-    color: "#10B981",
-    fontSize: 14,
-    fontFamily: "Poppins-Bold",
-  },
-  lockedAiOverlay: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 10,
-  },
-  lockedAiText: { color: "#9AA0C3", fontSize: 13 },
-  insightText: { color: "#fff", fontSize: 14, lineHeight: 20 },
 });
 
 export default Home;

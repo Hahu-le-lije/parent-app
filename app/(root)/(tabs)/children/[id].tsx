@@ -1,11 +1,14 @@
+import ChildInsightsPanel from "@/components/ChildInsightsPanel";
 import ChildProfile from "@/components/ChildProfile";
 import ChildProgress from "@/components/ChildProgress";
+import SubjectToggle from "@/components/SubjectToggle";
 import { useChildrenStore } from "@/store/childrenStore";
+import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo } from "react";
-import { useAuth } from "@clerk/clerk-expo";
 import {
+  ActivityIndicator,
   Platform,
   ScrollView,
   StyleSheet,
@@ -15,7 +18,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import SubjectToggle from "@/components/SubjectToggle";
 
 if (
   Platform.OS === "android" &&
@@ -28,28 +30,67 @@ const ChildDetail = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const children = useChildrenStore((state) => state.children);
-  const [tok, setTok] = React.useState<string>('');
+  const childrenLoading = useChildrenStore((state) => state.loading);
+  const loadChildren = useChildrenStore((state) => state.loadChildren);
+  const [tok, setTok] = React.useState<string>("");
   const { getToken } = useAuth();
-   useEffect(() => {
-    const getter = async () => {
-      try {
-        const token = await getToken();
-        setTok(token ?? "");
-        console.log("token:", token);
-      } catch (error) {
-        console.log("Error getting token:", error);
-      }
-    };
-  
-    getter();
-  }, []);
 
   const child = useMemo(
     () => children.find((c) => c.id === String(id)),
     [children, id],
   );
 
+  useEffect(() => {
+    const getter = async () => {
+      try {
+        const token = await getToken();
+        setTok(token ?? "");
+      } catch {
+        setTok("");
+      }
+    };
 
+    void getter();
+  }, [getToken]);
+
+  useEffect(() => {
+    if (!tok || child) {
+      return;
+    }
+    if (!childrenLoading && children.length === 0) {
+      void loadChildren(tok);
+    }
+  }, [tok, child, childrenLoading, children.length, loadChildren]);
+
+  if (!child) {
+    if (!tok || childrenLoading) {
+      return (
+        <SafeAreaView style={styles.container} edges={["top"]}>
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color="#0286FF" />
+          </View>
+        </SafeAreaView>
+      );
+    }
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.centered}>
+          <Text style={styles.notFoundTitle}>Child not found</Text>
+          <Text style={styles.notFoundSub}>
+            This profile may have been removed or is still syncing.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -63,8 +104,8 @@ const ChildDetail = () => {
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Learning Progress</Text>
           <Text style={styles.headerSubtitle}>
-            Tracking {child?.firstname + " " + child?.lastname || "Child"}{"'s"}
-            growth
+            Tracking {child.firstname} {child.lastname}
+            {"'s"} growth
           </Text>
         </View>
       </View>
@@ -73,9 +114,10 @@ const ChildDetail = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <ChildProfile {...child!} />
-        <ChildProgress childId={child!.id} token={tok} />
-       <SubjectToggle childId={child!.id} />
+        <ChildProfile {...child} />
+        <ChildInsightsPanel childId={child.id} token={tok} />
+        <ChildProgress childId={child.id} token={tok} />
+        <SubjectToggle childId={child.id} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -85,6 +127,20 @@ export default ChildDetail;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#1F1F39" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
+  notFoundTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontFamily: "Poppins-Bold",
+    textAlign: "center",
+  },
+  notFoundSub: {
+    color: "#9AA0C3",
+    fontSize: 14,
+    fontFamily: "Poppins-Regular",
+    textAlign: "center",
+    marginTop: 8,
+  },
   header: { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 15 },
   backButton: {
     width: 44,
@@ -105,7 +161,4 @@ const styles = StyleSheet.create({
     color: "#9AA0C3",
   },
   scrollContent: { paddingHorizontal: 24, paddingBottom: 100 },
-
-  
- 
 });
