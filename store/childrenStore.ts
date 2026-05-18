@@ -13,10 +13,10 @@ type ChildrenState = {
   loading: boolean;
   error: string | null;
 
-  loadChildren: () => Promise<void>;
-  addChild: (payload: NewChild) => Promise<void>;
-  updateChild: (id: string, patch: Partial<Child>) => Promise<void>;
-  deleteChild: (id: string) => Promise<void>;
+  loadChildren: (token:string) => Promise<void>;
+  addChild: (payload: NewChild, token: string) => Promise<void>;
+  updateChild: (id: string, patch: Partial<Child>, token: string) => Promise<void>;
+  deleteChild: (id: string, token: string) => Promise<void>;
 };
 
 export const useChildrenStore = create<ChildrenState>((set, get) => ({
@@ -24,10 +24,10 @@ export const useChildrenStore = create<ChildrenState>((set, get) => ({
   loading: false,
   error: null,
 
-  loadChildren: async () => {
+  loadChildren: async (token:string) => {
     set({ loading: true, error: null });
     try {
-      const data = await getChildren();
+      const data = await getChildren(token);
       set({ children: data, loading: false });
     } catch (e) {
       set({
@@ -38,13 +38,13 @@ export const useChildrenStore = create<ChildrenState>((set, get) => ({
   },
 
 
-  addChild: async (payload:NewChild) => {
+  addChild: async (payload:NewChild, token: string) => {
     set({ loading: true, error: null });
 
     try {
-      await addChildAPI(payload);
+      await addChildAPI(payload, token);
 
-      await get().loadChildren();
+      await get().loadChildren(token);
 
     } catch (e) {
       set({
@@ -55,11 +55,11 @@ export const useChildrenStore = create<ChildrenState>((set, get) => ({
   },
 
 
-  updateChild: async (id, patch) => {
+  updateChild: async (id, patch, token) => {
     set({ loading: true, error: null });
 
     try {
-      await updateChildAPI(id, patch as any );
+      await updateChildAPI(id, patch as any, token);
 
       set((state) => ({
         children: state.children.map((c) =>
@@ -76,11 +76,11 @@ export const useChildrenStore = create<ChildrenState>((set, get) => ({
   },
 
   
-  deleteChild: async (id) => {
+  deleteChild: async (id, token) => {
     set({ loading: true, error: null });
 
     try {
-      await deleteChildAPI(id);
+      await deleteChildAPI(id, token);
 
       set((state) => ({
         children: state.children.filter((c) => c.id !== id),

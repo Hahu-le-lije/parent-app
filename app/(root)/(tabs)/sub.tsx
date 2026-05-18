@@ -22,12 +22,23 @@ import AppStateScreen from "@/components/AppStateScreen";
 import InlineSkeleton from "@/components/InlineSkeleton";
 import { t } from "@/lib/i18n";
 import { useLanguageStore } from "@/store/languageStore";
+import { useAuth } from "@clerk/clerk-expo";
 
 const Sub = () => {
   const { children } = useChildrenStore();
   const language = useLanguageStore((s) => s.language);
-  const { buySubscription, loadSubscriptions, subscriptions, assignSubscription, loading } =
-    useSubscriptionStore();
+  const { buySubscription, loadSubscriptions, subscriptions, assignSubscription, loading } = useSubscriptionStore();
+  const { getToken } = useAuth();
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const authToken = await getToken();
+      setToken(authToken);
+    };
+
+    fetchToken();
+  }, [getToken]);
 
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -42,15 +53,18 @@ const Sub = () => {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadSubscriptions();
-  }, [loadSubscriptions]);
+    if(token){
+      loadSubscriptions(token);
+    }
+
+  }, [loadSubscriptions, token]);
  const strings = useMemo(() => {
   return {
-    // page
+    
     pagetitle: t(language, "pagename_sub"),
     subtitle: t(language, "subtitle_sub"),
 
-    // sections
+    
     purchased_plan: t(language, "purchased_plans"),
     child_subs: t(language, "child_subs"),
     buy: t(language, "buy"),
@@ -148,7 +162,8 @@ const Sub = () => {
     try {
       setCheckoutLoading(true);
       setCheckoutError(null);
-      const url = await buySubscription(slots, getPlanType());
+      if (!token) throw new Error("User not authenticated");
+      const url = await buySubscription(slots, getPlanType(), token);
       setCheckoutUrl(url);
       setShowPurchaseModal(false);
       setVisible(true);
@@ -168,9 +183,10 @@ const Sub = () => {
     }
 
     try {
-      await assignSubscription(String(latestSubscription.id), childId);
+      if (!token) throw new Error("User not authenticated");
+      await assignSubscription(String(latestSubscription.id), childId, token);
       Alert.alert(strings.success, strings.success_msg);
-      loadSubscriptions();
+      loadSubscriptions(token);
     } catch (e: any) {
       Alert.alert(strings.failed, e?.message || strings.failed_msg);
     }
@@ -390,7 +406,11 @@ const Sub = () => {
        loading={checkoutLoading}
        errorMsg={checkoutError}
        onRetry={startCheckout}
-       onSuccess={loadSubscriptions}
+       onSuccess={() => {
+         if (token) {
+           loadSubscriptions(token);
+         }
+       }}
       />
 
     </SafeAreaView>

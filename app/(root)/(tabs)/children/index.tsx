@@ -1,85 +1,97 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Image } from 'react-native';
-import React, { useEffect, useMemo, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import Child from '@/components/Child';
-import AppStateScreen from '@/components/AppStateScreen';
-import InlineSkeleton from '@/components/InlineSkeleton';
+import AppStateScreen from "@/components/AppStateScreen";
+import Child from "@/components/Child";
+import InlineSkeleton from "@/components/InlineSkeleton";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useChildrenStore } from '@/store/childrenStore';
-import Modal from 'react-native-modal'
-import AddChild from '@/components/AddChild';
-import { useLanguageStore } from '@/store/languageStore';
-import { t } from '@/lib/i18n';
-
+import AddChild from "@/components/AddChild";
+import { t } from "@/lib/i18n";
+import { useChildrenStore } from "@/store/childrenStore";
+import { useLanguageStore } from "@/store/languageStore";
+import { useAuth } from "@clerk/clerk-expo";
+import Modal from "react-native-modal";
 const Children = () => {
-  const [filter, setFilter] = useState("All"); 
+  const [filter, setFilter] = useState("All");
   const [showAddChild, setShowAddChild] = useState(false);
-  const [search,setSearch]=useState('')
+  const [search, setSearch] = useState("");
   const language = useLanguageStore((state) => state.language);
+  const { getToken } = useAuth();
 
-  
   const children = useChildrenStore((state) => state.children);
   const loading = useChildrenStore((state) => state.loading);
   const loadChildren = useChildrenStore((state) => state.loadChildren);
 
+  useEffect(() => {
+    const loadChildrenWithToken = async () => {
+      if (!children.length && !loading) {
+        const token = await getToken();
+        if (token) {
+          loadChildren(token);
+        }
+      }
+    };
 
-useEffect(() => {
-  if (!children.length && !loading) {
-    loadChildren();
-  }
-}, [children.length, loading, loadChildren]);
+    loadChildrenWithToken();
+  }, [children.length, loading, loadChildren, getToken]);
 
-const filteredData = children.filter(child => {
-  const matchesFilter =
-    filter === "All" ||
-    (filter === "Paid" && child.paid) ||
-    (filter === "Unpaid" && !child.paid);
+  const filteredData = children.filter((child) => {
+    const matchesFilter =
+      filter === "All" ||
+      (filter === "Paid" && child.paid) ||
+      (filter === "Unpaid" && !child.paid);
 
-  const matchesSearch = (child.firstname+ ' '+child.lastname)
-    .toLowerCase()
-    .includes(search.toLowerCase());
+    const matchesSearch = (child.firstname + " " + child.lastname)
+      .toLowerCase()
+      .includes(search.toLowerCase());
 
-  return matchesFilter && matchesSearch;
-});
+    return matchesFilter && matchesSearch;
+  });
 
-const showInlineLoader = loading && children.length > 0;
+  const showInlineLoader = loading && children.length > 0;
 
-const strings = useMemo(() => ({
-  headerTitle: t(language, 'children_headerTitle'),
-  subheader: t(language, 'children_subheader'),
-  searchPlaceholder: t(language, 'children_search_placeholder'),
-  addTitle: t(language, 'children_add_title'),
-  addSub: t(language, 'children_add_sub'),
-  loadingTitle: t(language, 'children_loading_title'),
-  loadingSub: t(language, 'children_loading_sub'),
-  filterAll: t(language, 'children_filter_all'),
-  filterPaid: t(language, 'children_filter_paid'),
-  filterUnpaid: t(language, 'children_filter_unpaid'),
-}), [language]);
-
-
+  const strings = useMemo(
+    () => ({
+      headerTitle: t(language, "children_headerTitle"),
+      subheader: t(language, "children_subheader"),
+      searchPlaceholder: t(language, "children_search_placeholder"),
+      addTitle: t(language, "children_add_title"),
+      addSub: t(language, "children_add_sub"),
+      loadingTitle: t(language, "children_loading_title"),
+      loadingSub: t(language, "children_loading_sub"),
+      filterAll: t(language, "children_filter_all"),
+      filterPaid: t(language, "children_filter_paid"),
+      filterUnpaid: t(language, "children_filter_unpaid"),
+    }),
+    [language],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-     
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{strings.headerTitle}</Text>
         <Text style={styles.subheader}>{strings.subheader}</Text>
       </View>
 
-    
       <View style={styles.searchContainer}>
         <TextInput
           placeholder={strings.searchPlaceholder}
-          placeholderTextColor='#999'
+          placeholderTextColor="#999"
           value={search}
           onChangeText={setSearch}
           style={styles.searchInput}
         />
       </View>
 
-   
       <View style={styles.addChildSection}>
         <TouchableOpacity
           activeOpacity={0.85}
@@ -87,7 +99,7 @@ const strings = useMemo(() => ({
           style={styles.addChildCard}
         >
           <LinearGradient
-            colors={['#0286FF', '#005BB5']}
+            colors={["#0286FF", "#005BB5"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.addChildGradient}
@@ -99,7 +111,9 @@ const strings = useMemo(() => ({
               </Text>
             </View>
             <Image
-              source={{ uri: "https://cdn-icons-png.flaticon.com/512/4140/4140048.png" }}
+              source={{
+                uri: "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
+              }}
               style={styles.addChildImage}
             />
           </LinearGradient>
@@ -108,31 +122,50 @@ const strings = useMemo(() => ({
 
       <View style={styles.filterRow}>
         {[
-          { value: 'All', label: strings.filterAll },
-          { value: 'Paid', label: strings.filterPaid },
-          { value: 'Unpaid', label: strings.filterUnpaid },
+          { value: "All", label: strings.filterAll },
+          { value: "Paid", label: strings.filterPaid },
+          { value: "Unpaid", label: strings.filterUnpaid },
         ].map((item) => (
           <TouchableOpacity
             key={item.value}
-            style={[styles.filterButton, filter === item.value && styles.filterButtonSelected]}
+            style={[
+              styles.filterButton,
+              filter === item.value && styles.filterButtonSelected,
+            ]}
             onPress={() => setFilter(item.value)}
           >
-            <Text style={[styles.filterText, filter === item.value && styles.filterTextSelected]}>
+            <Text
+              style={[
+                styles.filterText,
+                filter === item.value && styles.filterTextSelected,
+              ]}
+            >
               {item.label}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      
       {loading && !children.length ? (
-        <AppStateScreen title={strings.loadingTitle} subtitle={strings.loadingSub} />
+        <AppStateScreen
+          title={strings.loadingTitle}
+          subtitle={strings.loadingSub}
+        />
       ) : (
         <>
           {showInlineLoader && (
             <View style={styles.inlineLoaderWrap}>
-              <InlineSkeleton width={180} height={14} style={{ marginBottom: 14 }} />
-              <InlineSkeleton width="100%" height={90} borderRadius={16} style={{ marginBottom: 12 }} />
+              <InlineSkeleton
+                width={180}
+                height={14}
+                style={{ marginBottom: 14 }}
+              />
+              <InlineSkeleton
+                width="100%"
+                height={90}
+                borderRadius={16}
+                style={{ marginBottom: 12 }}
+              />
               <InlineSkeleton width="100%" height={90} borderRadius={16} />
             </View>
           )}
@@ -141,7 +174,11 @@ const strings = useMemo(() => ({
             renderItem={({ item }) => <Child item={item} />}
             keyExtractor={(item) => item.id}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: 40, width:"100%",alignItems:"center" }}
+            contentContainerStyle={{
+              paddingBottom: 40,
+              width: "100%",
+              alignItems: "center",
+            }}
             showsVerticalScrollIndicator={false}
           />
         </>
@@ -154,19 +191,19 @@ const strings = useMemo(() => ({
         swipeDirection="down"
         avoidKeyboard={true}
         propagateSwipe={true}
-        style={{ justifyContent: 'flex-end', margin: 0 }}
+        style={{ justifyContent: "flex-end", margin: 0 }}
       >
-        <AddChild onClose={()=>setShowAddChild(false)} />
+        <AddChild onClose={() => setShowAddChild(false)} />
       </Modal>
     </SafeAreaView>
   );
-}
+};
 export default Children;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1F1F39',
+    backgroundColor: "#1F1F39",
   },
   header: {
     paddingHorizontal: 24,
@@ -175,13 +212,13 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 26,
-    fontFamily: 'Poppins-Bold',
-    color: '#fff',
+    fontFamily: "Poppins-Bold",
+    color: "#fff",
   },
   subheader: {
     fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-    color: '#9AA0C3',
+    fontFamily: "Poppins-Regular",
+    color: "#9AA0C3",
   },
   searchContainer: {
     paddingHorizontal: 24,
@@ -202,22 +239,22 @@ const styles = StyleSheet.create({
   },
   addChildCard: {
     borderRadius: 18,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   addChildGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 15,
   },
   addChildTitle: {
-    fontFamily: 'Poppins-Bold',
+    fontFamily: "Poppins-Bold",
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
   },
   addChildSub: {
-    fontFamily: 'Poppins-Regular',
+    fontFamily: "Poppins-Regular",
     fontSize: 12,
-    color: '#e0e0e0',
+    color: "#e0e0e0",
     marginTop: 2,
   },
   addChildImage: {
@@ -251,12 +288,12 @@ const styles = StyleSheet.create({
   },
   center: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
-    color: '#9AA0C3',
-    fontFamily: 'Poppins-Regular'
+    color: "#9AA0C3",
+    fontFamily: "Poppins-Regular",
   },
   inlineLoaderWrap: {
     width: "100%",

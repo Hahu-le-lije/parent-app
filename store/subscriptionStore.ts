@@ -13,10 +13,10 @@ type SubscriptionStoretype = {
   loading: boolean;
   error: string | null;
 
-  loadSubscriptions: () => Promise<void>;
-  assignSubscription: (subscription_id: string, child_id: string) => Promise<void>;
-  renewSubscription: (subscription_id: string, child_id: string) => Promise<void>;
-  buySubscription: (count: number, plan: string) => Promise<string>;
+  loadSubscriptions: (token: string) => Promise<void>;
+  assignSubscription: (subscription_id: string, child_id: string, token: string) => Promise<void>;
+  renewSubscription: (subscription_id: string, child_id: string, token: string) => Promise<void>;
+  buySubscription: (count: number, plan: string, token: string) => Promise<string>;
 };
 
 export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => ({
@@ -25,11 +25,11 @@ export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => 
   error: null,
 
 
-  loadSubscriptions: async () => {
+  loadSubscriptions: async (token: string) => {
     set({ loading: true, error: null });
 
     try {
-      const data = await getSubscriptions();
+      const data = await getSubscriptions(token);
 
       set({
         subscriptions: data || [],
@@ -42,10 +42,10 @@ export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => 
       });
     }
   },
-  buySubscription: async (count: number, plan: string) => {
+  buySubscription: async (count: number, plan: string,token:string) => {
     set({ loading: true, error: null });
     try {
-      const checkoutUrl = await buySubscriptionService(count, plan);
+      const checkoutUrl = await buySubscriptionService(count, plan,token);
       set({ loading: false });
       return checkoutUrl;
     } catch (e: any) {
@@ -58,12 +58,12 @@ export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => 
   },
 
 
-  assignSubscription: async (subscription_id, child_id) => {
+  assignSubscription: async (subscription_id: string, child_id: string, token: string) => {
     set({ loading: true, error: null });
 
     try {
-      await assignsubscription(child_id, subscription_id);
-      await get().loadSubscriptions();
+      await assignsubscription(child_id, subscription_id,token);
+      await get().loadSubscriptions(token);
       set({ loading: false });
     } catch (e: any) {
       set({
@@ -74,12 +74,12 @@ export const useSubscriptionStore = create<SubscriptionStoretype>((set, get) => 
     }
   },
 
-  renewSubscription: async (subscription_id, child_id) => {
+  renewSubscription: async (subscription_id: string, child_id: string, token: string) => {
     set({ loading: true, error: null });
 
     try {
-      await renewsubscription(child_id, subscription_id);
-      await get().loadSubscriptions();
+      await renewsubscription(child_id, subscription_id, token);
+      await get().loadSubscriptions(token);
       set({ loading: false });
     } catch (e: any) {
       set({

@@ -134,3 +134,28 @@ export interface Subject{
 export interface Subjects{
     subjects:Subject[]
 }
+
+export interface Recommendation{
+    child_id:string;
+    tier:string;
+    generated_at:string;
+    recommendation_text:string;
+    next_update_expected_at:string;
+}
+export interface RecommendationHistoryItem {
+    generated_at: string;
+    recommendation_text: string;
+}
+export interface RecommendationHistoryResponse {
+    history: RecommendationHistoryItem[];
+}
+
+export interface DashboardStatus {
+    learning_health_score: 'Excellent' | 'Good' | 'Needs Focus';
+    time_spent_today_minutes: number;
+    weekly_accuracy: number;
+    consistency_status: 'Highly Consistent' | 'Inconsistent';
+}
+export interface ApiErrorResponse {
+    message: string;
+}

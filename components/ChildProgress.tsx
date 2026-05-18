@@ -35,7 +35,7 @@ const ChildProgress = ({ childId, token }: ProgressSectionProps) => {
     if (childId && token) {
       loadAnalytics(childId, token);
     }
-  }, [childId, token]);
+  }, [childId, token, loadAnalytics]);
   if (loading)
     return (
       <ActivityIndicator
@@ -251,11 +251,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     overflow: "hidden",
   },
-  progressBarFill: { 
-  height: "100%", 
-  borderRadius: 4, 
-  backgroundColor: "#0286FF" 
-},
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 4,
+    backgroundColor: "#0286FF",
+  },
   performanceCard: {
     backgroundColor: "#26264A",
     borderRadius: 22,

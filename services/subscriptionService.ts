@@ -1,5 +1,5 @@
 import { Subscription } from "@/types/type";
-import { Clerk } from "@clerk/clerk-expo";
+
 
 const BASE_URL = (process.env.EXPO_PUBLIC_API ?? "").replace(/\/$/, "");
 
@@ -22,9 +22,8 @@ type CreateSubscriptionData = { subscription: Subscription };
 
 const buildUrl = (path: string) => `${BASE_URL}${path}`;
 
-const authHeaders = async () => {
-  const token = await Clerk.session?.getToken();
-  //console.log(token);
+const authHeaders = async (token:string) => {
+
 
   if (!token) {
 
@@ -38,10 +37,10 @@ const parseResponse = async <T>(res: Response): Promise<ApiResponse<T>> => {
   return res.json().catch(() => ({} as ApiResponse<T>));
 };
 
-export const getSubscriptions = async (): Promise<Subscription[]> => {
+export const getSubscriptions = async (token:string): Promise<Subscription[]> => {
   const res = await fetch(buildUrl("/subscriptions/list"), {
     method: "GET",
-    headers: await authHeaders(),
+    headers: await authHeaders(token),
   });
 
   const payload = await parseResponse<SubscriptionListData>(res);
@@ -53,10 +52,10 @@ export const getSubscriptions = async (): Promise<Subscription[]> => {
   return payload.data?.subscriptions ?? [];
 };
 
-export const buySubscription = async (count: number, plan: string) => {
+export const buySubscription = async (count: number, plan: string, token: string) => {
   const res = await fetch(buildUrl("/initialize-payment"), {
     method: "POST",
-    headers: await authHeaders(),
+    headers: await authHeaders(token),
     body: JSON.stringify({
       max_slots: Number(count),
       plan_type: plan,
@@ -75,7 +74,8 @@ export const buySubscription = async (count: number, plan: string) => {
 };
 
 export const getSubscriptionDetails = async (
-  subscriptionId: string | number
+  subscriptionId: string | number,
+  token: string
 ): Promise<Subscription> => {
   const id = String(subscriptionId);
   if (!/^\d+$/.test(id)) {
@@ -84,7 +84,7 @@ export const getSubscriptionDetails = async (
 
   const res = await fetch(buildUrl(`/subscriptions/${id}`), {
     method: "GET",
-    headers: await authHeaders(),
+    headers: await authHeaders(token),
   });
 
   const payload = await parseResponse<SubscriptionDetailsData>(res);
@@ -95,12 +95,12 @@ export const getSubscriptionDetails = async (
   return payload.data.subscription;
 };
 
-export const assignsubscription = async (childId: string, subscriptionId: string ) => {
+export const assignsubscription = async (childId: string, subscriptionId: string, token: string) => {
   
 
   const res = await fetch(buildUrl(`/subscriptions/add-child/${subscriptionId}/${childId}`), {
     method: "PUT",
-    headers: await authHeaders(),
+    headers: await authHeaders(token),
   });
 
   const payload = await parseResponse<unknown>(res);
@@ -111,14 +111,14 @@ export const assignsubscription = async (childId: string, subscriptionId: string
   return payload;
 };
 
-export const renewsubscription = async (childId: string, subscriptionId: string) => {
-  return assignsubscription(childId, subscriptionId);
+export const renewsubscription = async (childId: string, subscriptionId: string, token: string) => {
+  return assignsubscription(childId, subscriptionId, token);
 };
 
-export const createSubscription = async (payloadBody: CreateSubscriptionPayload) => {
+export const createSubscription = async (payloadBody: CreateSubscriptionPayload, token: string) => {
   const res = await fetch(buildUrl("/subscriptions/create"), {
     method: "POST",
-    headers: await authHeaders(),
+    headers: await authHeaders(token),
     body: JSON.stringify(payloadBody),
   });
 
