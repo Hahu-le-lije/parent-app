@@ -58,7 +58,8 @@ const Home = () => {
   
   useEffect(() => {
     const init = async () => {
-      const token = await getToken();
+      const token = await getToken({template:"testing"});
+      console.log(token)
       setAuthToken(token ?? "");
       if (token && children.length === 0 && !childrenLoading && !childrenError) {
         void loadChildren(token);

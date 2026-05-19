@@ -63,7 +63,7 @@ export const getDailyProgress = async (
   token: string,
   childId: string,
 ): Promise<DailyProgress> => {
-  const base = normalizeBaseUrl(process.env.EXPO_PUBLIC_API);
+  const base = normalizeBaseUrl(process.env.EXPO_PUBLIC_API_SYNC);
   const res = await fetch(
     parentChildUrl(base, childId, "/daily-summary"),
     {
@@ -86,7 +86,7 @@ export const getWeeklyProgress = async (
   token: string,
   childId: string,
 ): Promise<WeeklyProgress> => {
-  const base = normalizeBaseUrl(process.env.EXPO_PUBLIC_API);
+  const base = normalizeBaseUrl(process.env.EXPO_PUBLIC_API_SYNC);
   const res = await fetch(
     parentChildUrl(base, childId, "/weekly-summary"),
     {
@@ -109,7 +109,7 @@ export const getAnalytics = async (
   token: string,
   childId: string,
 ): Promise<Analytics> => {
-  const base = normalizeBaseUrl(process.env.EXPO_PUBLIC_API);
+  const base = normalizeBaseUrl(process.env.EXPO_PUBLIC_API_SYNC);
   const res = await fetch(
     parentChildUrl(base, childId, "/analytics-overview"),
     {

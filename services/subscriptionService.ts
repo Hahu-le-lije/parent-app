@@ -1,7 +1,7 @@
 import { Subscription } from "@/types/type";
 
 
-const BASE_URL = (process.env.EXPO_PUBLIC_API ?? "").replace(/\/$/, "");
+const BASE_URL = (process.env.EXPO_PUBLIC_API_SUB ?? "").replace(/\/$/, "");
 
 type ApiResponse<T> = {
   status?: "success" | "failed";
@@ -20,7 +20,7 @@ type CreateSubscriptionPayload = {
 };
 type CreateSubscriptionData = { subscription: Subscription };
 
-const buildUrl = (path: string) => `${BASE_URL}${path}`;
+const buildUrl = (path: string) => `${BASE_URL}/api${path}`;
 
 const authHeaders = async (token:string) => {
 
@@ -65,7 +65,7 @@ export const buySubscription = async (count: number, plan: string, token: string
   const payload = await parseResponse<InitializePaymentData>(res);
   const checkoutUrl = payload.data?.checkout_url;
 
-  
+  console.log("Buy subscription response:", checkoutUrl, payload,token);
   if (!res.ok || payload.status === "failed" || !checkoutUrl) {
     throw new Error(payload.error || payload.message || "invalid checkout url");
   }
@@ -91,7 +91,7 @@ export const getSubscriptionDetails = async (
   if (!res.ok || payload.status === "failed" || !payload.data?.subscription) {
     throw new Error(payload.error || payload.message || "Failed to fetch subscription details");
   }
-
+  console.log("Subscription details response:", payload,token);
   return payload.data.subscription;
 };
 

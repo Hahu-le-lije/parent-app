@@ -46,7 +46,7 @@ const Sub = () => {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const authToken = await getToken();
+      const authToken = await getToken({template:"production"});
       setToken(authToken);
     };
 

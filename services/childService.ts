@@ -1,6 +1,6 @@
 import { Child } from "@/types/type";
-import {useAuth} from '@clerk/clerk-expo'
-const API = process.env.EXPO_PUBLIC_API;
+
+const API = process.env.EXPO_PUBLIC_API_CHILD;
 
 interface NewChild {
   firstName: string;
@@ -17,7 +17,7 @@ interface Popup {
 export const getChildren = async (token:string): Promise<Child[]> => {
   try {
 
-    const res = await fetch(`${API}/children`, {
+    const res = await fetch(`${API}/api/parents/children`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -37,7 +37,7 @@ export const getChildren = async (token:string): Promise<Child[]> => {
 export const getChildInfo = async (childId: string, token: string): Promise<Child> => {
   try {
     
-    const res = await fetch(`${API}/children/${childId}`, {
+    const res = await fetch(`${API}/api/parents/children/${childId}`, {
       method: "GET",
       headers: {
         "Content-type": "application/json",
@@ -54,10 +54,11 @@ export const getChildInfo = async (childId: string, token: string): Promise<Chil
   }
 };
 export const addChild = async (child: NewChild, token: string): Promise<Popup> => {
+  console.log("Adding child with data:" ,token)
   try {
  
 
-    const res = await fetch(`${API}/children`, {
+    const res = await fetch(`${API}/api/parents/children`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -86,7 +87,7 @@ export const updateChild = async (
 ): Promise<void> => {
   try {
   
-    const res = await fetch(`${API}/children/${id}`, {
+    const res = await fetch(`${API}/api/parents/children/${id}`, {
       method: "PUT",
       headers: {
         "Content-type": "application/json",
@@ -108,7 +109,7 @@ export const updateChild = async (
 export const deleteChild = async (id: string,token:string): Promise<void> => {
   try {
     
-    const res = await fetch(`${API}/children/${id}`, {
+    const res = await fetch(`${API}/api/parents/children/${id}`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",

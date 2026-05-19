@@ -30,7 +30,7 @@ export const getRecommendations = async (
   token: string,
   childId: string,
 ): Promise<Recommendation> => {
-  const base = normalizeBaseUrl(process.env.EXPO_PUBLIC_API);
+  const base = normalizeBaseUrl(process.env.EXPO_PUBLIC_API_ANALYISIS);
   const res = await fetch(
     parentChildUrl(base, childId, "/recommendation"),
     {

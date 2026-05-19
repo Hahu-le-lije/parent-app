@@ -1,106 +1,129 @@
-import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, ScrollView, TouchableWithoutFeedback, Keyboard, Platform, Alert } from 'react-native'
-import Modal from 'react-native-modal';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import InputField from './InputField'; 
-import CustomButton from './CustomButton'; 
-import { icons,LOCAL_AVATARS } from '@/constants';
-import {useChildrenStore} from '@/store/childrenStore';
-import { NewChild } from '@/types/type';
-import * as FileSystem from 'expo-file-system/legacy';
-import { Asset } from 'expo-asset';
+import { icons, LOCAL_AVATARS } from "@/constants";
+import { useChildrenStore } from "@/store/childrenStore";
+import { NewChild } from "@/types/type";
+import { useAuth } from "@clerk/clerk-expo";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Asset } from "expo-asset";
+import * as FileSystem from "expo-file-system/legacy";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  Keyboard,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import Modal from "react-native-modal";
+import CustomButton from "./CustomButton";
+import InputField from "./InputField";
 
-
-type AddChildProps={
-  onClose?:()=>void
-}
+type AddChildProps = {
+  onClose?: () => void;
+};
 const { height } = Dimensions.get("window");
 
+const AddChild = ({ onClose }: AddChildProps) => {
+  const { addChild } = useChildrenStore();
+  const { getToken } = useAuth();
+  const [token,setToken]=useState<string|null>(null)
+  useEffect(()=>{
+    const fetchToken = async () => {
+      try {
+        const t = await getToken();
+        setToken(t);
+      } catch (e) {
+        console.error("Error fetching token:", e);
+      }    };
+    fetchToken();
+  },[getToken])
 
-
-const AddChild = ({onClose}:AddChildProps) => {
-  const {addChild}=useChildrenStore()
-
-  
   const [form, setForm] = useState<NewChild>({
     avatar: null as any,
-    firstName: '',
-    lastName: '',
-    dob: new Date()
-  })
+    firstName: "",
+    lastName: "",
+    dob: new Date(),
+  });
 
   const [isPickerVisible, setPickerVisible] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-  
-    if (Platform.OS === 'android') setShowDatePicker(false);
-    
+    if (Platform.OS === "android") setShowDatePicker(false);
+
     if (selectedDate) {
       setForm({ ...form, dob: selectedDate });
     }
-  }
+  };
   const handleSave = async () => {
-  if (!form.firstName.trim() || !form.lastName.trim()) {
-    console.log("Validation failed: First and Last name are required");
-    Alert.alert("Error", "First and Last name are required");
-    return;
-  }
-
-  try {
-    let avatarString: string | undefined = undefined;
-
-
-    if (form.avatar) {
-      console.log("Converting avatar to base64...");
-      const asset = Asset.fromModule(form.avatar as any);
-      await asset.downloadAsync();              
-
-      const localUri = asset.localUri || asset.uri;
-
-      if (localUri) {
-        const base64Data = await FileSystem.readAsStringAsync(localUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        avatarString = `data:image/png;base64,${base64Data}`;   
-      }
+    if (!form.firstName.trim() || !form.lastName.trim()) {
+      console.log("Validation failed: First and Last name are required");
+      Alert.alert("Error", "First and Last name are required");
+      return;
     }
 
-    
-    const payload: NewChild = {
-      firstName: form.firstName,
-      lastName: form.lastName,
-      dob: form.dob,
-      avatar: avatarString|| undefined,    
-    };
+    try {
+      let avatarString: string | undefined = undefined;
 
-    console.log("Saving child with base64 avatar...");
-    await addChild(payload);   
-    Alert.alert("Success", "Child added successfully!", [
-        { 
-          text: "OK", 
+      if (form.avatar) {
+        console.log("Converting avatar to base64...");
+        const asset = Asset.fromModule(form.avatar as any);
+        await asset.downloadAsync();
+
+        const localUri = asset.localUri || asset.uri;
+
+        if (localUri) {
+          const base64Data = await FileSystem.readAsStringAsync(localUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          avatarString = `data:image/png;base64,${base64Data}`;
+        }
+      }
+
+      const payload: NewChild = {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        dob: form.dob,
+        avatar: avatarString || undefined,
+      };
+
+      console.log("Saving child with base64 avatar...");
+      if (!token) {
+        Alert.alert("Error", "User not authenticated. Please log in again.");
+        return;
+      }
+      if (token) {
+        await addChild(payload, token);
+      }
+      Alert.alert("Success", "Child added successfully!", [
+        {
+          text: "OK",
           onPress: () => {
             setForm({
               avatar: null as any,
-              firstName: '',
-              lastName: '',
-              dob: new Date()
+              firstName: "",
+              lastName: "",
+              dob: new Date(),
             });
-            
-             onClose?.();        
-          }
-        }
-      ]);
 
-  } catch (error) {
-    console.error("Save Error:", error);
-   Alert.alert("Error", "Failed to save child. Please try again.");
-  }
-};
+            onClose?.();
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Save Error:", error);
+      Alert.alert("Error", "Failed to save child. Please try again.");
+    }
+  };
   return (
     <View style={styles.container}>
-    
       <View style={styles.handle} />
 
       <View style={styles.sheetHeader}>
@@ -114,7 +137,6 @@ const AddChild = ({onClose}:AddChildProps) => {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-           
             <TouchableOpacity
               style={styles.avatarTrigger}
               onPress={() => setPickerVisible(true)}
@@ -124,20 +146,23 @@ const AddChild = ({onClose}:AddChildProps) => {
                   <Image source={form.avatar} style={styles.avatarImage} />
                 ) : (
                   <View style={[styles.avatarImage, styles.avatarPlaceholder]}>
-                    <Image 
-                      source={icons.person} 
-                      style={{ width: 40, height: 40, tintColor: '#BABBC9' }} 
+                    <Image
+                      source={icons.person}
+                      style={{ width: 40, height: 40, tintColor: "#BABBC9" }}
                     />
                   </View>
                 )}
                 <View style={styles.editBadge}>
-                   <Text style={{ fontSize: 10, color: 'white', fontWeight: 'bold' }}>EDIT</Text>
+                  <Text
+                    style={{ fontSize: 10, color: "white", fontWeight: "bold" }}
+                  >
+                    EDIT
+                  </Text>
                 </View>
               </View>
               <Text style={styles.avatarText}>Choose Avatar</Text>
             </TouchableOpacity>
 
-            
             <InputField
               label="First Name"
               placeholder="Enter First Name"
@@ -155,8 +180,8 @@ const AddChild = ({onClose}:AddChildProps) => {
             />
 
             <Text style={styles.inputLabel}>Date of Birth</Text>
-            <TouchableOpacity 
-              style={styles.dateInput} 
+            <TouchableOpacity
+              style={styles.dateInput}
               onPress={() => setShowDatePicker(true)}
             >
               <Image source={icons.checkmark} style={styles.calendarIcon} />
@@ -167,10 +192,10 @@ const AddChild = ({onClose}:AddChildProps) => {
               <DateTimePicker
                 value={form.dob}
                 mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                display={Platform.OS === "ios" ? "spinner" : "default"}
                 onChange={onDateChange}
                 maximumDate={new Date()}
-                textColor="white" 
+                textColor="white"
               />
             )}
 
@@ -184,7 +209,6 @@ const AddChild = ({onClose}:AddChildProps) => {
           </ScrollView>
         </View>
       </TouchableWithoutFeedback>
-
 
       <Modal
         isVisible={isPickerVisible}
@@ -202,7 +226,7 @@ const AddChild = ({onClose}:AddChildProps) => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContainer}
             renderItem={({ item }) => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.avatarOption}
                 onPress={() => {
                   setForm({ ...form, avatar: item.source });
@@ -213,8 +237,8 @@ const AddChild = ({onClose}:AddChildProps) => {
               </TouchableOpacity>
             )}
           />
-          <TouchableOpacity 
-            onPress={() => setPickerVisible(false)} 
+          <TouchableOpacity
+            onPress={() => setPickerVisible(false)}
             style={styles.cancelBtn}
           >
             <Text style={styles.cancelBtnText}>Cancel</Text>
@@ -222,22 +246,22 @@ const AddChild = ({onClose}:AddChildProps) => {
         </View>
       </Modal>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     height: height * 0.8,
-    backgroundColor: "#1F1F39", 
+    backgroundColor: "#1F1F39",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
   },
   handle: {
     width: 50,
     height: 5,
-    backgroundColor: '#3E3E55',
+    backgroundColor: "#3E3E55",
     borderRadius: 10,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: 12,
   },
   scrollContent: {
@@ -246,7 +270,7 @@ const styles = StyleSheet.create({
   },
   sheetHeader: {
     marginTop: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   headerTitle: {
     fontFamily: "Poppins-Bold",
@@ -254,99 +278,99 @@ const styles = StyleSheet.create({
     color: "white",
   },
   avatarTrigger: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 30,
     marginTop: 10,
   },
   avatarWrapper: {
-    position: 'relative',
+    position: "relative",
   },
   avatarImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
     borderWidth: 3,
-    borderColor: '#3D5CFF',
+    borderColor: "#3D5CFF",
   },
   avatarPlaceholder: {
-    backgroundColor: '#2F2F42',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderStyle: 'dashed',
+    backgroundColor: "#2F2F42",
+    justifyContent: "center",
+    alignItems: "center",
+    borderStyle: "dashed",
   },
   editBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: '#3D5CFF',
+    backgroundColor: "#3D5CFF",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#1F1F39',
+    borderColor: "#1F1F39",
   },
   avatarText: {
-    color: '#BABBC9',
+    color: "#BABBC9",
     marginTop: 10,
-    fontFamily: 'Poppins-Medium',
+    fontFamily: "Poppins-Medium",
     fontSize: 14,
   },
   inputLabel: {
-    color: 'white',
-    fontFamily: 'Poppins-SemiBold',
+    color: "white",
+    fontFamily: "Poppins-SemiBold",
     fontSize: 16,
     marginBottom: 8,
     marginLeft: 4,
   },
   dateInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2F2F42',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2F2F42",
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: "rgba(255,255,255,0.05)",
     marginBottom: 20,
   },
   calendarIcon: {
     width: 20,
     height: 20,
-    tintColor: '#2F2F42',
+    tintColor: "#2F2F42",
     marginRight: 12,
   },
   dateValue: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontFamily: 'Poppins-Regular',
+    fontFamily: "Poppins-Regular",
   },
   saveButton: {
-    backgroundColor: '#3D5CFF',
+    backgroundColor: "#3D5CFF",
     height: 56,
     borderRadius: 16,
     marginTop: 10,
   },
   modalCenter: {
     margin: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   pickerBox: {
-    backgroundColor: '#2F2F42',
+    backgroundColor: "#2F2F42",
     padding: 24,
     borderRadius: 24,
-    width: '85%',
+    width: "85%",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: "rgba(255,255,255,0.1)",
   },
   pickerTitle: {
-    color: 'white',
-    textAlign: 'center',
+    color: "white",
+    textAlign: "center",
     marginBottom: 20,
     fontSize: 18,
-    fontFamily: 'Poppins-Bold',
+    fontFamily: "Poppins-Bold",
   },
   listContainer: {
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   avatarOption: {
     padding: 5,
@@ -356,17 +380,17 @@ const styles = StyleSheet.create({
     height: 75,
     borderRadius: 40,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   cancelBtn: {
     marginTop: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelBtnText: {
-    color: '#BABBC9',
+    color: "#BABBC9",
     fontSize: 16,
-    fontFamily: 'Poppins-Medium',
-  }
-})
+    fontFamily: "Poppins-Medium",
+  },
+});
 
 export default AddChild;
