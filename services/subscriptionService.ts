@@ -4,10 +4,14 @@ import { Subscription } from "@/types/type";
 const BASE_URL = (process.env.EXPO_PUBLIC_API_SUB ?? "").replace(/\/$/, "");
 
 type ApiResponse<T> = {
-  status?: "success" | "failed";
+  status?: string;
   data?: T;
   message?: string;
   error?: string;
+  checkout_url?: string;
+  checkoutUrl?: string;
+  payment_url?: string;
+  paymentUrl?: string;
 };
 
 type InitializePaymentData = { checkout_url: string };
@@ -37,6 +41,31 @@ const parseResponse = async <T>(res: Response): Promise<ApiResponse<T>> => {
   return res.json().catch(() => ({} as ApiResponse<T>));
 };
 
+const firstString = (...values: unknown[]) =>
+  values.find((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+const getCheckoutUrl = (payload: ApiResponse<InitializePaymentData>) => {
+  const data = payload.data as InitializePaymentData &
+    Partial<ApiResponse<unknown>> & {
+      checkoutUrl?: string;
+      payment_url?: string;
+      paymentUrl?: string;
+      url?: string;
+    };
+
+  return firstString(
+    data?.checkout_url,
+    data?.checkoutUrl,
+    data?.payment_url,
+    data?.paymentUrl,
+    data?.url,
+    payload.checkout_url,
+    payload.checkoutUrl,
+    payload.payment_url,
+    payload.paymentUrl
+  );
+};
+
 export const getSubscriptions = async (token:string): Promise<Subscription[]> => {
   const res = await fetch(buildUrl("/subscriptions/list"), {
     method: "GET",
@@ -44,6 +73,7 @@ export const getSubscriptions = async (token:string): Promise<Subscription[]> =>
   });
 
   const payload = await parseResponse<SubscriptionListData>(res);
+  console.log("get subscription: ",payload)
 
   if (!res.ok || payload.status === "failed") {
     throw new Error(payload.error || payload.message || "Failed to fetch subscriptions");
@@ -53,21 +83,28 @@ export const getSubscriptions = async (token:string): Promise<Subscription[]> =>
 };
 
 export const buySubscription = async (count: number, plan: string, token: string) => {
+  const body = {
+    max_slots: Number(count),
+    plan_type: plan,
+  };
+
   const res = await fetch(buildUrl("/initialize-payment"), {
     method: "POST",
     headers: await authHeaders(token),
-    body: JSON.stringify({
-      max_slots: Number(count),
-      plan_type: plan,
-    }),
+    body: JSON.stringify(body),
   });
 
   const payload = await parseResponse<InitializePaymentData>(res);
-  const checkoutUrl = payload.data?.checkout_url;
+  const checkoutUrl = getCheckoutUrl(payload);
 
-  console.log("Buy subscription response:", checkoutUrl, payload,token);
+  console.log("Buy subscription response:", {
+    status: res.status,
+    checkoutUrl,
+    payload,
+    requestBody: body,
+  });
   if (!res.ok || payload.status === "failed" || !checkoutUrl) {
-    throw new Error(payload.error || payload.message || "invalid checkout url");
+    throw new Error(payload.error || payload.message || `Invalid checkout url (HTTP ${res.status})`);
   }
 
   return checkoutUrl;
@@ -115,10 +152,10 @@ export const renewsubscription = async (childId: string, subscriptionId: string,
   return assignsubscription(childId, subscriptionId, token);
 };
 
-export const createSubscription = async (payloadBody: CreateSubscriptionPayload, token: string) => {
+export const createSubscription = async (payloadBody: CreateSubscriptionPayload, token?: string) => {
   const res = await fetch(buildUrl("/subscriptions/create"), {
     method: "POST",
-    headers: await authHeaders(token),
+    headers: token ? await authHeaders(token) : { "Content-Type": "application/json" },
     body: JSON.stringify(payloadBody),
   });
 

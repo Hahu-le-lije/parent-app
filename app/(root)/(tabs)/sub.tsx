@@ -147,8 +147,8 @@ const Sub = () => {
   }));
 
   const getPlanType = () => {
-    if (!selectedPlan) return "premium_monthly";
-    return `${String(selectedPlan.name).toLowerCase()}_${duration.toLowerCase()}`;
+    if (!selectedPlan) return "premium";
+    return String(selectedPlan.name).toLowerCase();
   };
   const showInlineLoader = loading && subscriptions.length > 0;
   const retrySubscriptions = () => {

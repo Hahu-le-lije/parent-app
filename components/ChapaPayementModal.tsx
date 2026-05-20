@@ -8,6 +8,8 @@ import {
   Text,
   Alert,
   SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { WebView } from "react-native-webview";
 
@@ -63,48 +65,64 @@ const ChapaPaymentModal = ({
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet" 
+      presentationStyle="fullScreen"
+      statusBarTranslucent={false}
+      hardwareAccelerated
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
-        <View style={styles.webViewHeader}>
-          <Text style={styles.headerTitle}>Secure Payment</Text>
-          <TouchableOpacity onPress={onClose} style={styles.cancelTouch}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-
-        {isLoading ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color="#3D5CFF" />
-            <Text style={styles.loaderText}>Connecting to Chapa...</Text>
-          </View>
-        ) : errorMsg ? (
-          <View style={styles.loaderContainer}>
-            <Text style={styles.errorText}>{errorMsg}</Text>
-            <TouchableOpacity style={styles.retryBtn} onPress={onRetry}>
-              <Text style={styles.retryText}>Try Again</Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <SafeAreaView style={styles.container}>
+          <View style={styles.webViewHeader}>
+            <Text style={styles.headerTitle}>Secure Payment</Text>
+            <TouchableOpacity onPress={onClose} style={styles.cancelTouch}>
+              <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-        ) : (
-          <WebView
-            source={{ uri: checkoutUrl! }}
-            onNavigationStateChange={handleNavigationStateChange}
-            startInLoadingState={true}
-            renderLoading={() => (
-              <View style={styles.loaderContainer}>
-                <ActivityIndicator size="large" color="#3D5CFF" />
-              </View>
-            )}
-            style={styles.webview}
-          />
-        )}
-      </SafeAreaView>
+
+          {isLoading ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#3D5CFF" />
+              <Text style={styles.loaderText}>Connecting to Chapa...</Text>
+            </View>
+          ) : errorMsg ? (
+            <View style={styles.loaderContainer}>
+              <Text style={styles.errorText}>{errorMsg}</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={onRetry}>
+                <Text style={styles.retryText}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.webviewContainer}>
+              <WebView
+                source={{ uri: checkoutUrl! }}
+                onNavigationStateChange={handleNavigationStateChange}
+                startInLoadingState={true}
+                keyboardDisplayRequiresUserAction={false}
+                nestedScrollEnabled
+                overScrollMode="never"
+                renderLoading={() => (
+                  <View style={styles.loaderContainer}>
+                    <ActivityIndicator size="large" color="#3D5CFF" />
+                  </View>
+                )}
+                style={styles.webview}
+              />
+            </View>
+          )}
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardContainer: {
+    flex: 1,
+    backgroundColor: "#1F1F39",
+  },
   container: {
     flex: 1,
     backgroundColor: "#1F1F39",
@@ -159,6 +177,10 @@ const styles = StyleSheet.create({
   retryText: { 
     color: "white", 
     fontFamily: "Poppins-Bold" 
+  },
+  webviewContainer: {
+    flex: 1,
+    overflow: "hidden",
   },
   webview: {
     flex: 1,

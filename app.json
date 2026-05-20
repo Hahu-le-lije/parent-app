@@ -19,6 +19,7 @@
         "monochromeImage": "./assets/images/hahu_logo.png"
       },
       "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "pan",
       "predictiveBackGestureEnabled": false,
       "package": "com.izorium.Hahuparent"
     },
