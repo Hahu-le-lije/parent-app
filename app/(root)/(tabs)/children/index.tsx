@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import AddChild from "@/components/AddChild";
+import { getParentToken } from "@/lib/auth";
 import { t } from "@/lib/i18n";
 import { useChildrenStore } from "@/store/childrenStore";
 import { useLanguageStore } from "@/store/languageStore";
@@ -36,7 +37,7 @@ const Children = () => {
   useEffect(() => {
     const loadChildrenWithToken = async () => {
       if (!children.length && !loading && !error) {
-        const token = await getToken();
+        const token = await getParentToken(getToken);
         if (token) {
           loadChildren(token);
         }
@@ -61,7 +62,7 @@ const Children = () => {
 
   const showInlineLoader = loading && children.length > 0;
   const retryLoadChildren = async () => {
-    const token = await getToken();
+    const token = await getParentToken(getToken);
     if (token) {
       void loadChildren(token);
     }

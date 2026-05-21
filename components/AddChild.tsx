@@ -1,4 +1,5 @@
 import { icons, LOCAL_AVATARS } from "@/constants";
+import { getParentToken } from "@/lib/auth";
 import { useChildrenStore } from "@/store/childrenStore";
 import { NewChild } from "@/types/type";
 import { useAuth } from "@clerk/clerk-expo";
@@ -36,7 +37,7 @@ const AddChild = ({ onClose }: AddChildProps) => {
   useEffect(()=>{
     const fetchToken = async () => {
       try {
-        const t = await getToken();
+        const t = await getParentToken(getToken);
         setToken(t);
       } catch (e) {
         console.error("Error fetching token:", e);
@@ -44,7 +45,7 @@ const AddChild = ({ onClose }: AddChildProps) => {
     fetchToken();
   },[getToken])
 
-  const [form, setForm] = useState<NewChild>({
+  const [form, setForm] = useState<NewChild & { avatar?: any }>({
     avatar: null as any,
     firstName: "",
     lastName: "",
@@ -119,7 +120,12 @@ const AddChild = ({ onClose }: AddChildProps) => {
       ]);
     } catch (error) {
       console.error("Save Error:", error);
-      Alert.alert("Error", "Failed to save child. Please try again.");
+      Alert.alert(
+        "Child not added",
+        error instanceof Error
+          ? error.message
+          : "Failed to save child. Please try again.",
+      );
     }
   };
   return (
@@ -143,7 +149,14 @@ const AddChild = ({ onClose }: AddChildProps) => {
             >
               <View style={styles.avatarWrapper}>
                 {form.avatar ? (
-                  <Image source={form.avatar} style={styles.avatarImage} />
+                  <Image
+                    source={
+                      typeof form.avatar === "string"
+                        ? { uri: form.avatar }
+                        : form.avatar
+                    }
+                    style={styles.avatarImage}
+                  />
                 ) : (
                   <View style={[styles.avatarImage, styles.avatarPlaceholder]}>
                     <Image

@@ -73,7 +73,7 @@ export const getSubscriptions = async (token:string): Promise<Subscription[]> =>
   });
 
   const payload = await parseResponse<SubscriptionListData>(res);
-  console.log("get subscription: ",payload)
+
 
   if (!res.ok || payload.status === "failed") {
     throw new Error(payload.error || payload.message || "Failed to fetch subscriptions");
@@ -97,12 +97,7 @@ export const buySubscription = async (count: number, plan: string, token: string
   const payload = await parseResponse<InitializePaymentData>(res);
   const checkoutUrl = getCheckoutUrl(payload);
 
-  console.log("Buy subscription response:", {
-    status: res.status,
-    checkoutUrl,
-    payload,
-    requestBody: body,
-  });
+  
   if (!res.ok || payload.status === "failed" || !checkoutUrl) {
     throw new Error(payload.error || payload.message || `Invalid checkout url (HTTP ${res.status})`);
   }

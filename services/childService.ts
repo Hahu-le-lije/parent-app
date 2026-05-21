@@ -1,6 +1,6 @@
 import { Child } from "@/types/type";
 
-const API = process.env.EXPO_PUBLIC_API_CHILD;
+const API = (process.env.EXPO_PUBLIC_API_CHILD ?? process.env.EXPO_PUBLIC_API ?? "").replace(/\/$/, "");
 
 interface NewChild {
   firstName: string;
@@ -9,13 +9,66 @@ interface NewChild {
   avatar?: string;
 }
 interface Popup {
-  username: string;
-  password: string;
+  child: Child;
+  credentials: {
+    username: string;
+    pin: string;
+  };
 }
 
+type ApiChild = {
+  id: string | number;
+  first_name?: string | null;
+  last_name?: string | null;
+  birthdate?: string | null;
+  avatar?: string | null;
+  username?: string | null;
+  subscription_id?: string | null;
+  status?: string | null;
+};
+
+const parseJson = async <T>(res: Response): Promise<T | null> => {
+  try {
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+};
+
+const apiError = async (res: Response, fallback: string) => {
+  const payload = await parseJson<{ message?: string; errors?: Record<string, string[]> }>(res);
+  const validationMessage = payload?.errors
+    ? Object.values(payload.errors).flat().join("\n")
+    : undefined;
+  const message = validationMessage || payload?.message || fallback;
+
+  return new Error(`${message} (${res.status})`);
+};
+
+const mapChild = (child: ApiChild): Child => ({
+  id: String(child.id),
+  dob: child.birthdate ? new Date(child.birthdate) : new Date(),
+  subscription: child.subscription_id ?? "No subscription",
+  paid: Boolean(child.subscription_id),
+  avatar: child.avatar ?? "",
+  username: child.username ?? "",
+  password: "",
+  firstname: child.first_name ?? "",
+  lastname: child.last_name ?? "",
+});
+
+const childPayload = (child: NewChild) => ({
+  first_name: child.firstName,
+  last_name: child.lastName,
+  birthdate: child.dob.toISOString(),
+  avatar: child.avatar ?? null,
+});
 
 export const getChildren = async (token:string): Promise<Child[]> => {
   try {
+    if (!API) {
+      throw new Error("Child service API URL is not configured.");
+    }
 
     const res = await fetch(`${API}/api/parents/children`, {
       method: "GET",
@@ -25,10 +78,11 @@ export const getChildren = async (token:string): Promise<Child[]> => {
       },
     });
     if (!res.ok) {
-      throw new Error("Failed to fetch children");
+      throw await apiError(res, "Could not load children from the child service.");
     }
 
-    return await res.json();
+    const data = (await res.json()) as ApiChild[];
+    return data.map(mapChild);
   } catch (e) {
     console.error("Error fetching children:", e);
     throw e;
@@ -36,6 +90,10 @@ export const getChildren = async (token:string): Promise<Child[]> => {
 };
 export const getChildInfo = async (childId: string, token: string): Promise<Child> => {
   try {
+    if (!API) {
+      throw new Error("Child service API URL is not configured.");
+    }
+    
     
     const res = await fetch(`${API}/api/parents/children/${childId}`, {
       method: "GET",
@@ -45,18 +103,20 @@ export const getChildInfo = async (childId: string, token: string): Promise<Chil
       },
     });
     if (!res.ok) {
-      throw new Error("Failed to fetch child info");
+      throw await apiError(res, "Could not load this child profile.");
     }
-    return await res.json();
+    const data = (await res.json()) as ApiChild;
+    return mapChild(data);
   } catch (error) {
     console.error("Error fetching child info:", error);
     throw error;
   }
 };
 export const addChild = async (child: NewChild, token: string): Promise<Popup> => {
-  console.log("Adding child with data:" ,token)
   try {
- 
+    if (!API) {
+      throw new Error("Child service API URL is not configured.");
+    }
 
     const res = await fetch(`${API}/api/parents/children`, {
       method: "POST",
@@ -64,17 +124,21 @@ export const addChild = async (child: NewChild, token: string): Promise<Popup> =
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        ...child,
-        dob: child.dob.toISOString(),
-      }),
+      body: JSON.stringify(childPayload(child)),
     });
 
     if (!res.ok) {
-      throw new Error("Failed to add child");
+      throw await apiError(res, "Could not add child.");
     }
-
-    return await res.json();
+    const data = (await res.json()) as { child: ApiChild; credentials: { username: string; pin: string } };
+    console.log("Add child response:", data);
+    return {
+      child: {
+        ...mapChild(data.child),
+        password: data.credentials.pin,
+      },
+      credentials: data.credentials,
+    };
   } catch (e) {
     console.error("Error adding child:", e);
     throw e;
@@ -86,20 +150,20 @@ export const updateChild = async (
   token:string
 ): Promise<void> => {
   try {
-  
+    if (!API) {
+      throw new Error("Child service API URL is not configured.");
+    }
+
     const res = await fetch(`${API}/api/parents/children/${id}`, {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        ...child,
-        dob: child.dob.toISOString(),
-      }),
+      body: JSON.stringify(childPayload(child)),
     });
     if (!res.ok) {
-      throw new Error("Failed to update child");
+      throw await apiError(res, "Could not update child.");
     }
   } catch (e) {
     console.error("Error adding Child: ", e);
@@ -108,6 +172,10 @@ export const updateChild = async (
 };
 export const deleteChild = async (id: string,token:string): Promise<void> => {
   try {
+    if (!API) {
+      throw new Error("Child service API URL is not configured.");
+    }
+    
     
     const res = await fetch(`${API}/api/parents/children/${id}`, {
       method: "DELETE",
@@ -117,7 +185,7 @@ export const deleteChild = async (id: string,token:string): Promise<void> => {
       },
     });
     if (!res.ok) {
-      throw new Error("Failed to delete child");
+      throw await apiError(res, "Could not delete child.");
     }
   } catch (e) {
     console.error("Error adding Child: ", e);

@@ -27,6 +27,12 @@ export const tokenCache = {
   },
 };
 
+export const getParentToken = async (
+  getToken: (options?: any) => Promise<string | null>,
+) => {
+  return getToken({ template: "production" });
+};
+
 export const googleOAuth = async (startOAuthFlow: any) => {
   try {
     const { createdSessionId, setActive} = await startOAuthFlow({

@@ -7,6 +7,8 @@ import {
   deleteChild as deleteChildAPI,
 } from "@/services/childService"
 
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error && error.message ? error.message : fallback;
 
 type ChildrenState = {
   children: Child[];
@@ -31,7 +33,7 @@ export const useChildrenStore = create<ChildrenState>((set, get) => ({
       set({ children: data, loading: false });
     } catch (e) {
       set({
-        error: "Failed to load children",
+        error: errorMessage(e, "Failed to load children"),
         loading: false,
       });
     }
@@ -42,15 +44,19 @@ export const useChildrenStore = create<ChildrenState>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      await addChildAPI(payload, token);
+      const created = await addChildAPI(payload, token);
 
-      await get().loadChildren(token);
-
+      set((state) => ({
+        children: [...state.children, created.child],
+        loading: false,
+      }));
     } catch (e) {
+      const message = errorMessage(e, "Failed to add child");
       set({
-        error: "Failed to add child",
+        error: message,
         loading: false,
       });
+      throw new Error(message);
     }
   },
 
@@ -68,10 +74,12 @@ export const useChildrenStore = create<ChildrenState>((set, get) => ({
         loading: false,
       }));
     } catch (e) {
+      const message = errorMessage(e, "Failed to update child");
       set({
-        error: "Failed to update child",
+        error: message,
         loading: false,
       });
+      throw new Error(message);
     }
   },
 
@@ -87,10 +95,12 @@ export const useChildrenStore = create<ChildrenState>((set, get) => ({
         loading: false,
       }));
     } catch (e) {
+      const message = errorMessage(e, "Failed to delete child");
       set({
-        error: "Failed to delete child",
+        error: message,
         loading: false,
       });
+      throw new Error(message);
     }
   },
 }));

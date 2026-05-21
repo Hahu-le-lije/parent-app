@@ -2,6 +2,7 @@ import DailyRecommendationCard from "@/components/DailyRecommendationCard";
 import InlineSkeleton from "@/components/InlineSkeleton";
 import StateMessage from "@/components/StateMessage";
 import { icons } from "@/constants";
+import { getParentToken } from "@/lib/auth";
 import { t } from "@/lib/i18n";
 import { useChildrenStore } from "@/store/childrenStore";
 import { useLanguageStore } from "@/store/languageStore";
@@ -58,8 +59,7 @@ const Home = () => {
   
   useEffect(() => {
     const init = async () => {
-      const token = await getToken({template:"testing"});
-      console.log(token)
+      const token = await getParentToken(getToken);
       setAuthToken(token ?? "");
       if (token && children.length === 0 && !childrenLoading && !childrenError) {
         void loadChildren(token);

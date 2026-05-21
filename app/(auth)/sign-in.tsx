@@ -7,11 +7,9 @@ import OAuth from '@/components/OAuth'
 import { Link, useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSignIn } from '@clerk/clerk-expo'
-import { useChildrenStore } from '@/store/childrenStore'
 
 const SignIn = () => {
   const router = useRouter()
-  const loadChildren = useChildrenStore((state) => state.loadChildren)
 
   const [form, setForm] = useState({
     email: '',
@@ -38,7 +36,6 @@ const SignIn = () => {
 
       if (attempt.status === 'complete') {
         await setActive({ session: attempt.createdSessionId })
-        await loadChildren()
         router.replace('/(root)/(tabs)/home')
       } else {
         setErrorMsg("Please complete all sign-in steps.")

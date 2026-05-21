@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Platform } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable'; 
+import { getParentToken } from "@/lib/auth";
 import { useChildrenStore } from "@/store/childrenStore";
+import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { LOCAL_AVATARS } from '@/constants';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -28,6 +30,7 @@ type ChildProps = {
 
 const Child2 = ({ item }: ChildProps) => {
   const { deleteChild,updateChild } = useChildrenStore();
+  const { getToken } = useAuth();
   const router = useRouter();
 
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -81,7 +84,12 @@ const Child2 = ({ item }: ChildProps) => {
         avatar:avatarString
       }
       console.log("saving child with base64",payload);
-      await updateChild(item.id,payload);
+      const token = await getParentToken(getToken);
+      if (!token) {
+        Alert.alert("Error", "User not authenticated. Please log in again.");
+        return;
+      }
+      await updateChild(item.id,payload,token);
       Alert.alert("Success","Child Updated Successfully");
       
       setForm({
@@ -91,8 +99,10 @@ const Child2 = ({ item }: ChildProps) => {
         });
     }catch(e){
       console.log(e)
-      Alert.alert("Error","Failed to update child")
-      throw e
+      Alert.alert(
+        "Child not updated",
+        e instanceof Error ? e.message : "Failed to update child",
+      )
     }
   
   }
@@ -120,8 +130,21 @@ const Child2 = ({ item }: ChildProps) => {
             {
               text: "Delete",
               style: "destructive",
-              onPress: () =>{ deleteChild(item.id)
-                router.push('/(root)/(tabs)/children')
+              onPress: async () =>{
+                try {
+                  const token = await getParentToken(getToken);
+                  if (!token) {
+                    Alert.alert("Error", "User not authenticated. Please log in again.");
+                    return;
+                  }
+                  await deleteChild(item.id, token);
+                  router.push('/(root)/(tabs)/children')
+                } catch (e) {
+                  Alert.alert(
+                    "Child not deleted",
+                    e instanceof Error ? e.message : "Failed to delete child",
+                  );
+                }
               },
             },
           ]

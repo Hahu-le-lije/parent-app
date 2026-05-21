@@ -3,6 +3,7 @@ import ChildProfile from "@/components/ChildProfile";
 import ChildProgress from "@/components/ChildProgress";
 import StateMessage from "@/components/StateMessage";
 import SubjectToggle from "@/components/SubjectToggle";
+import { getParentToken } from "@/lib/auth";
 import { useChildrenStore } from "@/store/childrenStore";
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
@@ -45,7 +46,7 @@ const ChildDetail = () => {
   useEffect(() => {
     const getter = async () => {
       try {
-        const token = await getToken();
+        const token = await getParentToken(getToken);
         setTok(token ?? "");
       } catch {
         setTok("");
